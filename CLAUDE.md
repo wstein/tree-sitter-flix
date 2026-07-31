@@ -156,5 +156,5 @@ down further, the greedy expression list is the thing to attack.
 
 - Conventional Commits; the type reflects the primary purpose of the change (`feat` for new
   grammar coverage, `fix` for parse corrections, `chore`/`ci` for tooling).
-- CI runs on `master`. `.github/workflows/regenerate.yml` auto-regenerates the parser on
+- CI runs on `main`. `.github/workflows/regenerate.yml` auto-regenerates the parser on
   Dependabot PRs.
