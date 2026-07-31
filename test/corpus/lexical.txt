@@ -1,0 +1,233 @@
+================================================================================
+Block comments nest
+================================================================================
+
+/* outer /* inner */ still outer */
+def f(): Int32 = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (block_comment)
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (integer)))
+
+================================================================================
+Line and doc comments
+================================================================================
+
+// a line comment
+/// a doc comment
+//// still a line comment
+def f(): Int32 = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (line_comment)
+  (doc_comment)
+  (doc_comment)
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (integer)))
+
+================================================================================
+String interpolation
+================================================================================
+
+def f(): String = "a${b}c${d}e"
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (string_interpolation
+      (qualified_name
+        (name_lower))
+      (qualified_name
+        (name_lower)))))
+
+================================================================================
+Nested string interpolation
+================================================================================
+
+def f(): String = "${ "${x}" }"
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (string_interpolation
+      (string_interpolation
+        (qualified_name
+          (name_lower))))))
+
+================================================================================
+Debug interpolation
+================================================================================
+
+def f(): String = d"x = ${x}"
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (debug_interpolation
+      (debug_prefix)
+      (string_interpolation
+        (qualified_name
+          (name_lower))))))
+
+================================================================================
+Numeric literals
+================================================================================
+
+def f(): Unit = (1, 1_000_000, 0xFF, 42i8, 7ii, 1.5, 1.5f32, 2.0ff, 1e5)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (integer))
+      (argument
+        (integer))
+      (argument
+        (integer))
+      (argument
+        (integer))
+      (argument
+        (integer))
+      (argument
+        (float))
+      (argument
+        (float))
+      (argument
+        (float))
+      (argument
+        (float)))))
+
+================================================================================
+Char regex and escapes
+================================================================================
+
+def f(): Unit = ('a', '\n', 'ÿ', regex"\\d+")
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (char))
+      (argument
+        (char))
+      (argument
+        (char))
+      (argument
+        (regex)))))
+
+================================================================================
+Holes
+================================================================================
+
+def f(): Unit = (???, ?named, variable?)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (hole_anonymous))
+      (argument
+        (hole_named))
+      (argument
+        (hole_variable)))))
+
+================================================================================
+Multi-character user operators
+================================================================================
+
+def f(): Unit = a |> b ||> c <*> d >>> e
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (binary_expression
+        (binary_expression
+          (binary_expression
+            (qualified_name
+              (name_lower))
+            (generic_operator)
+            (qualified_name
+              (name_lower)))
+          (generic_operator)
+          (qualified_name
+            (name_lower)))
+        (generic_operator)
+        (qualified_name
+          (name_lower)))
+      (generic_operator)
+      (qualified_name
+        (name_lower)))))
+
+================================================================================
+Bang and dollar are name characters
+================================================================================
+
+def f(): Unit = (a!, b$c)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (qualified_name
+          (name_lower)))
+      (argument
+        (qualified_name
+          (name_lower))))))

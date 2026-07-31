@@ -1,0 +1,812 @@
+================================================================================
+Operator precedence
+================================================================================
+
+def f(): Unit = not a and b or c == d < e :: g + h * i
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (binary_expression
+        (unary_expression
+          (qualified_name
+            (name_lower)))
+        (qualified_name
+          (name_lower)))
+      (binary_expression
+        (qualified_name
+          (name_lower))
+        (binary_expression
+          (qualified_name
+            (name_lower))
+          (binary_expression
+            (qualified_name
+              (name_lower))
+            (binary_expression
+              (qualified_name
+                (name_lower))
+              (binary_expression
+                (qualified_name
+                  (name_lower))
+                (qualified_name
+                  (name_lower))))))))))
+
+================================================================================
+Cons is right associative
+================================================================================
+
+def f(): Unit = a :: b :: c
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (qualified_name
+        (name_lower))
+      (binary_expression
+        (qualified_name
+          (name_lower))
+        (qualified_name
+          (name_lower))))))
+
+================================================================================
+Backtick infix function
+================================================================================
+
+def f(): Unit = a `add` b
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (qualified_name
+        (name_lower))
+      (qualified_name
+        (name_lower))
+      (qualified_name
+        (name_lower)))))
+
+================================================================================
+Operator as lambda
+================================================================================
+
+def f(): Unit = List.foldLeft((+), 0, xs)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (apply_expression
+      (qualified_name
+        (name_upper)
+        (name_lower))
+      (argument_list
+        (argument
+          (operator_lambda))
+        (argument
+          (integer))
+        (argument
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Lambdas
+================================================================================
+
+def f(): Unit = (x -> x + 1, (a, b) -> a, () -> 1, (x: Int32) -> x)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (lambda
+          (parameter
+            (name_lower))
+          (binary_expression
+            (qualified_name
+              (name_lower))
+            (integer))))
+      (argument
+        (lambda
+          (parameter_list
+            (parameter
+              (name_lower))
+            (parameter
+              (name_lower)))
+          (qualified_name
+            (name_lower))))
+      (argument
+        (lambda
+          (parameter_list)
+          (integer)))
+      (argument
+        (lambda
+          (parameter_list
+            (parameter
+              (name_lower)
+              (type_reference
+                (name_upper))))
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Let and sequencing
+================================================================================
+
+def f(): Unit =
+    let x = 1;
+    let y: Int32 = 2;
+    println(x + y)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (let_expression
+      (variable_pattern
+        (name_lower))
+      (sequence_expression
+        (integer)
+        (let_expression
+          (variable_pattern
+            (name_lower))
+          (type_reference
+            (name_upper))
+          (sequence_expression
+            (integer)
+            (apply_expression
+              (qualified_name
+                (name_lower))
+              (argument_list
+                (argument
+                  (binary_expression
+                    (qualified_name
+                      (name_lower))
+                    (qualified_name
+                      (name_lower))))))))))))
+
+================================================================================
+Local def
+================================================================================
+
+def f(): Unit =
+    def go(n: Int32): Int32 = n + 1;
+    go(1)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (local_def_expression
+      (name_lower)
+      (parameter_list
+        (parameter
+          (name_lower)
+          (type_reference
+            (name_upper))))
+      (type_reference
+        (name_upper))
+      (sequence_expression
+        (binary_expression
+          (qualified_name
+            (name_lower))
+          (integer))
+        (apply_expression
+          (qualified_name
+            (name_lower))
+          (argument_list
+            (argument
+              (integer))))))))
+
+================================================================================
+If then else
+================================================================================
+
+def f(): Int32 = if (a) 1 else 2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (if_expression
+      (qualified_name
+        (name_lower))
+      (integer)
+      (integer))))
+
+================================================================================
+Match with guard
+================================================================================
+
+def f(): Int32 = match x {
+    case Some(y) if y > 0 => y
+    case None            => 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (match_expression
+      (qualified_name
+        (name_lower))
+      (match_body
+        (match_rule
+          (tag_pattern
+            (qualified_name
+              (name_upper))
+            (tag_pattern_body
+              (variable_pattern
+                (name_lower))))
+          (binary_expression
+            (qualified_name
+              (name_lower))
+            (integer))
+          (qualified_name
+            (name_lower)))
+        (match_rule
+          (tag_pattern
+            (qualified_name
+              (name_upper)))
+          (integer))))))
+
+================================================================================
+Match lambda
+================================================================================
+
+def f(): Unit = xs |> List.map(match (a, b) -> a + b)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (qualified_name
+        (name_lower))
+      (generic_operator)
+      (apply_expression
+        (qualified_name
+          (name_upper)
+          (name_lower))
+        (argument_list
+          (argument
+            (match_lambda
+              (tuple_pattern
+                (variable_pattern
+                  (name_lower))
+                (variable_pattern
+                  (name_lower)))
+              (binary_expression
+                (qualified_name
+                  (name_lower))
+                (qualified_name
+                  (name_lower))))))))))
+
+================================================================================
+Records
+================================================================================
+
+def f(): Unit = ({x = 1, y = 2}, {+z = 3 | r}, {-z | r}, {x = 9 | r}, r#x)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (record_expression
+          (record_operation
+            (name_lower)
+            (integer))
+          (record_operation
+            (name_lower)
+            (integer))))
+      (argument
+        (record_expression
+          (record_operation
+            (name_lower)
+            (integer))
+          (qualified_name
+            (name_lower))))
+      (argument
+        (record_expression
+          (record_operation
+            (name_lower))
+          (qualified_name
+            (name_lower))))
+      (argument
+        (record_expression
+          (record_operation
+            (name_lower)
+            (integer))
+          (qualified_name
+            (name_lower))))
+      (argument
+        (record_select
+          (qualified_name
+            (name_lower))
+          (name_lower))))))
+
+================================================================================
+Collection literals
+================================================================================
+
+def f(): Unit = (Vector#{1, 2}, List#{1}, Set#{1}, Map#{1 => 2})
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (vector_literal
+          (integer)
+          (integer)))
+      (argument
+        (list_literal
+          (integer)))
+      (argument
+        (set_literal
+          (integer)))
+      (argument
+        (map_literal
+          (map_entry
+            (integer)
+            (integer)))))))
+
+================================================================================
+Array literal requires a region
+================================================================================
+
+def f(): Unit = region rc { Array#{1, 2} @ rc }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (region_expression
+      (name_lower)
+      (block
+        (array_literal
+          (integer)
+          (integer)
+          (region_name
+            (qualified_name
+              (name_lower))))))))
+
+================================================================================
+Struct access and update
+================================================================================
+
+def f(): Unit = p->x
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (struct_get
+      (qualified_name
+        (name_lower))
+      (name_lower))))
+
+================================================================================
+Struct field assignment
+================================================================================
+
+def f(): Unit = p->x = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (struct_put
+      (qualified_name
+        (name_lower))
+      (name_lower)
+      (integer))))
+
+================================================================================
+Indexing
+================================================================================
+
+def f(): Unit = (a[0], a[0] = 1)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (index_expression
+          (qualified_name
+            (name_lower))
+          (integer)))
+      (argument
+        (index_expression
+          (qualified_name
+            (name_lower))
+          (integer))
+        (integer)))))
+
+================================================================================
+For comprehensions
+================================================================================
+
+def f(): Unit = foreach (x <- xs; if x > 1) println(x)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (foreach_expression
+      (for_fragments
+        (for_generator
+          (variable_pattern
+            (name_lower))
+          (qualified_name
+            (name_lower)))
+        (for_guard
+          (binary_expression
+            (qualified_name
+              (name_lower))
+            (integer))))
+      (apply_expression
+        (qualified_name
+          (name_lower))
+        (argument_list
+          (argument
+            (qualified_name
+              (name_lower))))))))
+
+================================================================================
+Monadic and applicative for
+================================================================================
+
+def f(): Unit = forM (x <- xs; y = 1) yield x + y
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (for_monadic_expression
+      (for_fragments
+        (for_generator
+          (variable_pattern
+            (name_lower))
+          (qualified_name
+            (name_lower)))
+        (for_let
+          (variable_pattern
+            (name_lower))
+          (integer)))
+      (binary_expression
+        (qualified_name
+          (name_lower))
+        (qualified_name
+          (name_lower))))))
+
+================================================================================
+Effect handling with run
+================================================================================
+
+def f(): Unit = run { Logger.info("hi") } with Logger.runWithIO
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (run_expression
+      (block
+        (apply_expression
+          (qualified_name
+            (name_upper)
+            (name_lower))
+          (argument_list
+            (argument
+              (string)))))
+      (qualified_name
+        (name_upper)
+        (name_lower)))))
+
+================================================================================
+Handler
+================================================================================
+
+def f(): Unit = handler Console {
+    def print(s, k) = k(())
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (handler_expression
+      (qualified_name
+        (name_upper))
+      (handler_body
+        (handler_rule
+          (name_lower)
+          (parameter_list
+            (parameter
+              (name_lower))
+            (parameter
+              (name_lower)))
+          (apply_expression
+            (qualified_name
+              (name_lower))
+            (argument_list
+              (argument
+                (unit_expression)))))))))
+
+================================================================================
+Try catch
+================================================================================
+
+def f(): Unit = try g() catch {
+    case e: Exception => 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (try_expression
+      (apply_expression
+        (qualified_name
+          (name_lower))
+        (argument_list))
+      (catch_body
+        (catch_rule
+          (name_lower)
+          (qualified_name
+            (name_upper))
+          (integer))))))
+
+================================================================================
+Casts
+================================================================================
+
+def f(): Unit = (checked_cast(x), unchecked_cast(y as Int32 \ IO))
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (checked_cast
+          (qualified_name
+            (name_lower))))
+      (argument
+        (unchecked_cast
+          (qualified_name
+            (name_lower))
+          (type_reference
+            (name_upper))
+          (effect_annotation
+            (type_reference
+              (name_upper))))))))
+
+================================================================================
+Spawn and par
+================================================================================
+
+def f(): Unit = region rc {
+    spawn g() @ rc;
+    par (a <- h()) yield a
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (region_expression
+      (name_lower)
+      (block
+        (sequence_expression
+          (spawn_expression
+            (apply_expression
+              (qualified_name
+                (name_lower))
+              (argument_list))
+            (region_name
+              (qualified_name
+                (name_lower))))
+          (par_yield_expression
+            (par_fragments
+              (par_fragment
+                (variable_pattern
+                  (name_lower))
+                (apply_expression
+                  (qualified_name
+                    (name_lower))
+                  (argument_list))))
+            (qualified_name
+              (name_lower))))))))
+
+================================================================================
+Select
+================================================================================
+
+def f(): Unit = select {
+    case x <- Channel.recv(c) => x
+    case _ => 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (select_expression
+      (select_rule
+        (name_lower)
+        (qualified_name
+          (name_upper)
+          (name_lower))
+        (qualified_name
+          (name_lower))
+        (qualified_name
+          (name_lower)))
+      (select_rule
+        (wildcard)
+        (integer)))))
+
+================================================================================
+Java interop
+================================================================================
+
+def f(): Unit = {
+    let sb = new StringBuilder();
+    sb.append("x")
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (block
+      (let_expression
+        (variable_pattern
+          (name_lower))
+        (sequence_expression
+          (invoke_constructor
+            (type_reference
+              (name_upper))
+            (argument_list))
+          (apply_expression
+            (qualified_name
+              (name_lower)
+              (name_lower))
+            (argument_list
+              (argument
+                (string)))))))))
+
+================================================================================
+Use inside an expression
+================================================================================
+
+def f(): Unit = use Foo.bar; bar()
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (use_expression
+      (use_declaration
+        (qualified_name
+          (name_upper)
+          (name_lower)))
+      (apply_expression
+        (qualified_name
+          (name_lower))
+        (argument_list)))))

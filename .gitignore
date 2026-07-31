@@ -1,5 +1,6 @@
 # Rust artifacts
 target/
+Cargo.lock
 
 # Node artifacts
 build/
@@ -8,6 +9,7 @@ node_modules/
 
 # Swift artifacts
 .build/
+Package.resolved
 
 # Go artifacts
 _obj/
@@ -46,3 +48,6 @@ zig-out/
 *.tgz
 *.zip
 *.jar
+
+# Scratch files for manual parser probing
+.scratch/

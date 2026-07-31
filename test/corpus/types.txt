@@ -1,0 +1,227 @@
+================================================================================
+Arrow types are right associative
+================================================================================
+
+def f(): a -> b -> c = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (binary_type
+      (type_variable
+        (name_lower))
+      (binary_type
+        (type_variable
+          (name_lower))
+        (type_variable
+          (name_lower))))
+    (hole_anonymous)))
+
+================================================================================
+Effect annotation binds to the arrow result
+================================================================================
+
+def f(): a -> b \ ef = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (binary_type
+      (type_variable
+        (name_lower))
+      (type_variable
+        (name_lower))
+      (effect_annotation
+        (type_variable
+          (name_lower))))
+    (hole_anonymous)))
+
+================================================================================
+Effect sets and formulas
+================================================================================
+
+def f(): Unit \ {IO, Console} = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (effect_annotation
+      (effect_set_type
+        (type_reference
+          (name_upper))
+        (type_reference
+          (name_upper))))
+    (hole_anonymous)))
+
+================================================================================
+Effect union and complement
+================================================================================
+
+def f(): Unit \ ef1 + ef2 - ef3 & ef4 = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (effect_annotation
+      (binary_type
+        (binary_type
+          (type_variable
+            (name_lower))
+          (type_variable
+            (name_lower)))
+        (binary_type
+          (type_variable
+            (name_lower))
+          (type_variable
+            (name_lower)))))
+    (hole_anonymous)))
+
+================================================================================
+Pure and universal effects
+================================================================================
+
+def f(): Unit \ {} = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (effect_annotation
+      (effect_set_type))
+    (hole_anonymous)))
+
+================================================================================
+Tuple and unit types
+================================================================================
+
+def f(): (Int32, String) = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (tuple_type
+      (type_reference
+        (name_upper))
+      (type_reference
+        (name_upper)))
+    (hole_anonymous)))
+
+================================================================================
+Record types
+================================================================================
+
+def f(): {x = Int32, y = Int32 | r} = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (record_type
+      (record_type_field
+        (name_lower)
+        (type_reference
+          (name_upper)))
+      (record_type_field
+        (name_lower)
+        (type_reference
+          (name_upper)))
+      (type_variable
+        (name_lower)))
+    (hole_anonymous)))
+
+================================================================================
+Type application
+================================================================================
+
+def f(): Map[String, List[Int32]] = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_reference
+          (name_upper))
+        (type_application
+          (type_reference
+            (name_upper))
+          (type_argument_list
+            (type_reference
+              (name_upper))))))
+    (hole_anonymous)))
+
+================================================================================
+Kind ascriptions on type parameters
+================================================================================
+
+def f[a: Type, ef: Eff](): Unit = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)
+        (kind
+          (name_upper)))
+      (type_parameter
+        (name_lower)
+        (kind
+          (name_upper))))
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (hole_anonymous)))
+
+================================================================================
+Case set type
+================================================================================
+
+def f(): <Expr.Cst, Expr.Var> = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (case_set_type
+      (qualified_name
+        (name_upper)
+        (name_upper))
+      (qualified_name
+        (name_upper)
+        (name_upper)))
+    (hole_anonymous)))

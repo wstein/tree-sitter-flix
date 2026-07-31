@@ -1,0 +1,536 @@
+================================================================================
+Module with a function
+================================================================================
+
+mod Main {
+    pub def main(): Unit \ IO = println("Hello")
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (module_declaration
+    (qualified_name
+      (name_upper))
+    (function_declaration
+      (modifier)
+      (name_lower)
+      (parameter_list)
+      (type_reference
+        (name_upper))
+      (effect_annotation
+        (type_reference
+          (name_upper)))
+      (apply_expression
+        (qualified_name
+          (name_lower))
+        (argument_list
+          (argument
+            (string)))))))
+
+================================================================================
+Uses and imports
+================================================================================
+
+use Foo.Bar
+use Foo.Bar.baz;
+use Foo.{a, b => c}
+import java.util.Arrays
+import java.util.{Map, List => JList}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    (qualified_name
+      (name_upper)
+      (name_upper)))
+  (use_declaration
+    (qualified_name
+      (name_upper)
+      (name_upper)
+      (name_lower)))
+  (use_declaration
+    (qualified_name
+      (name_upper))
+    (use_many
+      (aliased_name
+        (name_lower))
+      (aliased_name
+        (name_lower)
+        (name_lower))))
+  (import_declaration
+    (qualified_name
+      (name_lower)
+      (name_lower)
+      (name_upper)))
+  (import_declaration
+    (qualified_name
+      (name_lower)
+      (name_lower))
+    (use_many
+      (aliased_name
+        (name_upper))
+      (aliased_name
+        (name_upper)
+        (name_upper)))))
+
+================================================================================
+Function with type parameters and constraints
+================================================================================
+
+pub def map(f: a -> b \ ef, t: Tree[a]): Tree[b] \ ef with Eq[a], Order[a] = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (modifier)
+    (name_lower)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (binary_type
+          (type_variable
+            (name_lower))
+          (type_variable
+            (name_lower))
+          (effect_annotation
+            (type_variable
+              (name_lower)))))
+      (parameter
+        (name_lower)
+        (type_application
+          (type_reference
+            (name_upper))
+          (type_argument_list
+            (type_variable
+              (name_lower))))))
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_variable
+          (name_lower))))
+    (effect_annotation
+      (type_variable
+        (name_lower)))
+    (trait_constraints
+      (trait_constraint
+        (qualified_name
+          (name_upper))
+        (type_variable
+          (name_lower)))
+      (trait_constraint
+        (qualified_name
+          (name_upper))
+        (type_variable
+          (name_lower))))
+    (hole_anonymous)))
+
+================================================================================
+Function with equality constraints
+================================================================================
+
+def f(): b where Elm[t] ~ b, Foo[x] ~ Bar = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_variable
+      (name_lower))
+    (equality_constraints
+      (equality_constraint
+        (type_application
+          (type_reference
+            (name_upper))
+          (type_argument_list
+            (type_variable
+              (name_lower))))
+        (type_variable
+          (name_lower)))
+      (equality_constraint
+        (type_application
+          (type_reference
+            (name_upper))
+          (type_argument_list
+            (type_variable
+              (name_lower))))
+        (type_reference
+          (name_upper))))
+    (hole_anonymous)))
+
+================================================================================
+Annotations precede modifiers
+================================================================================
+
+@Test
+pub def testAdd(): Bool = 1 == 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (annotation)
+    (modifier)
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (integer)
+      (integer))))
+
+================================================================================
+Enum with cases
+================================================================================
+
+enum Shape {
+    case Circle(Int32)
+    case Square(Int32)
+    case Rectangle(Int32, Int32)
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (enum_declaration
+    (name_upper)
+    (enum_body
+      (enum_case
+        (name_upper)
+        (case_body
+          (type_reference
+            (name_upper))))
+      (enum_case
+        (name_upper)
+        (case_body
+          (type_reference
+            (name_upper))))
+      (enum_case
+        (name_upper)
+        (case_body
+          (type_reference
+            (name_upper))
+          (type_reference
+            (name_upper)))))))
+
+================================================================================
+Enum case separators are optional
+================================================================================
+
+enum E { case A, case B }
+enum F { case A case B }
+enum G { case A, B }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (enum_declaration
+    (name_upper)
+    (enum_body
+      (enum_case
+        (name_upper))
+      (enum_case
+        (name_upper))))
+  (enum_declaration
+    (name_upper)
+    (enum_body
+      (enum_case
+        (name_upper))
+      (enum_case
+        (name_upper))))
+  (enum_declaration
+    (name_upper)
+    (enum_body
+      (enum_case
+        (name_upper))
+      (enum_case
+        (name_upper)))))
+
+================================================================================
+Enum shorthand and derivations
+================================================================================
+
+enum Meters(Int64)
+enum Color with Eq, Order, ToString
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (enum_declaration
+    (name_upper)
+    (case_body
+      (type_reference
+        (name_upper))))
+  (enum_declaration
+    (name_upper)
+    (derivations
+      (qualified_name
+        (name_upper))
+      (qualified_name
+        (name_upper))
+      (qualified_name
+        (name_upper)))))
+
+================================================================================
+Restrictable enum
+================================================================================
+
+restrictable enum Expr[s][a] {
+    case Cst(a)
+    case Var(Int32)
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (enum_declaration
+    (name_upper)
+    (restriction_parameter
+      (name_lower))
+    (type_parameter_list
+      (type_parameter
+        (name_lower)))
+    (enum_body
+      (enum_case
+        (name_upper)
+        (case_body
+          (type_variable
+            (name_lower))))
+      (enum_case
+        (name_upper)
+        (case_body
+          (type_reference
+            (name_upper)))))))
+
+================================================================================
+Struct
+================================================================================
+
+struct Node[t, r] {
+    mut value: t,
+    next: Node[t, r]
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (struct_declaration
+    (name_upper)
+    (type_parameter_list
+      (type_parameter
+        (name_lower))
+      (type_parameter
+        (name_lower)))
+    (struct_field
+      (modifier)
+      (name_lower)
+      (type_variable
+        (name_lower)))
+    (struct_field
+      (name_lower)
+      (type_application
+        (type_reference
+          (name_upper))
+        (type_argument_list
+          (type_variable
+            (name_lower))
+          (type_variable
+            (name_lower)))))))
+
+================================================================================
+Trait with law, signature and associated type
+================================================================================
+
+pub lawful trait Order[a] with Eq[a] {
+    type Elm: Type
+    pub def compare(x: a, y: a): Comparison
+    law reflexive: forall(x: a) Order.compare(x, x) == Comparison.EqualTo
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (trait_declaration
+    (modifier)
+    (modifier)
+    (name_upper)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)))
+    (trait_constraints
+      (trait_constraint
+        (qualified_name
+          (name_upper))
+        (type_variable
+          (name_lower))))
+    (trait_body
+      (associated_type_signature
+        (name_upper)
+        (kind
+          (name_upper)))
+      (signature_declaration
+        (modifier)
+        (name_lower)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable
+              (name_lower)))
+          (parameter
+            (name_lower)
+            (type_variable
+              (name_lower))))
+        (type_reference
+          (name_upper)))
+      (law_declaration
+        (name_lower)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable
+              (name_lower))))
+        (binary_expression
+          (apply_expression
+            (qualified_name
+              (name_upper)
+              (name_lower))
+            (argument_list
+              (argument
+                (qualified_name
+                  (name_lower)))
+              (argument
+                (qualified_name
+                  (name_lower)))))
+          (qualified_name
+            (name_upper)
+            (name_upper)))))))
+
+================================================================================
+Instance with redef and associated type definition
+================================================================================
+
+instance Order[Option[a]] with Order[a] {
+    type Elm[Option[a]] = a
+    pub def compare(x: Option[a], y: Option[a]): Comparison = ???
+    redef minimum(): Option[a] = None
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (instance_declaration
+    (qualified_name
+      (name_upper))
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_variable
+          (name_lower))))
+    (trait_constraints
+      (trait_constraint
+        (qualified_name
+          (name_upper))
+        (type_variable
+          (name_lower))))
+    (instance_body
+      (associated_type_definition
+        (name_upper)
+        (type_argument_list
+          (type_application
+            (type_reference
+              (name_upper))
+            (type_argument_list
+              (type_variable
+                (name_lower)))))
+        (type_variable
+          (name_lower)))
+      (function_declaration
+        (modifier)
+        (name_lower)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_application
+              (type_reference
+                (name_upper))
+              (type_argument_list
+                (type_variable
+                  (name_lower)))))
+          (parameter
+            (name_lower)
+            (type_application
+              (type_reference
+                (name_upper))
+              (type_argument_list
+                (type_variable
+                  (name_lower))))))
+        (type_reference
+          (name_upper))
+        (hole_anonymous))
+      (function_declaration
+        (name_lower)
+        (parameter_list)
+        (type_application
+          (type_reference
+            (name_upper))
+          (type_argument_list
+            (type_variable
+              (name_lower))))
+        (qualified_name
+          (name_upper))))))
+
+================================================================================
+Effect declaration
+================================================================================
+
+eff Console {
+    def print(s: String): Unit
+    def read(): String
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (effect_declaration
+    (name_upper)
+    (effect_body
+      (operation_declaration
+        (name_lower)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_reference
+              (name_upper))))
+        (type_reference
+          (name_upper)))
+      (operation_declaration
+        (name_lower)
+        (parameter_list)
+        (type_reference
+          (name_upper))))))
+
+================================================================================
+Type alias
+================================================================================
+
+type alias Pair[a] = (a, a)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (type_alias_declaration
+    (name_upper)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)))
+    (tuple_type
+      (type_variable
+        (name_lower))
+      (type_variable
+        (name_lower)))))

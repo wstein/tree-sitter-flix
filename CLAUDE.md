@@ -26,6 +26,10 @@ npm start                     # build wasm + open the interactive playground
 `tree-sitter generate` is not optional — `tree-sitter test` and `parse` use the *generated*
 `src/parser.c`, so a grammar edit that isn't regenerated silently tests the old parser.
 
+`tree-sitter parse` resolves the language by file extension only for files **inside this
+repository**. Pointing it at a scratch file elsewhere fails with `No language found`; put
+throwaway snippets in a gitignored directory here instead.
+
 ### Corpus validation
 
 The real measure of progress. `scripts/parse-corpus.sh` parses a tree of `.flix` files and
@@ -69,16 +73,29 @@ error recovery useful in editors.
   `tree-sitter.json`. Edit `tree-sitter.json` and re-run `tree-sitter init`; don't hand-patch them.
 - `queries/highlights.scm` is validated in CI by `ts_query_ls check -f queries/`. Every node
   name referenced there must exist in the grammar, so queries break when rules are renamed.
-- No external scanner currently exists. Add `src/scanner.c` only if a construct genuinely needs
-  one (nested block comments and nested string interpolation are the likely candidates); adding
-  it also activates the `fuzz` CI job.
+- `src/scanner.c` is a stateless external scanner. It exists because four things cannot be
+  written as regular expressions: nested block comments, the segmentation of interpolated
+  strings (`"a${`, `}b${`, `}c"`), the whitespace-sensitive `->` split (`a->b` is struct field
+  access, `a -> b` is the function arrow), and the `.` trichotomy (qualified-name separator vs
+  Datalog constraint terminator vs the illegal space-before form). It also recognises the `d`
+  of `d"..."`. Because it keeps no state, `serialize`/`deserialize` are no-ops — keep it that
+  way; every decision is made from the character stream plus `valid_symbols`. Touching it
+  activates the `fuzz` CI job.
 
 ### Grammar conventions
 
-- Precedence is expressed with `prec.left` / `prec.right` and a named precedence table rather
-  than numeric literals scattered through the rules.
-- Flix allows user-defined operators, so binary-operator rules cannot enumerate every operator
-  token; they match an operator *character class* with a precedence that must match `Parser2`.
+- Precedence is expressed with `prec.left` / `prec.right` and the `PREC` / `TPREC` tables at the
+  top of `grammar.js`, which mirror `Parser2.Op.precedence` and `Type.TYPE_OP_PRECEDENCE`. Note
+  that the scaladoc in both says "lower is higher precedence" and is **inverted** — the code
+  compares `right.precedence > left.precedence`, so higher binds tighter.
+- Flix allows user-defined operators, so `generic_operator` matches a character class rather
+  than an enumeration. Two traps live here:
+  - Never give it an explicit `prec`. Tree-sitter weighs explicit token precedence *before*
+    match length, so a negative precedence makes `>>` lex as two `>` tokens.
+  - Never write the repetition as `{2,}`; that compiles to exactly `{2}` and truncates every
+    operator of three or more characters. Spell the repeat out.
+- Rules may not match the empty string, so the declaration prologue (`annotation* modifier*`) is
+  the JS helper `prologue($)` spread into each declaration, not a rule.
 - `_`-prefixed rule names (`_expression`, `_type`) are hidden supertype rules — use them for
   choice-only groupings so the parse tree stays close to `SyntaxTree`.
 - The effect system means types and effects share syntax (`+`, `-`, `&`, `~`). Effect formulas
