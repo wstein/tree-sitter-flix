@@ -126,11 +126,12 @@ error recovery useful in editors.
 
 ### Generation cost
 
-`tree-sitter generate` takes about 7½ minutes, against ~16s for the same grammar without the
-Datalog rules. The cause is measured, not guessed: the fixpoint keywords (`query`, `solve`,
-`psolve`, `inject`, `pquery`) each take a greedy comma-separated expression list, so after any
-expression a `,` is ambiguous between continuing that list and closing an enclosing argument
-list or tuple. Adding just `solve`/`psolve`/`inject` took generation from 16s to 78s.
+`tree-sitter generate` takes 7–11 minutes depending on machine and load, against ~16s for the
+same grammar without the Datalog rules. The cause is measured, not guessed: the fixpoint
+keywords (`query`, `solve`, `psolve`, `inject`, `pquery`) each take a greedy comma-separated
+expression list, so after any expression a `,` is ambiguous between continuing that list and
+closing an enclosing argument list or tuple. Adding just `solve`/`psolve`/`inject` took
+generation from 16s to 78s.
 
 Two things already done to contain it — do not undo them:
 
