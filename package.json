@@ -1,0 +1,62 @@
+{
+  "name": "tree-sitter-flix",
+  "version": "0.1.0",
+  "description": "Flix grammar for tree-sitter",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wstein/tree-sitter-flix.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Werner Stein",
+    "email": "claude@wstein.de"
+  },
+  "main": "bindings/node",
+  "types": "bindings/node",
+  "keywords": [
+    "incremental",
+    "parsing",
+    "tree-sitter",
+    "flix"
+  ],
+  "files": [
+    "grammar.js",
+    "tree-sitter.json",
+    "binding.gyp",
+    "prebuilds/**",
+    "bindings/node/*",
+    "queries/*",
+    "src/**",
+    "*.wasm"
+  ],
+  "dependencies": {
+    "node-addon-api": "^8.5.0",
+    "node-gyp-build": "^4.8.4"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-treesitter": "^1.0.2",
+    "prebuildify": "^6.0.1",
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-cli": "^0.26.11"
+  },
+  "peerDependencies": {
+    "tree-sitter": "^0.25.0"
+  },
+  "peerDependenciesMeta": {
+    "tree-sitter": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "install": "node-gyp-build",
+    "prestart": "tree-sitter build --wasm",
+    "start": "tree-sitter playground",
+    "generate": "tree-sitter generate",
+    "lint": "eslint grammar.js eslint.config.js",
+    "fmt": "eslint --fix grammar.js eslint.config.js",
+    "test": "tree-sitter test",
+    "test:bindings": "node --test bindings/node/*_test.js"
+  }
+}

@@ -1,24 +1,46 @@
-# tree-sitter-PARSER_NAME
+# tree-sitter-flix
 
-[![CI][ci]](https://github.com/tree-sitter-grammars/tree-sitter-PARSER_NAME/actions/workflows/ci.yml)
+[![CI][ci]](https://github.com/wstein/tree-sitter-flix/actions/workflows/ci.yml)
 [![discord][discord]](https://discord.gg/w7nTvsVJhm)
 [![matrix][matrix]](https://matrix.to/#/#tree-sitter-chat:matrix.org)
-<!-- NOTE: uncomment these if you're publishing packages: -->
-<!-- [![npm][npm]](https://www.npmjs.com/package/tree-sitter-PARSER_NAME) -->
-<!-- [![crates][crates]](https://crates.io/crates/tree-sitter-PARSER_NAME) -->
-<!-- [![pypi][pypi]](https://pypi.org/project/tree-sitter-PARSER_NAME/) -->
-<!-- [![maven][maven]](https://central.sonatype.com/artifact/io.github.tree-sitter-grammars/tree-sitter-PARSER_NAME) -->
 
-A Tree-sitter parser for PARSER_NAME files.
+A [Tree-sitter][tree-sitter] parser for the [Flix][flix] programming language.
+
+Flix is a functional, imperative, and logic programming language with a
+Hindley–Milner type system, a polymorphic effect system, and first-class
+Datalog constraints. This grammar aims to parse the full surface syntax
+accepted by the reference compiler.
+
+## Status
+
+Early development. The grammar is being built up in layers; see
+[`CLAUDE.md`](CLAUDE.md) for the current scope and the development workflow.
+
+## Usage
+
+Build the parser and try it on a file:
+
+```bash
+tree-sitter generate
+tree-sitter parse path/to/File.flix
+```
+
+Run the corpus tests:
+
+```bash
+tree-sitter test
+```
 
 ## References
 
-<!-- NOTE: add the grammar's references here -->
+- [Flix language reference][flix-docs]
+- [Flix compiler source][flix-src] — `Lexer.scala` and `Parser2.scala` are the
+  authoritative definition of the surface syntax this grammar targets.
 
-[ci]: https://img.shields.io/github/actions/workflow/status/tree-sitter-grammars/tree-sitter-PARSER_NAME/ci.yml?logo=github&label=CI
+[tree-sitter]: https://tree-sitter.github.io/tree-sitter/
+[flix]: https://flix.dev
+[flix-docs]: https://doc.flix.dev
+[flix-src]: https://github.com/flix/flix/tree/master/main/src/ca/uwaterloo/flix/language/phase
+[ci]: https://img.shields.io/github/actions/workflow/status/wstein/tree-sitter-flix/ci.yml?logo=github&label=CI
 [discord]: https://img.shields.io/discord/1063097320771698699?logo=discord&label=discord
 [matrix]: https://img.shields.io/matrix/tree-sitter-chat%3Amatrix.org?logo=matrix&label=matrix
-[npm]: https://img.shields.io/npm/v/tree-sitter-PARSER_NAME?logo=npm
-[crates]: https://img.shields.io/crates/v/tree-sitter-PARSER_NAME?logo=rust
-[pypi]: https://img.shields.io/pypi/v/tree-sitter-PARSER_NAME?logo=pypi&logoColor=ffd242
-[maven]: https://img.shields.io/maven-central/v/io.github.tree-sitter-grammars/tree-sitter-PARSER_NAME?logo=sonatype
