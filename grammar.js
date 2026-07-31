@@ -86,6 +86,28 @@ function variableName($) {
   return choice($.name_lower, $.name_math, $.wildcard);
 }
 
+/**
+ * NAME_FUNCTION — `def`, `redef`, `law` and effect-operation names. Flix lets a
+ * definition be named by a user-defined operator, which is how the standard
+ * library declares `>>`, `=<<` and friends.
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+function functionName($) {
+  return choice($.name_lower, $.name_math, $.generic_operator);
+}
+
+/**
+ * NAME_DEFINITION / NAME_USE — like `functionName` but also allowing an
+ * uppercase name, for trait names and `use`/`import` aliases such as
+ * `use Bool.{==>, <==>}`.
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+function definitionName($) {
+  return choice($.name_lower, $.name_upper, $.name_math, $.generic_operator);
+}
+
 export default grammar({
   name: 'flix',
 
@@ -159,12 +181,15 @@ export default grammar({
     _name: $ => choice($.name_lower, $.name_upper, $.name_math),
     wildcard: _ => '_',
 
-    // Two-plus characters from the user-operator set. No explicit precedence:
+    // A user-defined operator: two or more characters from the operator set, or
+    // a single `_` followed by one or more of them (`_>==>`), which the lexer
+    // folds into the operator token. No explicit precedence:
     // tree-sitter weighs explicit precedence before match length, so demoting
     // this would make `>>` lex as two `>` tokens. Length alone lets it beat the
     // single-character operators, and at equal length the reserved spellings
     // win because a string literal is more specific than a pattern.
-    generic_operator: _ => token(/[+\-*<>=!&|^$][+\-*<>=!&|^$]+/),
+    generic_operator: _ =>
+      token(/_[+\-*<>=!&|^$]+|[+\-*<>=!&|^$][+\-*<>=!&|^$]+/),
 
     line_comment: _ => token(prec(-1, /\/\/[^\n]*/)),
     doc_comment: _ => token(prec(1, /\/\/\/[^\n]*/)),
@@ -248,7 +273,7 @@ export default grammar({
     use_declaration: $ => seq('use', $.qualified_name, optional(seq($._dot, $.use_many))),
     import_declaration: $ => seq('import', $.qualified_name, optional(seq($._dot, $.use_many))),
     use_many: $ => seq('{', commaSep($.aliased_name), '}'),
-    aliased_name: $ => seq($._name, optional(seq('=>', $._name))),
+    aliased_name: $ => seq(definitionName($), optional(seq('=>', definitionName($)))),
 
     // ---------------------------------------------------------------------
     // Declarations
@@ -283,7 +308,7 @@ export default grammar({
       seq(
         ...prologue($),
         choice('def', 'redef'),
-        field('name', $._name),
+        field('name', functionName($)),
         optional($.type_parameter_list),
         field('parameters', $.parameter_list),
         ':',
@@ -299,7 +324,7 @@ export default grammar({
       seq(
         ...prologue($),
         'def',
-        field('name', $._name),
+        field('name', functionName($)),
         optional($.type_parameter_list),
         field('parameters', $.parameter_list),
         ':',
@@ -313,7 +338,7 @@ export default grammar({
       seq(
         ...prologue($),
         'law',
-        field('name', $._name),
+        field('name', functionName($)),
         ':',
         'forall',
         optional($.type_parameter_list),
@@ -361,7 +386,7 @@ export default grammar({
       seq(
         ...prologue($),
         'trait',
-        field('name', $._name),
+        field('name', definitionName($)),
         $.type_parameter_list,
         optional($.trait_constraints),
         optional($.trait_body),
@@ -413,7 +438,7 @@ export default grammar({
       seq(
         ...prologue($),
         'def',
-        field('name', $._name),
+        field('name', functionName($)),
         optional($.parameter_list),
         ':',
         $._type,
@@ -605,6 +630,7 @@ export default grammar({
         $.match_expression,
         $.match_lambda,
         $.ext_match_expression,
+        $.ext_match_lambda,
         $.restrictable_choose,
         $.ext_tag_expression,
         $.open_variant_expression,
@@ -630,6 +656,13 @@ export default grammar({
         $.par_yield_expression,
         $.select_expression,
         $.use_expression,
+        $.fixpoint_constraint_set,
+        $.fixpoint_solve,
+        $.fixpoint_psolve,
+        $.fixpoint_inject,
+        $.fixpoint_query,
+        $.fixpoint_query_with_provenance,
+        $.fixpoint_lambda,
         $.apply_expression,
         $.invoke_method,
         $.get_field,
@@ -681,7 +714,7 @@ export default grammar({
         seq(
           repeat($.annotation),
           'def',
-          field('name', $._name),
+          field('name', functionName($)),
           field('parameters', $.parameter_list),
           optional(seq(':', $._type_and_effect)),
           '=',
@@ -712,6 +745,7 @@ export default grammar({
     ext_match_expression: $ => seq('ematch', $._expression, $.ext_match_body),
     ext_match_body: $ => seq('{', repeat(seq($.ext_match_rule, optional(','))), '}'),
     ext_match_rule: $ => seq('case', $._pattern, '=>', $._statement),
+    ext_match_lambda: $ => prec.right(seq('ematch', $._pattern, $._arrow_spaced, $._expression)),
 
     restrictable_choose: $ => seq(choice('choose', 'choose*'), $._expression, $.match_body),
 
@@ -794,6 +828,73 @@ export default grammar({
 
     use_expression: $ =>
       prec.right(seq(choice($.use_declaration, $.import_declaration), ';', $._statement)),
+
+
+    fixpoint_constraint_set: $ => seq('#{', repeat($.fixpoint_constraint), '}'),
+    fixpoint_constraint: $ =>
+      seq($.predicate_head, optional(seq(':-', commaSep1($._predicate_body))), $._dot_spaced),
+    predicate_head: $ => prec.right(seq($.name_upper, optional($.head_term_list))),
+    head_term_list: $ =>
+      seq('(', commaSep($._expression), optional(seq(';', $._expression)), ')'),
+    _predicate_body: $ => choice($.predicate_guard, $.predicate_functional, $.predicate_atom),
+    predicate_guard: $ => seq('if', '(', $._expression, ')'),
+    predicate_functional: $ =>
+      seq('let', choice(variableName($), seq('(', commaSep(variableName($)), ')')), '=', $._expression),
+    predicate_atom: $ =>
+      prec.right(seq(optional('not'), optional('fix'), $.name_upper, optional($.body_term_list))),
+    body_term_list: $ => seq('(', commaSep($._pattern), optional(seq(';', $._pattern)), ')'),
+
+    // Every fixpoint keyword takes the same greedy comma-separated expression
+    // list. Sharing one hidden rule keeps the parse tables far smaller than
+    // repeating `commaSep1($._expression)` at each site would.
+    _fixpoint_expressions: $ => prec.right(commaSep1($._expression)),
+
+    fixpoint_solve: $ =>
+      prec.right(
+        seq(
+          'solve',
+          $._fixpoint_expressions,
+          optional(seq('project', commaSep1($.name_upper))),
+        ),
+      ),
+    fixpoint_psolve: $ => prec.right(seq('psolve', $._fixpoint_expressions)),
+    // The trailing predicate list is greedy: a `,` after it continues the list
+    // rather than closing the enclosing argument list.
+    fixpoint_inject: $ =>
+      prec.right(seq('inject', $._fixpoint_expressions, 'into', commaSep1($.predicate_arity))),
+    predicate_arity: $ => seq($.name_upper, '/', $.integer),
+
+    // `Parser2` takes the three clauses in a fixed order, each optional. Three
+    // chained optionals after a greedy expression list is by far the most
+    // expensive shape in this grammar to build tables for, so accept them as a
+    // repeated choice instead: a strict superset that generates in a fraction
+    // of the time, and clause order is a semantic check anyway.
+    fixpoint_query: $ =>
+      prec.right(seq('query', $._fixpoint_expressions, repeat($._fixpoint_query_clause))),
+    _fixpoint_query_clause: $ => choice($.fixpoint_select, $.fixpoint_from, $.fixpoint_where),
+    // `Parser2` splits the select clause three ways on lookahead — `()`, a
+    // parenthesised term list, or a bare expression. A plain expression already
+    // covers all three (`()` is the unit expression, `(x, y)` a tuple), and
+    // spelling the list form out separately only adds an ambiguity with tuples.
+    fixpoint_select: $ => prec.right(seq('select', $._expression)),
+    fixpoint_from: $ => prec.right(seq('from', commaSep1($.predicate_atom))),
+    fixpoint_where: $ => prec.right(seq('where', $._expression)),
+    fixpoint_query_with_provenance: $ =>
+      seq(
+        'pquery',
+        $._fixpoint_expressions,
+        'select',
+        $.predicate_head,
+        'with',
+        '{',
+        commaSep($.name_upper),
+        '}',
+      ),
+
+    fixpoint_lambda: $ =>
+      seq('#(', commaSep($.predicate_param), ')', $._arrow_spaced, $._expression),
+    predicate_param: $ =>
+      seq($.name_upper, optional(seq('(', commaSep($._type), optional(seq(';', $._type)), ')'))),
 
     // --- postfix chain (left-associative, tighter than any operator) ---
 

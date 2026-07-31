@@ -1,0 +1,470 @@
+================================================================================
+Constraint set with a fact and a rule
+================================================================================
+
+def f(): Unit =
+    let pr = #{
+        Reachable(origin).
+        Reachable(y) :- Reachable(x), Edge(x, y).
+    };
+    pr
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (let_expression
+      (variable_pattern
+        (name_lower))
+      (sequence_expression
+        (fixpoint_constraint_set
+          (fixpoint_constraint
+            (predicate_head
+              (name_upper)
+              (head_term_list
+                (qualified_name
+                  (name_lower)))))
+          (fixpoint_constraint
+            (predicate_head
+              (name_upper)
+              (head_term_list
+                (qualified_name
+                  (name_lower))))
+            (predicate_atom
+              (name_upper)
+              (body_term_list
+                (variable_pattern
+                  (name_lower))))
+            (predicate_atom
+              (name_upper)
+              (body_term_list
+                (variable_pattern
+                  (name_lower))
+                (variable_pattern
+                  (name_lower))))))
+        (qualified_name
+          (name_lower))))))
+
+================================================================================
+Negation and fix in a body atom
+================================================================================
+
+def f(): Unit = #{
+    P(x) :- not Q(x), fix R(x).
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_constraint_set
+      (fixpoint_constraint
+        (predicate_head
+          (name_upper)
+          (head_term_list
+            (qualified_name
+              (name_lower))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))))))))
+
+================================================================================
+Guard and functional body predicates
+================================================================================
+
+def f(): Unit = #{
+    Reach(x, z) :- Edge(x, y), if ((u - f) > 0), let (a, b) = g(y).
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_constraint_set
+      (fixpoint_constraint
+        (predicate_head
+          (name_upper)
+          (head_term_list
+            (qualified_name
+              (name_lower))
+            (qualified_name
+              (name_lower))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower))))
+        (predicate_guard
+          (binary_expression
+            (paren_expression
+              (binary_expression
+                (qualified_name
+                  (name_lower))
+                (qualified_name
+                  (name_lower))))
+            (integer)))
+        (predicate_functional
+          (name_lower)
+          (name_lower)
+          (apply_expression
+            (qualified_name
+              (name_lower))
+            (argument_list
+              (argument
+                (qualified_name
+                  (name_lower))))))))))
+
+================================================================================
+Lattice terms use a semicolon tail
+================================================================================
+
+def f(): Unit = #{
+    Stratum(pd; 0) :- PositiveDependencyEdge(pd, _).
+    Reach(x, z; cons(z, p)) :- Reach(x, y; p), Edge(y, u, f, z).
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_constraint_set
+      (fixpoint_constraint
+        (predicate_head
+          (name_upper)
+          (head_term_list
+            (qualified_name
+              (name_lower))
+            (integer)))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (wildcard)))))
+      (fixpoint_constraint
+        (predicate_head
+          (name_upper)
+          (head_term_list
+            (qualified_name
+              (name_lower))
+            (qualified_name
+              (name_lower))
+            (apply_expression
+              (qualified_name
+                (name_lower))
+              (argument_list
+                (argument
+                  (qualified_name
+                    (name_lower)))
+                (argument
+                  (qualified_name
+                    (name_lower)))))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower))))))))
+
+================================================================================
+Inject into predicates with arity
+================================================================================
+
+def f(): Unit = inject edges into Edge/2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_inject
+      (qualified_name
+        (name_lower))
+      (predicate_arity
+        (name_upper)
+        (integer)))))
+
+================================================================================
+Inject several relations
+================================================================================
+
+def f(): Unit =
+    inject map(g, pos), map(g, neg) into PositiveEdge/2, NegativeEdge/2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_inject
+      (apply_expression
+        (qualified_name
+          (name_lower))
+        (argument_list
+          (argument
+            (qualified_name
+              (name_lower)))
+          (argument
+            (qualified_name
+              (name_lower)))))
+      (apply_expression
+        (qualified_name
+          (name_lower))
+        (argument_list
+          (argument
+            (qualified_name
+              (name_lower)))
+          (argument
+            (qualified_name
+              (name_lower)))))
+      (predicate_arity
+        (name_upper)
+        (integer))
+      (predicate_arity
+        (name_upper)
+        (integer)))))
+
+================================================================================
+Query with select and from
+================================================================================
+
+def f(): Unit = query db, pr select x from Reachable(x)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_query
+      (qualified_name
+        (name_lower))
+      (qualified_name
+        (name_lower))
+      (fixpoint_select
+        (qualified_name
+          (name_lower)))
+      (fixpoint_from
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))))))))
+
+================================================================================
+Query piped into a function
+================================================================================
+
+def f(): Unit = query db, pr select x from Reachable(x) |> Vector.toSet
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (fixpoint_query
+        (qualified_name
+          (name_lower))
+        (qualified_name
+          (name_lower))
+        (fixpoint_select
+          (qualified_name
+            (name_lower)))
+        (fixpoint_from
+          (predicate_atom
+            (name_upper)
+            (body_term_list
+              (variable_pattern
+                (name_lower))))))
+      (generic_operator)
+      (qualified_name
+        (name_upper)
+        (name_lower)))))
+
+================================================================================
+Query with a where clause
+================================================================================
+
+def f(): Unit = query db select (x, y) from Edge(x, y) where x < y
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_query
+      (qualified_name
+        (name_lower))
+      (fixpoint_select
+        (tuple_expression
+          (argument
+            (qualified_name
+              (name_lower)))
+          (argument
+            (qualified_name
+              (name_lower)))))
+      (fixpoint_from
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower)))))
+      (fixpoint_where
+        (binary_expression
+          (qualified_name
+            (name_lower))
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Solve and project
+================================================================================
+
+def f(): Unit = solve db project Reachable
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_solve
+      (qualified_name
+        (name_lower))
+      (name_upper))))
+
+================================================================================
+Fixpoint lambda
+================================================================================
+
+def f(): Unit = #(Edge(Int32, Int32)) -> g
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_lambda
+      (predicate_param
+        (name_upper)
+        (type_reference
+          (name_upper))
+        (type_reference
+          (name_upper)))
+      (qualified_name
+        (name_lower)))))
+
+================================================================================
+Schema type
+================================================================================
+
+def f(): #{ Edge(Int32, Int32), Path(Int32, Int32) } = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (schema_type
+      (schema_term
+        (qualified_name
+          (name_upper))
+        (type_reference
+          (name_upper))
+        (type_reference
+          (name_upper)))
+      (schema_term
+        (qualified_name
+          (name_upper))
+        (type_reference
+          (name_upper))
+        (type_reference
+          (name_upper))))
+    (hole_anonymous)))
+
+================================================================================
+Open schema type with a row variable
+================================================================================
+
+def f(): #{ Edge(Int32, Int32) | r } = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (schema_type
+      (schema_term
+        (qualified_name
+          (name_upper))
+        (type_reference
+          (name_upper))
+        (type_reference
+          (name_upper)))
+      (type_variable
+        (name_lower)))
+    (hole_anonymous)))

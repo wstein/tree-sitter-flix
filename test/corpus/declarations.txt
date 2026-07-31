@@ -534,3 +534,131 @@ type alias Pair[a] = (a, a)
         (name_lower))
       (type_variable
         (name_lower)))))
+
+================================================================================
+Definitions may be named by a user-defined operator
+================================================================================
+
+pub def >>(f: a, g: b): c = ???
+def +++(x: Int32, y: Int32): Int32 = x + y + 1
+def _>==>(): Int32 = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (modifier)
+    (generic_operator)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (type_variable
+          (name_lower)))
+      (parameter
+        (name_lower)
+        (type_variable
+          (name_lower))))
+    (type_variable
+      (name_lower))
+    (hole_anonymous))
+  (function_declaration
+    (generic_operator)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (type_reference
+          (name_upper)))
+      (parameter
+        (name_lower)
+        (type_reference
+          (name_upper))))
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (binary_expression
+        (qualified_name
+          (name_lower))
+        (qualified_name
+          (name_lower)))
+      (integer)))
+  (function_declaration
+    (generic_operator)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (integer)))
+
+================================================================================
+Use with operator names
+================================================================================
+
+use Bool.{==>, <==>}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    (qualified_name
+      (name_upper))
+    (use_many
+      (aliased_name
+        (generic_operator))
+      (aliased_name
+        (generic_operator)))))
+
+================================================================================
+Trait and instance with an operator signature
+================================================================================
+
+trait T[a] {
+    pub def <=>(x: a, y: a): Bool
+}
+
+instance T[Int32] {
+    pub def <=>(x: Int32, y: Int32): Bool = true
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (trait_declaration
+    (name_upper)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)))
+    (trait_body
+      (signature_declaration
+        (modifier)
+        (generic_operator)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable
+              (name_lower)))
+          (parameter
+            (name_lower)
+            (type_variable
+              (name_lower))))
+        (type_reference
+          (name_upper)))))
+  (instance_declaration
+    (qualified_name
+      (name_upper))
+    (type_reference
+      (name_upper))
+    (instance_body
+      (function_declaration
+        (modifier)
+        (generic_operator)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_reference
+              (name_upper)))
+          (parameter
+            (name_lower)
+            (type_reference
+              (name_upper))))
+        (type_reference
+          (name_upper))
+        (boolean)))))

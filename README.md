@@ -13,8 +13,16 @@ accepted by the reference compiler.
 
 ## Status
 
-Early development. The grammar is being built up in layers; see
-[`CLAUDE.md`](CLAUDE.md) for the current scope and the development workflow.
+The grammar covers the full surface syntax: declarations, the type and effect
+language, patterns, expressions, and first-class Datalog constraints.
+
+It parses **887 of the 890** `.flix` files in a Flix compiler checkout —
+standard library, examples and test suite. Two of the three remaining files are
+deliberately invalid fixtures from the compiler's own error-recovery tests
+(`if b then …`, which Flix has no `then` keyword for, and a truncated source
+file); rejecting them is the correct behaviour.
+
+See [`CLAUDE.md`](CLAUDE.md) for the development workflow.
 
 ## Usage
 

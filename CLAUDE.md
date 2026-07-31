@@ -96,6 +96,29 @@ error recovery useful in editors.
     operator of three or more characters. Spell the repeat out.
 - Rules may not match the empty string, so the declaration prologue (`annotation* modifier*`) is
   the JS helper `prologue($)` spread into each declaration, not a rule.
+- Name classes are JS helpers (`variableName`, `functionName`, `definitionName`), not hidden
+  rules. Two hidden rules that reduce the same tokens fight over every shared token and force a
+  conflict declaration; inlining the choice avoids that. They mirror `Parser2`'s `NAME_*` sets —
+  in particular a definition may be named by a user-defined operator (`def >>`, `use Bool.{==>}`).
+
+### Generation cost
+
+`tree-sitter generate` takes about 7½ minutes, against ~16s for the same grammar without the
+Datalog rules. The cause is measured, not guessed: the fixpoint keywords (`query`, `solve`,
+`psolve`, `inject`, `pquery`) each take a greedy comma-separated expression list, so after any
+expression a `,` is ambiguous between continuing that list and closing an enclosing argument
+list or tuple. Adding just `solve`/`psolve`/`inject` took generation from 16s to 78s.
+
+Two things already done to contain it — do not undo them:
+
+- The five keywords share one `_fixpoint_expressions` rule rather than repeating
+  `commaSep1($._expression)` at each site.
+- `fixpoint_query` takes its clauses as `repeat(choice(select, from, where))` instead of three
+  chained optionals. That is a superset of the fixed order `Parser2` accepts, and it cut several
+  minutes off generation on its own.
+
+This is build-time only: the generated parser runs at ~10,000 bytes/ms. If it needs to come
+down further, the greedy expression list is the thing to attack.
 - `_`-prefixed rule names (`_expression`, `_type`) are hidden supertype rules — use them for
   choice-only groupings so the parse tree stays close to `SyntaxTree`.
 - The effect system means types and effects share syntax (`+`, `-`, `&`, `~`). Effect formulas

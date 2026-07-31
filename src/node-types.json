@@ -82,7 +82,39 @@
         "named": true
       },
       {
+        "type": "ext_match_lambda",
+        "named": true
+      },
+      {
         "type": "ext_tag_expression",
+        "named": true
+      },
+      {
+        "type": "fixpoint_constraint_set",
+        "named": true
+      },
+      {
+        "type": "fixpoint_inject",
+        "named": true
+      },
+      {
+        "type": "fixpoint_lambda",
+        "named": true
+      },
+      {
+        "type": "fixpoint_psolve",
+        "named": true
+      },
+      {
+        "type": "fixpoint_query",
+        "named": true
+      },
+      {
+        "type": "fixpoint_query_with_provenance",
+        "named": true
+      },
+      {
+        "type": "fixpoint_solve",
         "named": true
       },
       {
@@ -411,6 +443,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "generic_operator",
+          "named": true
+        },
         {
           "type": "name_lower",
           "named": true
@@ -779,6 +815,21 @@
         },
         {
           "type": "sequence_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "body_term_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "_pattern",
           "named": true
         }
       ]
@@ -1168,6 +1219,25 @@
     }
   },
   {
+    "type": "ext_match_lambda",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "_pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "ext_match_rule",
     "named": true,
     "fields": {},
@@ -1223,6 +1293,215 @@
         },
         {
           "type": "schema_term",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_constraint",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "predicate_atom",
+          "named": true
+        },
+        {
+          "type": "predicate_functional",
+          "named": true
+        },
+        {
+          "type": "predicate_guard",
+          "named": true
+        },
+        {
+          "type": "predicate_head",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_constraint_set",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "fixpoint_constraint",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_from",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "predicate_atom",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_inject",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "predicate_arity",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_lambda",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "predicate_param",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_psolve",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_query",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "fixpoint_from",
+          "named": true
+        },
+        {
+          "type": "fixpoint_select",
+          "named": true
+        },
+        {
+          "type": "fixpoint_where",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_query_with_provenance",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "name_upper",
+          "named": true
+        },
+        {
+          "type": "predicate_head",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_select",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_solve",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "name_upper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fixpoint_where",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
           "named": true
         }
       ]
@@ -1384,15 +1663,15 @@
         "required": true,
         "types": [
           {
+            "type": "generic_operator",
+            "named": true
+          },
+          {
             "type": "name_lower",
             "named": true
           },
           {
             "type": "name_math",
-            "named": true
-          },
-          {
-            "type": "name_upper",
             "named": true
           }
         ]
@@ -1521,6 +1800,21 @@
         },
         {
           "type": "parameter_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "head_term_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "_expression",
           "named": true
         }
       ]
@@ -1886,15 +2180,15 @@
         "required": true,
         "types": [
           {
+            "type": "generic_operator",
+            "named": true
+          },
+          {
             "type": "name_lower",
             "named": true
           },
           {
             "type": "name_math",
-            "named": true
-          },
-          {
-            "type": "name_upper",
             "named": true
           }
         ]
@@ -2046,15 +2340,15 @@
         "required": true,
         "types": [
           {
+            "type": "generic_operator",
+            "named": true
+          },
+          {
             "type": "name_lower",
             "named": true
           },
           {
             "type": "name_math",
-            "named": true
-          },
-          {
-            "type": "name_upper",
             "named": true
           }
         ]
@@ -2297,15 +2591,15 @@
         "required": true,
         "types": [
           {
+            "type": "generic_operator",
+            "named": true
+          },
+          {
             "type": "name_lower",
             "named": true
           },
           {
             "type": "name_math",
-            "named": true
-          },
-          {
-            "type": "name_upper",
             "named": true
           }
         ]
@@ -2465,6 +2759,120 @@
       "types": [
         {
           "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "predicate_arity",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "integer",
+          "named": true
+        },
+        {
+          "type": "name_upper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "predicate_atom",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "body_term_list",
+          "named": true
+        },
+        {
+          "type": "name_upper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "predicate_functional",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "name_lower",
+          "named": true
+        },
+        {
+          "type": "name_math",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "predicate_guard",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "predicate_head",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "head_term_list",
+          "named": true
+        },
+        {
+          "type": "name_upper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "predicate_param",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_type",
+          "named": true
+        },
+        {
+          "type": "name_upper",
           "named": true
         }
       ]
@@ -2925,15 +3333,15 @@
         "required": true,
         "types": [
           {
+            "type": "generic_operator",
+            "named": true
+          },
+          {
             "type": "name_lower",
             "named": true
           },
           {
             "type": "name_math",
-            "named": true
-          },
-          {
-            "type": "name_upper",
             "named": true
           }
         ]
@@ -3333,6 +3741,10 @@
         "multiple": false,
         "required": true,
         "types": [
+          {
+            "type": "generic_operator",
+            "named": true
+          },
           {
             "type": "name_lower",
             "named": true
@@ -3937,6 +4349,10 @@
     "named": false
   },
   {
+    "type": ":-",
+    "named": false
+  },
+  {
     "type": "::",
     "named": false
   },
@@ -4123,6 +4539,10 @@
     "named": false
   },
   {
+    "type": "fix",
+    "named": false
+  },
+  {
     "type": "float",
     "named": true
   },
@@ -4144,6 +4564,10 @@
   },
   {
     "type": "foreach",
+    "named": false
+  },
+  {
+    "type": "from",
     "named": false
   },
   {
@@ -4175,6 +4599,10 @@
     "named": false
   },
   {
+    "type": "inject",
+    "named": false
+  },
+  {
     "type": "instance",
     "named": false
   },
@@ -4185,6 +4613,10 @@
   {
     "type": "integer",
     "named": true
+  },
+  {
+    "type": "into",
+    "named": false
   },
   {
     "type": "intrinsic",
@@ -4264,7 +4696,23 @@
     "named": false
   },
   {
+    "type": "pquery",
+    "named": false
+  },
+  {
+    "type": "project",
+    "named": false
+  },
+  {
+    "type": "psolve",
+    "named": false
+  },
+  {
     "type": "pub",
+    "named": false
+  },
+  {
+    "type": "query",
     "named": false
   },
   {
@@ -4309,6 +4757,10 @@
   },
   {
     "type": "select",
+    "named": false
+  },
+  {
+    "type": "solve",
     "named": false
   },
   {
