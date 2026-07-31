@@ -4,9 +4,17 @@
     {
       "name": "flix",
       "scope": "source.flix",
-      "file-types": ["flix"],
+      "file-types": [
+        "flix"
+      ],
+      "external-files": [
+        "src/scanner.c"
+      ],
       "injection-regex": "^flix$",
-      "highlights": "queries/highlights.scm"
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "locals": "queries/locals.scm",
+      "tags": "queries/tags.scm"
     }
   ],
   "metadata": {
