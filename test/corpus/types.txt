@@ -225,3 +225,152 @@ def f(): <Expr.Cst, Expr.Var> = ???
         (name_upper)
         (name_upper)))
     (hole_anonymous)))
+
+================================================================================
+Record row and schema row types
+================================================================================
+
+def f(): ((x = Int32 | r)) = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (tuple_type
+      (record_row_type
+        (record_type_field
+          (name_lower)
+          (type_reference
+            (name_upper)))
+        (type_variable
+          (name_lower))))
+    (hole_anonymous)))
+
+================================================================================
+Schema row type
+================================================================================
+
+def f(): #(Edge(Int32, Int32)) = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (schema_row_type
+      (schema_term
+        (qualified_name
+          (name_upper))
+        (type_reference
+          (name_upper))
+        (type_reference
+          (name_upper))))
+    (hole_anonymous)))
+
+================================================================================
+Extensible schema type
+================================================================================
+
+def f(): #|Edge(Int32)|# = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (extensible_type
+      (schema_term
+        (qualified_name
+          (name_upper))
+        (type_reference
+          (name_upper))))
+    (hole_anonymous)))
+
+================================================================================
+Unary type operators
+================================================================================
+
+def f(): Unit \ not ef = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (effect_annotation
+      (unary_type
+        (type_variable
+          (name_lower))))
+    (hole_anonymous)))
+
+================================================================================
+Higher order kind
+================================================================================
+
+def f[m: Type -> Type](): Unit = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)
+        (kind
+          (kind_arrow
+            (kind
+              (name_upper))
+            (kind
+              (name_upper))))))
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (hole_anonymous)))
+
+================================================================================
+Universal effect constant
+================================================================================
+
+def f(): Unit \ Univ = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (effect_annotation
+      (type_constant))
+    (hole_anonymous)))
+
+================================================================================
+Static as a type
+================================================================================
+
+def f(): Array[Int32, Static] = ???
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_reference
+          (name_upper))
+        (type_reference
+          (static_type))))
+    (hole_anonymous)))

@@ -30,7 +30,7 @@ def f(): Int32 = 1
 (source_file
   (line_comment)
   (doc_comment)
-  (doc_comment)
+  (line_comment)
   (function_declaration
     (name_lower)
     (parameter_list)
@@ -231,3 +231,76 @@ def f(): Unit = (a!, b$c)
       (argument
         (qualified_name
           (name_lower))))))
+
+================================================================================
+Four or more slashes are line comments
+================================================================================
+
+//// four slashes
+///// five slashes
+def f(): Int32 = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (line_comment)
+  (line_comment)
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (integer)))
+
+================================================================================
+Operators may follow an arrow
+================================================================================
+
+def f(): Unit = (a ->> b, a ->= b, a --> b)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (binary_expression
+          (qualified_name
+            (name_lower))
+          (generic_operator)
+          (qualified_name
+            (name_lower))))
+      (argument
+        (binary_expression
+          (qualified_name
+            (name_lower))
+          (generic_operator)
+          (qualified_name
+            (name_lower))))
+      (argument
+        (binary_expression
+          (qualified_name
+            (name_lower))
+          (generic_operator)
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Exponent may carry a fraction
+================================================================================
+
+def f(): Unit = 2.1e4.5
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (float)))

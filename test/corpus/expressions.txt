@@ -648,7 +648,7 @@ def f(): Unit = try g() catch {
       (catch_body
         (catch_rule
           (name_lower)
-          (qualified_name
+          (java_qualified_name
             (name_upper))
           (integer))))))
 
@@ -779,10 +779,10 @@ def f(): Unit = {
             (type_reference
               (name_upper))
             (argument_list))
-          (apply_expression
+          (invoke_method
             (qualified_name
-              (name_lower)
               (name_lower))
+            (name_lower)
             (argument_list
               (argument
                 (string)))))))))
@@ -810,3 +810,512 @@ def f(): Unit = use Foo.bar; bar()
         (qualified_name
           (name_lower))
         (argument_list)))))
+
+================================================================================
+Java method invocation is not a qualified name
+================================================================================
+
+def f(): Unit = sb.append("x")
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (invoke_method
+      (qualified_name
+        (name_lower))
+      (name_lower)
+      (argument_list
+        (argument
+          (string))))))
+
+================================================================================
+Field access chains
+================================================================================
+
+def f(): Unit = (x.field, Foo.bar.baz)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (get_field
+          (qualified_name
+            (name_lower))
+          (name_lower)))
+      (argument
+        (get_field
+          (qualified_name
+            (name_upper)
+            (name_lower))
+          (name_lower))))))
+
+================================================================================
+Qualified names stop at the first lowercase segment
+================================================================================
+
+def f(): Unit = Foo.Bar.baz
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (qualified_name
+      (name_upper)
+      (name_upper)
+      (name_lower))))
+
+================================================================================
+Ascribe expression
+================================================================================
+
+def f(): Unit = (x: Int32 \ IO)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (ascribe_expression
+      (qualified_name
+        (name_lower))
+      (type_reference
+        (name_upper))
+      (effect_annotation
+        (type_reference
+          (name_upper))))))
+
+================================================================================
+Cons and literal patterns
+================================================================================
+
+def f(): Int32 = match xs {
+    case 1 :: rest => 1
+    case -2 :: rest => 2
+    case Nil => 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (match_expression
+      (qualified_name
+        (name_lower))
+      (match_body
+        (match_rule
+          (cons_pattern
+            (literal_pattern
+              (integer))
+            (variable_pattern
+              (name_lower)))
+          (integer))
+        (match_rule
+          (cons_pattern
+            (unary_pattern
+              (integer))
+            (variable_pattern
+              (name_lower)))
+          (integer))
+        (match_rule
+          (tag_pattern
+            (qualified_name
+              (name_upper)))
+          (integer))))))
+
+================================================================================
+Record pattern
+================================================================================
+
+def f(): Int32 = match r {
+    case {x = a, y | rest} => a
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (match_expression
+      (qualified_name
+        (name_lower))
+      (match_body
+        (match_rule
+          (record_pattern
+            (record_pattern_field
+              (name_lower)
+              (variable_pattern
+                (name_lower)))
+            (record_pattern_field
+              (name_lower))
+            (variable_pattern
+              (name_lower)))
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Throw and unsafe
+================================================================================
+
+def f(): Unit = {
+    unsafe IO as r { g() };
+    throw new Exception()
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (block
+      (sequence_expression
+        (unsafe_expression
+          (type_reference
+            (name_upper))
+          (type_variable
+            (name_lower))
+          (block
+            (apply_expression
+              (qualified_name
+                (name_lower))
+              (argument_list))))
+        (throw_expression
+          (invoke_constructor
+            (type_reference
+              (name_upper))
+            (argument_list)))))))
+
+================================================================================
+Anonymous class with methods and a constructor
+================================================================================
+
+def f(): Unit = new Runnable {
+    def new(): Runnable = ???
+    def run(): Unit \ IO = println("x")
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (new_expression
+      (type_reference
+        (name_upper))
+      (jvm_constructor
+        (type_reference
+          (name_upper))
+        (hole_anonymous))
+      (jvm_method
+        (name_lower)
+        (parameter_list)
+        (type_reference
+          (name_upper))
+        (effect_annotation
+          (type_reference
+            (name_upper)))
+        (apply_expression
+          (qualified_name
+            (name_lower))
+          (argument_list
+            (argument
+              (string))))))))
+
+================================================================================
+Super constructor and method
+================================================================================
+
+def f(): Unit = {
+    super();
+    super.toString()
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (block
+      (sequence_expression
+        (super_expression
+          (argument_list))
+        (super_expression
+          (name_lower)
+          (argument_list))))))
+
+================================================================================
+Struct field assignment and indexed assignment
+================================================================================
+
+def f(): Unit = {
+    p->x = 1;
+    a[0] = 2
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (block
+      (sequence_expression
+        (struct_put
+          (qualified_name
+            (name_lower))
+          (name_lower)
+          (integer))
+        (index_assign_expression
+          (qualified_name
+            (name_lower))
+          (integer)
+          (integer))))))
+
+================================================================================
+Extensible variants
+================================================================================
+
+def f(): Unit = (xvar Cons(1), open_variant Seq.Nil, open_variant_as Seq g)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (ext_tag_expression
+          (name_upper)
+          (argument_list
+            (argument
+              (integer)))))
+      (argument
+        (open_variant_expression
+          (qualified_name
+            (name_upper)
+            (name_upper))))
+      (argument
+        (open_variant_expression
+          (qualified_name
+            (name_upper))
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Ext match expression and lambda
+================================================================================
+
+def f(): Unit = (ematch e { case A(x) => x }, ematch Edge(a, b) -> a)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (ext_match_expression
+          (qualified_name
+            (name_lower))
+          (ext_match_body
+            (ext_match_rule
+              (tag_pattern
+                (qualified_name
+                  (name_upper))
+                (tag_pattern_body
+                  (variable_pattern
+                    (name_lower))))
+              (qualified_name
+                (name_lower))))))
+      (argument
+        (ext_match_lambda
+          (tag_pattern
+            (qualified_name
+              (name_upper))
+            (tag_pattern_body
+              (variable_pattern
+                (name_lower))
+              (variable_pattern
+                (name_lower))))
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Restrictable choose
+================================================================================
+
+def f(): Unit = choose e { case A(x) => x }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (restrictable_choose
+      (qualified_name
+        (name_lower))
+      (match_body
+        (match_rule
+          (tag_pattern
+            (qualified_name
+              (name_upper))
+            (tag_pattern_body
+              (variable_pattern
+                (name_lower))))
+          (qualified_name
+            (name_lower)))))))
+
+================================================================================
+Applicative for
+================================================================================
+
+def f(): Unit = forA (x <- xs) yield x
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (for_applicative_expression
+      (for_fragments
+        (for_generator
+          (variable_pattern
+            (name_lower))
+          (qualified_name
+            (name_lower))))
+      (qualified_name
+        (name_lower)))))
+
+================================================================================
+Intrinsic and static region
+================================================================================
+
+def f(): Unit = (%%BOOL_NOT%%, Static)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (tuple_expression
+      (argument
+        (intrinsic))
+      (argument
+        (static_expression)))))
+
+================================================================================
+Null literal
+================================================================================
+
+def f(): Unit = null
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (null)))
+
+================================================================================
+Math name operator
+================================================================================
+
+def f(): Bool = a ⊆ b
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (qualified_name
+        (name_lower))
+      (name_math)
+      (qualified_name
+        (name_lower)))))
+
+================================================================================
+Struct literal with field initialisers
+================================================================================
+
+def f(): Unit = region rc { new Counter @ rc { count = 0, step = 1 } }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (region_expression
+      (name_lower)
+      (block
+        (new_expression
+          (type_reference
+            (name_upper))
+          (region_name
+            (qualified_name
+              (name_lower)))
+          (struct_field_init
+            (name_lower)
+            (integer))
+          (struct_field_init
+            (name_lower)
+            (integer)))))))

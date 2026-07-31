@@ -39,8 +39,9 @@ fi
 
 echo "parsing $count files from $corpus"
 
-tree-sitter generate
-
+# Deliberately no `tree-sitter generate` here: src/parser.c is committed, and
+# regenerating takes ~10 minutes. Run it yourself after editing grammar.js.
+#
 # tree-sitter parse exits non-zero when any file contains an ERROR node.
 # --quiet suppresses the parse trees; --stat prints the success/failure tally.
 tree-sitter parse --quiet --stat --paths "$paths"

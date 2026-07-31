@@ -60,12 +60,12 @@ import java.util.{Map, List => JList}
         (name_lower)
         (name_lower))))
   (import_declaration
-    (qualified_name
+    (java_qualified_name
       (name_lower)
       (name_lower)
       (name_upper)))
   (import_declaration
-    (qualified_name
+    (java_qualified_name
       (name_lower)
       (name_lower))
     (use_many

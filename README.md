@@ -16,20 +16,19 @@ accepted by the reference compiler.
 The grammar covers the full surface syntax: declarations, the type and effect
 language, patterns, expressions, and first-class Datalog constraints.
 
-It parses **887 of the 890** `.flix` files in a Flix compiler checkout —
-standard library, examples and test suite. Two of the three remaining files are
-deliberately invalid fixtures from the compiler's own error-recovery tests
-(`if b then …`, which Flix has no `then` keyword for, and a truncated source
-file); rejecting them is the correct behaviour.
+It parses **888 of the 890** `.flix` files in a Flix compiler checkout —
+standard library, examples and test suite. Both remaining files are deliberately
+invalid fixtures from the compiler's own error-recovery tests (`if b then …`,
+which Flix has no `then` keyword for, and a truncated source file); rejecting
+them is the correct behaviour.
 
 See [`CLAUDE.md`](CLAUDE.md) for the development workflow.
 
 ## Usage
 
-Build the parser and try it on a file:
+Try it on a file — `src/parser.c` is committed, so there is nothing to generate:
 
 ```bash
-tree-sitter generate
 tree-sitter parse path/to/File.flix
 ```
 

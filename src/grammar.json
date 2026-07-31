@@ -65,23 +65,24 @@
     "line_comment": {
       "type": "TOKEN",
       "content": {
-        "type": "PREC",
-        "value": -1,
-        "content": {
-          "type": "PATTERN",
-          "value": "\\/\\/[^\\n]*"
-        }
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "\\/\\/([^\\/\\n][^\\n]*)?"
+          },
+          {
+            "type": "PATTERN",
+            "value": "\\/\\/\\/\\/+[^\\n]*"
+          }
+        ]
       }
     },
     "doc_comment": {
       "type": "TOKEN",
       "content": {
-        "type": "PREC",
-        "value": 1,
-        "content": {
-          "type": "PATTERN",
-          "value": "\\/\\/\\/[^\\n]*"
-        }
+        "type": "PATTERN",
+        "value": "\\/\\/\\/([^\\/\\n][^\\n]*)?"
       }
     },
     "annotation": {
@@ -192,7 +193,7 @@
                         "members": [
                           {
                             "type": "PATTERN",
-                            "value": "e[+-]?[0-9]+(_[0-9]+)*"
+                            "value": "e[+-]?[0-9]+(_[0-9]+)*(\\.[0-9]+(_[0-9]+)*)?"
                           },
                           {
                             "type": "BLANK"
@@ -203,7 +204,7 @@
                   },
                   {
                     "type": "PATTERN",
-                    "value": "e[+-]?[0-9]+(_[0-9]+)*"
+                    "value": "e[+-]?[0-9]+(_[0-9]+)*(\\.[0-9]+(_[0-9]+)*)?"
                   }
                 ]
               }
@@ -325,8 +326,55 @@
       "type": "SEQ",
       "members": [
         {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_qualified_segment"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_dot"
+              }
+            ]
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_qualified_segment"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "name_lower"
+            }
+          ]
+        }
+      ]
+    },
+    "_qualified_segment": {
+      "type": "CHOICE",
+      "members": [
+        {
           "type": "SYMBOL",
-          "name": "_name"
+          "name": "name_upper"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "name_math"
+        }
+      ]
+    },
+    "java_qualified_name": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_java_segment"
         },
         {
           "type": "REPEAT",
@@ -339,10 +387,23 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "_name"
+                "name": "_java_segment"
               }
             ]
           }
+        }
+      ]
+    },
+    "_java_segment": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "name_lower"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "name_upper"
         }
       ]
     },
@@ -419,7 +480,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "qualified_name"
+          "name": "java_qualified_name"
         },
         {
           "type": "CHOICE",
@@ -5708,7 +5769,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "qualified_name"
+          "name": "java_qualified_name"
         },
         {
           "type": "STRING",
@@ -6560,8 +6621,12 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "STRING",
-                "value": "not"
+                "type": "FIELD",
+                "name": "negated",
+                "content": {
+                  "type": "STRING",
+                  "value": "not"
+                }
               },
               {
                 "type": "BLANK"
@@ -6572,8 +6637,12 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "STRING",
-                "value": "fix"
+                "type": "FIELD",
+                "name": "fixed",
+                "content": {
+                  "type": "STRING",
+                  "value": "fix"
+                }
               },
               {
                 "type": "BLANK"
@@ -7246,7 +7315,7 @@
     },
     "invoke_method": {
       "type": "PREC_LEFT",
-      "value": 16,
+      "value": 17,
       "content": {
         "type": "SEQ",
         "members": [
@@ -7897,6 +7966,40 @@
   ],
   "conflicts": [
     [
+      "qualified_name",
+      "record_pattern_field"
+    ],
+    [
+      "qualified_name",
+      "record_operation"
+    ],
+    [
+      "_qualified_segment",
+      "parameter",
+      "variable_pattern"
+    ],
+    [
+      "qualified_name",
+      "parameter",
+      "variable_pattern"
+    ],
+    [
+      "_qualified_segment",
+      "variable_pattern"
+    ],
+    [
+      "qualified_name",
+      "variable_pattern"
+    ],
+    [
+      "_qualified_segment",
+      "parameter"
+    ],
+    [
+      "qualified_name",
+      "parameter"
+    ],
+    [
       "_statement",
       "sequence_expression"
     ],
@@ -7922,14 +8025,6 @@
       "record_expression"
     ],
     [
-      "_name",
-      "record_pattern_field"
-    ],
-    [
-      "_name",
-      "record_operation"
-    ],
-    [
       "tag_pattern",
       "_expression"
     ],
@@ -7946,15 +8041,6 @@
       "_expression"
     ],
     [
-      "_name",
-      "parameter",
-      "variable_pattern"
-    ],
-    [
-      "_name",
-      "variable_pattern"
-    ],
-    [
       "paren_expression",
       "argument"
     ],
@@ -7963,15 +8049,14 @@
       "parameter_list"
     ],
     [
-      "_name",
-      "parameter"
-    ],
-    [
       "_expression",
       "parameter"
     ],
     [
       "qualified_name"
+    ],
+    [
+      "java_qualified_name"
     ],
     [
       "equality_constraints"
@@ -8018,6 +8103,10 @@
     {
       "type": "SYMBOL",
       "name": "_dot_spaced"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_error_sentinel"
     }
   ],
   "inline": [],

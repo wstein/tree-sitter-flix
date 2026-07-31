@@ -898,6 +898,10 @@
           "named": true
         },
         {
+          "type": "java_qualified_name",
+          "named": true
+        },
+        {
           "type": "name_lower",
           "named": true
         },
@@ -1865,7 +1869,7 @@
       "required": true,
       "types": [
         {
-          "type": "qualified_name",
+          "type": "java_qualified_name",
           "named": true
         },
         {
@@ -2007,6 +2011,25 @@
         },
         {
           "type": "name_lower",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "java_qualified_name",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "name_lower",
+          "named": true
+        },
+        {
+          "type": "name_upper",
           "named": true
         }
       ]
@@ -2786,7 +2809,28 @@
   {
     "type": "predicate_atom",
     "named": true,
-    "fields": {},
+    "fields": {
+      "fixed": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "fix",
+            "named": false
+          }
+        ]
+      },
+      "negated": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "not",
+            "named": false
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": true,

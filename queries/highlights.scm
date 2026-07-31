@@ -1,3 +1,11 @@
+; Base case: a bare name is a variable unless something below overrides it.
+; Tree-sitter keeps scanning after a match and takes the LAST pattern that
+; matches a node, so these must come first or they clobber every more specific
+; capture in this file.
+(name_lower) @variable
+
+(name_math) @variable
+
 ; Comments
 (line_comment) @comment
 
@@ -349,8 +357,3 @@
 ; `->` is scanned externally as a hidden token, so it has no queryable node
 ; type; only `=>` can be matched here.
 "=>" @punctuation.special
-
-; Fall-through: any remaining name is a plain variable.
-(name_lower) @variable
-
-(name_math) @variable

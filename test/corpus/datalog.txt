@@ -468,3 +468,88 @@ def f(): #{ Edge(Int32, Int32) | r } = ???
       (type_variable
         (name_lower)))
     (hole_anonymous)))
+
+================================================================================
+Negation is visible in the tree
+================================================================================
+
+def f(): Unit = #{
+    P(x) :- Q(x).
+    P(x) :- not Q(x).
+    P(x) :- fix Q(x).
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (fixpoint_constraint_set
+      (fixpoint_constraint
+        (predicate_head
+          (name_upper)
+          (head_term_list
+            (qualified_name
+              (name_lower))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower)))))
+      (fixpoint_constraint
+        (predicate_head
+          (name_upper)
+          (head_term_list
+            (qualified_name
+              (name_lower))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower)))))
+      (fixpoint_constraint
+        (predicate_head
+          (name_upper)
+          (head_term_list
+            (qualified_name
+              (name_lower))))
+        (predicate_atom
+          (name_upper)
+          (body_term_list
+            (variable_pattern
+              (name_lower))))))))
+
+================================================================================
+Provenance solve and query
+================================================================================
+
+def f(): Unit = {
+    psolve db;
+    pquery db select P(x) with {Edge}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (block
+      (sequence_expression
+        (fixpoint_psolve
+          (qualified_name
+            (name_lower)))
+        (fixpoint_query_with_provenance
+          (qualified_name
+            (name_lower))
+          (predicate_head
+            (name_upper)
+            (head_term_list
+              (qualified_name
+                (name_lower))))
+          (name_upper))))))

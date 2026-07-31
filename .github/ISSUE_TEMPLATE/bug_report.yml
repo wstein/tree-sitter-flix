@@ -20,7 +20,7 @@ body:
   - type: input
     attributes:
       label: "Tree-sitter CLI Version, if relevant (output of `tree-sitter --version`)"
-      placeholder: "tree-sitter 0.20.8 (6bbb50bef8249e6460e7d69e42cc8146622fa4fd)"
+      placeholder: "tree-sitter 0.26.11"
     validations:
       required: false
   - type: textarea

@@ -11,7 +11,13 @@ on:
       - test/**
       - queries/**
       - bindings/**
+      - scripts/**
       - binding.gyp
+      - package.json
+      - package-lock.json
+      - eslint.config.js
+      - tree-sitter.json
+      - .tsqueryrc.json
       - .github/workflows/ci.yml
   pull_request:
     paths:
@@ -20,7 +26,13 @@ on:
       - test/**
       - queries/**
       - bindings/**
+      - scripts/**
       - binding.gyp
+      - package.json
+      - package-lock.json
+      - eslint.config.js
+      - tree-sitter.json
+      - .tsqueryrc.json
       - .github/workflows/ci.yml
 
 concurrency:
@@ -44,6 +56,11 @@ jobs:
         uses: tree-sitter/parser-test-action@v3
         with:
           test-rust: ${{runner.os == 'Linux'}}
+          # This action regenerates the parser and diffs src/parser.c by
+          # default. Generation takes ~10 minutes for this grammar, which would
+          # be paid on every OS in the matrix; the check runs once on Linux
+          # instead, in the separate `generate` job below.
+          generate: false
 
   lint:
     name: Lint grammar
@@ -73,10 +90,13 @@ jobs:
         id: scanner-check
         shell: sh
         run: |-
-          {
-            test -f src/scanner.c && ! git diff --quiet HEAD^ -- "$_" &&
-            printf 'changed=true\n' || printf 'changed=false\n'
-          } >> "$GITHUB_OUTPUT"
+          # Not `$_`: this runs under dash, which does not set it, so the old
+          # form passed an empty pathspec and reported "changed" every run.
+          if [ -f src/scanner.c ] && ! git diff --quiet HEAD^ -- src/scanner.c; then
+            printf 'changed=true\n' >> "$GITHUB_OUTPUT"
+          else
+            printf 'changed=false\n' >> "$GITHUB_OUTPUT"
+          fi
       - name: Run fuzzer
         uses: tree-sitter/fuzz-action@v4
         if: steps.scanner-check.outputs.changed == 'true'
@@ -95,7 +115,20 @@ jobs:
         run: tree-sitter build
 
       - name: Set up ts_query_ls
-        run: curl -fL https://github.com/ribru17/ts_query_ls/releases/latest/download/ts_query_ls-x86_64-unknown-linux-gnu.tar.gz | tar -xz
+        run: curl -fL https://github.com/ribru17/ts_query_ls/releases/download/v3.16.0/ts_query_ls-x86_64-unknown-linux-gnu.tar.gz | tar -xz
 
       - name: Check queries
         run: ./ts_query_ls check -f queries/
+
+  generate:
+    name: Check parser is up to date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@v2
+      - name: Regenerate parser
+        run: tree-sitter generate
+      - name: Fail if the committed parser differs
+        run: git diff --exit-code src/parser.c src/grammar.json src/node-types.json

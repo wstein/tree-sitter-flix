@@ -13,21 +13,30 @@ updates:
       actions:
         patterns: ["*"]
 
-  # NOTE: uncomment the ecosystems you want to keep up-to-date
+  # The regenerate workflow only fires for the npm ecosystem, so this has to
+  # stay enabled for it to do anything.
+  - package-ecosystem: npm
+    versioning-strategy: increase
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+    commit-message:
+      prefix: build(deps)
+    labels:
+      - dependencies
+    groups:
+      npm:
+        patterns: ["*"]
+    ignore:
+      # eslint-config-treesitter imports `globals` without declaring it, and
+      # only resolves through eslint 9's dependency tree. eslint 10 removed
+      # that path, so the config fails to load. Unpin once upstream declares
+      # the dependency.
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
 
-  # - package-ecosystem: npm
-  #   versioning-strategy: increase
-  #   directory: /
-  #   schedule:
-  #     interval: weekly
-  #     day: sunday
-  #   commit-message:
-  #     prefix: build(deps)
-  #   labels:
-  #     - dependencies
-  #   groups:
-  #     npm:
-  #       patterns: ["*"]
+  # NOTE: uncomment the ecosystems you want to keep up-to-date
 
   # - package-ecosystem: cargo
   #   directory: /

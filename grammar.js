@@ -126,36 +126,43 @@ export default grammar({
     $._arrow_spaced,
     $._dot,
     $._dot_spaced,
+    // Referenced by no rule, so it is only ever valid in tree-sitter's error
+    // recovery state, where every external is marked valid. The scanner uses it
+    // to tell recovery from a real parse and stand down. Must stay last.
+    $._error_sentinel,
   ],
 
   supertypes: $ => [$._declaration, $._expression, $._type, $._pattern],
 
   conflicts: $ => [
     // --- conflicts added while converging the parser tables ---
+    [$.qualified_name, $.record_pattern_field],
+    [$.qualified_name, $.record_operation],
+    [$._qualified_segment, $.parameter, $.variable_pattern],
+    [$.qualified_name, $.parameter, $.variable_pattern],
+    [$._qualified_segment, $.variable_pattern],
+    [$.qualified_name, $.variable_pattern],
+    [$._qualified_segment, $.parameter],
+    [$.qualified_name, $.parameter],
     [$._statement, $.sequence_expression],
     [$.unary_pattern, $._expression],
     [$.parameter_list, $.tuple_pattern],
     [$.tuple_pattern, $.unit_expression],
     [$.parameter, $.variable_pattern, $._expression],
     [$.record_pattern, $.record_expression],
-    [$._name, $.record_pattern_field],
-    [$._name, $.record_operation],
     [$.tag_pattern, $._expression],
     [$.literal_pattern, $._expression],
     [$.parameter, $.variable_pattern],
     [$.variable_pattern, $._expression],
-    [$._name, $.parameter, $.variable_pattern],
-    [$._name, $.variable_pattern],
     [$.paren_expression, $.argument],
     // `(a, b)` is a tuple until a `->` turns it into a lambda parameter list.
     [$.unit_expression, $.parameter_list],
     // `x` alone can be a variable reference or a one-parameter lambda head.
-    [$._name, $.parameter],
     [$._expression, $.parameter],
-    // `{` opens a block or a record; two tokens of lookahead decide.
-    // `(` opens a tuple type or a record row type.
     // `use A.B` vs `use A.{b, c}` — the `.` needs two tokens of lookahead.
+    // Same for the Java form, `import a.B` vs `import a.{B, C}`.
     [$.qualified_name],
+    [$.java_qualified_name],
     // `where` may take an empty constraint list, and `{` can also start a type.
     [$.equality_constraints],
   ],
@@ -191,8 +198,20 @@ export default grammar({
     generic_operator: _ =>
       token(/_[+\-*<>=!&|^$]+|[+\-*<>=!&|^$][+\-*<>=!&|^$]+/),
 
-    line_comment: _ => token(prec(-1, /\/\/[^\n]*/)),
-    doc_comment: _ => token(prec(1, /\/\/\/[^\n]*/)),
+    // `acceptLineOrDocComment` returns CommentDoc only for exactly three slashes:
+    // `//` is a line comment, `///` a doc comment, `////` and longer line
+    // comments again. The two patterns below are mutually exclusive, so neither
+    // needs a `prec` — and must not have one, since explicit token precedence
+    // outranks match length and would let the 3-character `///` prefix win over
+    // a whole `////` line.
+    line_comment: _ =>
+      token(
+        choice(
+          /\/\/([^\/\n][^\n]*)?/, // `//` not followed by a third slash
+          /\/\/\/\/+[^\n]*/, // four or more slashes
+        ),
+      ),
+    doc_comment: _ => token(/\/\/\/([^\/\n][^\n]*)?/),
 
     annotation: _ => /@[a-zA-Z]+/,
     intrinsic: _ => /%%[A-Z0-9_]*%%/,
@@ -221,12 +240,18 @@ export default grammar({
             optional(/e[+-]?[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?/),
             /f32|f64|ff/,
           ),
-          // A fractional or exponent form is a float even without a suffix.
+          // A fractional or exponent form is a float even without a suffix. The
+          // exponent may itself carry a fraction — `acceptNumber` runs
+          // `acceptCommaTail` a second time after the exponent digits, so
+          // `2.1e4.5` is one token.
           seq(
             /[0-9]+(_[0-9]+)*/,
             choice(
-              seq(/\.[0-9]+(_[0-9]+)*/, optional(/e[+-]?[0-9]+(_[0-9]+)*/)),
-              /e[+-]?[0-9]+(_[0-9]+)*/,
+              seq(
+                /\.[0-9]+(_[0-9]+)*/,
+                optional(/e[+-]?[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?/),
+              ),
+              /e[+-]?[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?/,
             ),
           ),
         ),
@@ -262,7 +287,24 @@ export default grammar({
     // Names
     // ---------------------------------------------------------------------
 
-    qualified_name: $ => seq($._name, repeat(seq($._dot, $._name))),
+    // `nameAllowQualified` stops as soon as it consumes a token in its `tail`
+    // set, which defaults to NameLowercase. So a qualified name is a run of
+    // uppercase segments optionally ending in one lowercase segment:
+    // `Foo.Bar.baz` is a single name, but `sb.append` is just `sb`, leaving
+    // `.append` to the postfix rules that build a field access or a method
+    // invocation.
+    qualified_name: $ =>
+      seq(
+        repeat(seq($._qualified_segment, $._dot)),
+        choice($._qualified_segment, $.name_lower),
+      ),
+    _qualified_segment: $ => choice($.name_upper, $.name_math),
+
+    // Java names are the exception: `nameAllowQualified` is called with an
+    // empty tail set for them, so `java.util.Arrays` never stops early.
+    java_qualified_name: $ =>
+      seq($._java_segment, repeat(seq($._dot, $._java_segment))),
+    _java_segment: $ => choice($.name_lower, $.name_upper),
 
     // ---------------------------------------------------------------------
     // Uses and imports — a strict prefix of the compilation unit
@@ -271,7 +313,8 @@ export default grammar({
     _use_or_import: $ => seq(choice($.use_declaration, $.import_declaration), optional(';')),
 
     use_declaration: $ => seq('use', $.qualified_name, optional(seq($._dot, $.use_many))),
-    import_declaration: $ => seq('import', $.qualified_name, optional(seq($._dot, $.use_many))),
+    import_declaration: $ =>
+      seq('import', $.java_qualified_name, optional(seq($._dot, $.use_many))),
     use_many: $ => seq('{', commaSep($.aliased_name), '}'),
     aliased_name: $ => seq(definitionName($), optional(seq('=>', definitionName($)))),
 
@@ -788,7 +831,8 @@ export default grammar({
 
     try_expression: $ => prec.right(seq('try', $._expression, repeat($.catch_body))),
     catch_body: $ => seq('catch', '{', repeat(seq($.catch_rule, optional(','))), '}'),
-    catch_rule: $ => seq('case', variableName($), ':', $.qualified_name, '=>', $._statement),
+    catch_rule: $ =>
+      seq('case', variableName($), ':', $.java_qualified_name, '=>', $._statement),
     throw_expression: $ => prec.right(seq('throw', $._expression)),
 
     new_expression: $ =>
@@ -840,8 +884,18 @@ export default grammar({
     predicate_guard: $ => seq('if', '(', $._expression, ')'),
     predicate_functional: $ =>
       seq('let', choice(variableName($), seq('(', commaSep(variableName($)), ')')), '=', $._expression),
+    // `not` and `fix` are recorded as fields: without them a negated atom and a
+    // positive one produce identical named-node trees, and in Datalog that
+    // inverts the meaning of the rule.
     predicate_atom: $ =>
-      prec.right(seq(optional('not'), optional('fix'), $.name_upper, optional($.body_term_list))),
+      prec.right(
+        seq(
+          optional(field('negated', 'not')),
+          optional(field('fixed', 'fix')),
+          $.name_upper,
+          optional($.body_term_list),
+        ),
+      ),
     body_term_list: $ => seq('(', commaSep($._pattern), optional(seq(';', $._pattern)), ')'),
 
     // Every fixpoint keyword takes the same greedy comma-separated expression
@@ -902,8 +956,9 @@ export default grammar({
     argument: $ => seq($._expression, optional(seq('=', $._expression))),
 
     apply_expression: $ => prec.left(PREC.postfix, seq($._expression, $.argument_list)),
+    // Outranks `apply_expression(get_field(...))`, which matches the same tokens.
     invoke_method: $ =>
-      prec.left(PREC.postfix, seq($._expression, $._dot, $.name_lower, $.argument_list)),
+      prec.left(PREC.postfix + 1, seq($._expression, $._dot, $.name_lower, $.argument_list)),
     get_field: $ => prec.left(PREC.postfix, seq($._expression, $._dot, $.name_lower)),
     // Record selection is `r#label`; `.label` is Java field access.
     record_select: $ => prec.left(PREC.postfix, seq($._expression, '#', $.name_lower)),
