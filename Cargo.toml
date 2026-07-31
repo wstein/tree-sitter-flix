@@ -1,7 +1,7 @@
 [package]
 name = "tree-sitter-flix"
 description = "Flix grammar for tree-sitter"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Werner Stein <claude@wstein.de>"]
 license = "MIT"
 readme = "README.md"
