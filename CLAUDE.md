@@ -152,6 +152,24 @@ Two things already done to contain it — do not undo them:
 This is build-time only: the generated parser runs at ~10,000 bytes/ms. If it needs to come
 down further, the greedy expression list is the thing to attack.
 
+## Releasing
+
+`src/parser.c` embeds the grammar version in its `TSLanguage` metadata, and `tree-sitter
+version` updates the manifests **without** regenerating it. A version bump is therefore three
+steps, in this order:
+
+```bash
+tree-sitter version 0.1.2        # tree-sitter.json, package.json, Cargo.toml,
+                                 # pyproject.toml, Makefile, CMakeLists.txt
+npm install --package-lock-only  # tree-sitter leaves the lockfile alone, and
+                                 # `npm ci` rejects it as out of sync
+tree-sitter generate             # ~8 min; updates the embedded patch_version
+```
+
+Commit all of that, *then* tag. Tagging first publishes artifacts that report the previous
+version: `publish.yml` fires on the tag immediately, while the `Check parser is up to date` job
+only catches the mismatch afterwards. v0.1.1 had to be deleted and re-cut for exactly this.
+
 ## Conventions
 
 - Conventional Commits; the type reflects the primary purpose of the change (`feat` for new
