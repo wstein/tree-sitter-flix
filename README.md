@@ -4,12 +4,12 @@
 [![Release][release-badge]][releases]
 [![License][license-badge]][license]
 
-A [Tree-sitter][tree-sitter] parser for the [Flix][flix] programming language.
+A [Tree-sitter][tree-sitter] grammar for [Flix][flix] — covering the full
+surface syntax, effect system and first-class Datalog included.
 
 Flix is a functional, imperative, and logic programming language with a
 Hindley–Milner type system, a polymorphic effect system, and first-class
-Datalog constraints. This grammar parses the full surface syntax accepted by
-the reference compiler.
+Datalog constraints.
 
 ## Status
 
