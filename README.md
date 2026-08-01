@@ -13,11 +13,14 @@ the reference compiler.
 
 ## Status
 
-It parses **888 of the 890** `.flix` files in a Flix compiler checkout —
-standard library, examples and test suite. Both remaining files are
-deliberately invalid fixtures from the compiler's own error-recovery tests
-(`if b then …`, which Flix has no `then` keyword for, and a truncated source
-file); rejecting them is the correct behaviour.
+It parses **every valid `.flix` file** in a Flix compiler checkout — all 888 of
+them, across the standard library, the examples and the test suite.
+
+The checkout contains 890 `.flix` files in total. The other two are negative
+tests: `IfElseCoverage.flix` uses `if b then …`, and Flix has no `then`
+keyword, while `resiliency/ford-fulkerson-prefix.flix` is truncated
+mid-expression to exercise the compiler's error recovery. Neither is meant to
+parse, and this grammar rejects both — as it should.
 
 The grammar is derived from the reference compiler's `Lexer.scala` and
 `Parser2.scala` rather than from documentation, so it follows the parser's

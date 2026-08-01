@@ -41,10 +41,12 @@ export FLIX_SRC=/path/to/flix          # a checkout of github.com/flix/flix
 ./scripts/parse-corpus.sh                        # ~890 files incl. stdlib
 ```
 
-The current figure is 888 of 890. The two failures are deliberately invalid fixtures
-(`main/test/coverage/IfElseCoverage.flix` uses `if b then …`, which is not Flix syntax, and
-`resiliency/ford-fulkerson-prefix.flix` is truncated mid-expression), so **888 is the passing
-score** — a drop below it is a regression.
+Two of the 890 files are **negative tests and must not parse**:
+`main/test/coverage/IfElseCoverage.flix` uses `if b then …`, which is not Flix syntax, and
+`resiliency/ford-fulkerson-prefix.flix` is truncated mid-expression to exercise the compiler's
+error recovery. The script counts them as failures because it cannot know that, so **888 is a
+perfect score** — every valid file parses. A drop below 888 is a regression; a rise above it
+means the grammar has started accepting something it should reject.
 
 Corpus tests in `test/corpus/` pin exact tree shapes; the corpus script catches breadth gaps
 that hand-written tests miss. Both must pass before a change is considered done.
