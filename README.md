@@ -13,14 +13,19 @@ Datalog constraints.
 
 ## Status
 
-It parses **every valid `.flix` file** in a Flix compiler checkout — all 888 of
-them, across the standard library, the examples and the test suite.
+It parses **every valid `.flix` file** in a Flix compiler checkout — 871 of
+873 in the current upstream `master` (corpus size drifts as flix/flix
+changes; re-run `scripts/parse-corpus.sh` for the current count), across the
+standard library, the examples and the test suite.
 
-The checkout contains 890 `.flix` files in total. The other two are negative
-tests: `IfElseCoverage.flix` uses `if b then …`, and Flix has no `then`
-keyword, while `resiliency/ford-fulkerson-prefix.flix` is truncated
-mid-expression to exercise the compiler's error recovery. Neither is meant to
-parse, and this grammar rejects both — as it should.
+Two files don't parse, and neither is a gap. `resiliency/ford-fulkerson-prefix.flix`
+is an intentional negative test, truncated mid-expression to exercise the
+compiler's error recovery. `examples/apps/langcensus/src/Analyse.flix` uses
+`foreach (...) yield expr`, which `foreach` does not support in the reference
+parser either — `Parser2.scala`'s `foreachExpr()` has no `yield` production,
+unlike `forA`/`forM` — so the example does not compile against the reference
+compiler regardless of this grammar. (`IfElseCoverage.flix`, an earlier
+negative test that used `if b then …`, no longer exists in the corpus.)
 
 The grammar is derived from the reference compiler's `Lexer.scala` and
 `Parser2.scala` rather than from documentation, so it follows the parser's

@@ -36,17 +36,23 @@ The real measure of progress. `scripts/parse-corpus.sh` parses a tree of `.flix`
 reports a success percentage:
 
 ```bash
-export FLIX_SRC=/path/to/flix          # a checkout of github.com/flix/flix
+export FLIX_SRC=/path/to/flix          # a checkout of github.com/flix/flix, on master --
+                                        # a stray local branch will not match the reference
 ./scripts/parse-corpus.sh "$FLIX_SRC/examples"   # ~190 files
-./scripts/parse-corpus.sh                        # ~890 files incl. stdlib
+./scripts/parse-corpus.sh                        # ~870 files incl. stdlib, drifts with upstream
 ```
 
-Two of the 890 files are **negative tests and must not parse**:
-`main/test/coverage/IfElseCoverage.flix` uses `if b then …`, which is not Flix syntax, and
-`resiliency/ford-fulkerson-prefix.flix` is truncated mid-expression to exercise the compiler's
-error recovery. The script counts them as failures because it cannot know that, so **888 is a
-perfect score** — every valid file parses. A drop below 888 is a regression; a rise above it
-means the grammar has started accepting something it should reject.
+Two files are expected to fail, and neither is a grammar gap. Both are worth checking by name
+after a run, not just by count, since the corpus is not static: **`resiliency/ford-fulkerson-prefix.flix`**
+is truncated mid-expression to exercise the compiler's error recovery and must not parse.
+**`examples/apps/langcensus/src/Analyse.flix`** uses `foreach (...) yield expr`, which `foreach`
+does not support in the reference parser either -- `Parser2.scala`'s `foreachExpr()` has no
+`yield` production, unlike `forA`/`forM` -- so the example does not compile against the
+reference compiler regardless of what this grammar accepts. (An earlier negative test,
+`main/test/coverage/IfElseCoverage.flix`, no longer exists upstream; its disappearance from the
+failure list is not a fix here.) Two failures with these two names is a perfect score --
+every valid file parses. A different failing file, or a different count, needs investigating
+before assuming either grammar or corpus is at fault.
 
 Corpus tests in `test/corpus/` pin exact tree shapes; the corpus script catches breadth gaps
 that hand-written tests miss. Both must pass before a change is considered done.
