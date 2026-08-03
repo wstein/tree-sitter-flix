@@ -154,6 +154,20 @@ Two things already done to contain it — do not undo them:
 This is build-time only: the generated parser runs at ~10,000 bytes/ms. If it needs to come
 down further, the greedy expression list is the thing to attack.
 
+## Conformance against the reference
+
+`conformance/projection-map.json` maps this grammar's snake_case node vocabulary onto the
+canonical `TreeKind` names [`flix-spec`](https://github.com/wstein/flix-spec) fixtures are
+expected in. It lives here, not in `flix-spec`, because every entry is knowledge about this
+grammar's own shape (which nodes are transparent wrappers, which native kinds collapse to which
+canonical one) — flix-spec owns the canonical vocabulary, the fixtures, and the comparison
+algorithm (`flix.spec.Conformance`), not this map. See `docs/CONFORMANCE.md` in flix-spec for
+what the comparison covers, the `mappings`/`ignored`/`elide` semantics, and how to run
+`./gradlew :tools:project:conformance` with `--map conformance/projection-map.json` against a
+projected tree from this grammar. There is no comparison harness committed in this repository
+yet — projecting a tree-sitter parse into the `{"kind":...,"children":[...]}` shape the comparator
+expects is still a manual/scratch step.
+
 ## Releasing
 
 `src/parser.c` embeds the grammar version in its `TSLanguage` metadata, and `tree-sitter
