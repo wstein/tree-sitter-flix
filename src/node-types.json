@@ -330,6 +330,10 @@
         "named": true
       },
       {
+        "type": "unterminated_string",
+        "named": true
+      },
+      {
         "type": "use_expression",
         "named": true
       },
@@ -4674,6 +4678,10 @@
   },
   {
     "type": "unterminated_literal",
+    "named": true
+  },
+  {
+    "type": "unterminated_string",
     "named": true
   },
   {

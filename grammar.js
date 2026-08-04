@@ -126,6 +126,9 @@ export default grammar({
     $._arrow_spaced,
     $._dot,
     $._dot_spaced,
+    // A string with no closing quote. Modelled rather than left to tree-sitter's recovery for the
+    // same reason as `unterminated_literal`: the reference keeps the enclosing declaration.
+    $.unterminated_string,
     // Referenced by no rule, so it is only ever valid in tree-sitter's error
     // recovery state, where every external is marked valid. The scanner uses it
     // to tell recovery from a real parse and stand down. Must stay last.
@@ -732,6 +735,7 @@ export default grammar({
         $.fixpoint_solve,
         $.fixpoint_psolve,
         $.unterminated_literal,
+        $.unterminated_string,
         $.fixpoint_inject,
         $.fixpoint_query,
         $.fixpoint_query_with_provenance,

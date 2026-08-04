@@ -4139,6 +4139,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "unterminated_string"
+        },
+        {
+          "type": "SYMBOL",
           "name": "fixpoint_inject"
         },
         {
@@ -8273,6 +8277,10 @@
     {
       "type": "SYMBOL",
       "name": "_dot_spaced"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "unterminated_string"
     },
     {
       "type": "SYMBOL",

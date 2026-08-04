@@ -18,6 +18,7 @@ enum TokenType {
     ARROW_SPACED,
     DOT,
     DOT_SPACED,
+    UNTERMINATED_STRING,
     ERROR_SENTINEL,
 };
 
@@ -107,7 +108,7 @@ static bool scan_string_body(TSLexer *lexer, const bool *valid, enum TokenType o
 
         // A raw line break terminates a string with an error in the reference
         // lexer; stopping here keeps the damage to a single line.
-        if (lexer->lookahead == '\n' || lexer->lookahead == '\r') return false;
+        if (lexer->lookahead == '\n' || lexer->lookahead == '\r') break;
 
         if (lexer->lookahead == '$') {
             advance(lexer);
@@ -120,6 +121,15 @@ static bool scan_string_body(TSLexer *lexer, const bool *valid, enum TokenType o
         }
 
         advance(lexer);
+    }
+
+    // Ran to a line break or to end of input without a closing quote. The reference's Lexer reports
+    // the error and hands Parser2 a token anyway, so the enclosing declaration survives with an
+    // ErrorTree in it. Returning false instead would leave tree-sitter to recover on its own, and
+    // its recovery discards the whole declaration -- a much larger disagreement than the error.
+    if (valid[UNTERMINATED_STRING]) {
+        lexer->result_symbol = UNTERMINATED_STRING;
+        return true;
     }
 
     return false;

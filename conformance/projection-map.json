@@ -45,6 +45,7 @@
     "type_variable": "Type.Variable",
     "unary_expression": "Expr.Unary",
     "unterminated_literal": "ErrorTree",
+    "unterminated_string": "ErrorTree",
     "use_declaration": "UsesOrImports.Use",
     "variable_pattern": "Pattern.Variable"
   },
