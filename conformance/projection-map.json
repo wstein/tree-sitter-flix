@@ -46,15 +46,19 @@
     "ERROR": "ErrorTree"
   },
   "ignored": [
+    "annotation",
     "argument",
     "block_comment",
     "comment",
     "derivations",
     "doc_comment",
+    "effect_annotation",
     "enum_body",
     "line_comment",
+    "modifier",
     "qualified_name",
-    "type_reference"
+    "type_reference",
+    "variable_pattern"
   ],
   "elide": [
     "AnnotationList",
