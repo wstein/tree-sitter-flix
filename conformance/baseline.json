@@ -1,6 +1,6 @@
 {
   "note": "Divergence ratchet for scripts/flix-spec-conformance.mjs. Lower it as divergences are fixed; never raise it without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression. NOTE: agreement fell from 122 to 107 when the mapping set was completed, because unmapped nodes are skipped rather than compared -- depth rose 84% to 90%. Read fixturesAgreeing together with depthPercent; a high agreement count at low depth is the number to distrust.",
-  "divergences": 58,
+  "divergences": 102,
   "measuredAt": {
     "treeSitterFlix": "HEAD",
     "treeSitterCli": "0.26.11",
@@ -12,12 +12,12 @@
   "lanes": {
     "oracle_conformance": {
       "verdict": "fail",
-      "fixturesAgreeing": 107,
+      "fixturesAgreeing": 88,
       "fixturesCompared": 136,
-      "divergenceCount": 58,
-      "nodesCompared": 1400,
-      "nodesUnmapped": 159,
-      "depthPercent": 90
+      "divergenceCount": 102,
+      "nodesCompared": 1778,
+      "nodesUnmapped": 32,
+      "depthPercent": 98
     },
     "source_invariants": {
       "verdict": "pass",
