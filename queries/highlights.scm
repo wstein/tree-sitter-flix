@@ -110,7 +110,14 @@
 (record_type_field
   name: (_) @variable.member)
 
-(record_operation
+; One node per record operation now, mirroring the reference's three TreeKinds.
+(record_op_extend
+  name: (_) @variable.member)
+
+(record_op_restrict
+  name: (_) @variable.member)
+
+(record_op_update
   name: (_) @variable.member)
 
 (record_pattern_field

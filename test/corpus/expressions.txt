@@ -361,28 +361,28 @@ def f(): Unit = ({x = 1, y = 2}, {+z = 3 | r}, {-z | r}, {x = 9 | r}, r#x)
     (tuple_expression
       (argument
         (record_expression
-          (record_operation
+          (record_op_update
             (name_lower)
             (integer))
-          (record_operation
+          (record_op_update
             (name_lower)
             (integer))))
       (argument
         (record_expression
-          (record_operation
+          (record_op_extend
             (name_lower)
             (integer))
           (qualified_name
             (name_lower))))
       (argument
         (record_expression
-          (record_operation
+          (record_op_restrict
             (name_lower))
           (qualified_name
             (name_lower))))
       (argument
         (record_expression
-          (record_operation
+          (record_op_update
             (name_lower)
             (integer))
           (qualified_name
@@ -686,7 +686,7 @@ def f(): Unit = (checked_cast(x), unchecked_cast(y as Int32 \ IO))
       (name_upper))
     (tuple_expression
       (argument
-        (checked_cast
+        (checked_type_cast
           (qualified_name
             (name_lower))))
       (argument
@@ -767,7 +767,7 @@ def f(): Unit = select {
           (name_lower))
         (qualified_name
           (name_lower)))
-      (select_rule
+      (select_rule_default
         (wildcard)
         (integer)))))
 
@@ -1088,9 +1088,9 @@ def f(): Unit = {
       (name_upper))
     (block
       (sequence_expression
-        (super_expression
+        (invoke_super_constructor
           (argument_list))
-        (super_expression
+        (invoke_super_method
           (name_lower)
           (argument_list))))))
 
@@ -1146,12 +1146,12 @@ def f(): Unit = (xvar Cons(1), open_variant Seq.Nil, open_variant_as Seq g)
             (argument
               (integer)))))
       (argument
-        (open_variant_expression
+        (open_variant
           (qualified_name
             (name_upper)
             (name_upper))))
       (argument
-        (open_variant_expression
+        (open_variant_as
           (qualified_name
             (name_upper))
           (qualified_name

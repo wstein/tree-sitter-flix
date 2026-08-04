@@ -161,7 +161,10 @@ export default grammar({
   conflicts: $ => [
     // --- conflicts added while converging the parser tables ---
     [$.qualified_name, $.record_pattern_field],
-    [$.qualified_name, $.record_operation],
+    // Both record forms that begin with a name-like token collide with a bare qualified name until
+    // the `=` or the enclosing `}` disambiguates: `{ -x }` is a restriction, `-x` a negation.
+    [$.qualified_name, $.record_op_update],
+    [$.qualified_name, $.record_op_restrict],
     [$._qualified_segment, $.parameter, $.variable_pattern],
     [$.qualified_name, $.parameter, $.variable_pattern],
     [$._qualified_segment, $.variable_pattern],
@@ -358,7 +361,7 @@ export default grammar({
 
     use_declaration: $ => seq('use', $.qualified_name, optional(seq($._dot, $.use_many))),
     import_declaration: $ =>
-      seq('import', $.java_qualified_name, optional(seq($._dot, $.use_many))),
+      seq('import', $.java_qualified_name, optional(seq($._dot, alias($.use_many, $.import_many)))),
     use_many: $ => seq('{', commaSep($.aliased_name), '}'),
     aliased_name: $ => seq(definitionName($), optional(seq('=>', definitionName($)))),
 
@@ -742,8 +745,10 @@ export default grammar({
         $.ext_match_expression,
         $.ext_match_lambda,
         $.restrictable_choose,
+        $.restrictable_choose_star,
         $.ext_tag_expression,
-        $.open_variant_expression,
+        $.open_variant,
+        $.open_variant_as,
         $.foreach_expression,
         $.for_monadic_expression,
         $.for_applicative_expression,
@@ -752,7 +757,8 @@ export default grammar({
         $.list_literal,
         $.set_literal,
         $.map_literal,
-        $.checked_cast,
+        $.checked_type_cast,
+        $.checked_effect_cast,
         $.unchecked_cast,
         $.unsafe_expression,
         $.run_expression,
@@ -761,7 +767,8 @@ export default grammar({
         $.throw_expression,
         $.new_expression,
         $.invoke_constructor,
-        $.super_expression,
+        $.invoke_super_constructor,
+        $.invoke_super_method,
         $.spawn_expression,
         $.par_yield_expression,
         $.select_expression,
@@ -808,13 +815,13 @@ export default grammar({
     block: $ => seq('{', $._statement, '}'),
 
     record_expression: $ =>
-      seq('{', commaSep($.record_operation), optional(seq('|', $._expression)), '}'),
-    record_operation: $ =>
-      choice(
-        seq('+', field('name', $.name_lower), '=', $._expression),
-        seq('-', field('name', $.name_lower)),
-        seq(field('name', $.name_lower), '=', $._expression),
-      ),
+      seq('{', commaSep($._record_operation), optional(seq('|', $._expression)), '}'),
+    // Three separate nodes, because the reference gives each form its own TreeKind and a
+    // projection map keyed on node name cannot split one node three ways.
+    _record_operation: $ => choice($.record_op_extend, $.record_op_restrict, $.record_op_update),
+    record_op_extend: $ => seq('+', field('name', $.name_lower), '=', $._expression),
+    record_op_restrict: $ => seq('-', field('name', $.name_lower)),
+    record_op_update: $ => seq(field('name', $.name_lower), '=', $._expression),
 
     let_expression: $ =>
       prec.right(
@@ -859,14 +866,12 @@ export default grammar({
     ext_match_rule: $ => seq('case', $._pattern, '=>', $._statement),
     ext_match_lambda: $ => prec.right(seq('ematch', $._pattern, $._arrow_spaced, $._expression)),
 
-    restrictable_choose: $ => seq(choice('choose', 'choose*'), $._expression, $.match_body),
+    restrictable_choose: $ => seq('choose', $._expression, $.match_body),
+    restrictable_choose_star: $ => seq('choose*', $._expression, $.match_body),
 
     ext_tag_expression: $ => prec.right(seq('xvar', $.name_upper, optional($.argument_list))),
-    open_variant_expression: $ =>
-      choice(
-        seq('open_variant', $.qualified_name),
-        seq('open_variant_as', $.qualified_name, $._expression),
-      ),
+    open_variant: $ => seq('open_variant', $.qualified_name),
+    open_variant_as: $ => seq('open_variant_as', $.qualified_name, $._expression),
 
     for_fragments: $ => seq('(', seq($._for_fragment, repeat(seq(';', $._for_fragment))), ')'),
     _for_fragment: $ => choice($.for_guard, $.for_generator, $.for_let),
@@ -887,7 +892,8 @@ export default grammar({
     map_entry: $ => seq($._expression, '=>', $._expression),
     region_name: $ => seq('@', $._expression),
 
-    checked_cast: $ => seq(choice('checked_cast', 'checked_ecast'), '(', $._expression, ')'),
+    checked_type_cast: $ => seq('checked_cast', '(', $._expression, ')'),
+    checked_effect_cast: $ => seq('checked_ecast', '(', $._expression, ')'),
     unchecked_cast: $ =>
       seq('unchecked_cast', '(', $._expression, optional(seq('as', $._type_and_effect)), ')'),
 
@@ -924,20 +930,19 @@ export default grammar({
     jvm_constructor: $ => seq('def', 'new', '(', ')', ':', $._type_and_effect, '=', $._statement),
     invoke_constructor: $ => seq('new', $._type, $.argument_list),
 
-    super_expression: $ =>
-      choice(seq('super', $.argument_list), seq('super', $._dot, $._name, $.argument_list)),
+    invoke_super_constructor: $ => seq('super', $.argument_list),
+    invoke_super_method: $ => seq('super', $._dot, $._name, $.argument_list),
 
     spawn_expression: $ => prec.right(seq('spawn', $._expression, $.region_name)),
     par_yield_expression: $ => seq('par', optional($.par_fragments), 'yield', $._expression),
     par_fragments: $ => seq('(', seq($.par_fragment, repeat(seq(';', $.par_fragment))), ')'),
     par_fragment: $ => seq($._pattern, '<-', $._expression),
 
-    select_expression: $ => seq('select', '{', repeat($.select_rule), '}'),
+    select_expression: $ => seq('select', '{', repeat($._select_rule), '}'),
+    _select_rule: $ => choice($.select_rule, $.select_rule_default),
     select_rule: $ =>
-      choice(
-        seq('case', variableName($), '<-', $.qualified_name, '(', $._expression, ')', '=>', $._statement),
-        seq('case', $.wildcard, '=>', $._statement),
-      ),
+      seq('case', variableName($), '<-', $.qualified_name, '(', $._expression, ')', '=>', $._statement),
+    select_rule_default: $ => seq('case', $.wildcard, '=>', $._statement),
 
     use_expression: $ =>
       prec.right(seq(choice($.use_declaration, $.import_declaration), ';', $._statement)),

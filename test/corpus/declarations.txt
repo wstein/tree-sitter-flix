@@ -68,7 +68,7 @@ import java.util.{Map, List => JList}
     (java_qualified_name
       (name_lower)
       (name_lower))
-    (use_many
+    (import_many
       (aliased_name
         (name_upper))
       (aliased_name
