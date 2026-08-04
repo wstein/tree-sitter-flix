@@ -277,7 +277,7 @@ restrictable enum Expr[s][a] {
 --------------------------------------------------------------------------------
 
 (source_file
-  (enum_declaration
+  (restrictable_enum_declaration
     (name_upper)
     (restriction_parameter
       (name_lower))

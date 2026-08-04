@@ -87,8 +87,9 @@ def f(): Unit = a `add` b
     (binary_expression
       (qualified_name
         (name_lower))
-      (qualified_name
-        (name_lower))
+      (operator
+        (qualified_name
+          (name_lower)))
       (qualified_name
         (name_lower)))))
 

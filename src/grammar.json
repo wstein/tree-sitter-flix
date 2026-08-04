@@ -703,6 +703,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "restrictable_enum_declaration"
+        },
+        {
+          "type": "SYMBOL",
           "name": "struct_declaration"
         },
         {
@@ -1140,51 +1144,103 @@
           }
         },
         {
+          "type": "STRING",
+          "value": "enum"
+        },
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_type_name"
+          }
+        },
+        {
           "type": "CHOICE",
           "members": [
             {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "enum"
-                },
-                {
-                  "type": "FIELD",
-                  "name": "name",
-                  "content": {
-                    "type": "SYMBOL",
-                    "name": "_type_name"
-                  }
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "type_parameter_list"
             },
             {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "restrictable"
-                },
-                {
-                  "type": "STRING",
-                  "value": "enum"
-                },
-                {
-                  "type": "FIELD",
-                  "name": "name",
-                  "content": {
-                    "type": "SYMBOL",
-                    "name": "_type_name"
-                  }
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "restriction_parameter"
-                }
-              ]
+              "type": "BLANK"
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "case_body"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "derivations"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "enum_body"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "restrictable_enum_declaration": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "annotation"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "modifier"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "restrictable"
+        },
+        {
+          "type": "STRING",
+          "value": "enum"
+        },
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_type_name"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "restriction_parameter"
         },
         {
           "type": "CHOICE",
@@ -2087,8 +2143,34 @@
           "value": "="
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_type"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "type_ascription"
+            }
+          ]
+        }
+      ]
+    },
+    "type_ascription": {
+      "type": "SEQ",
+      "members": [
+        {
           "type": "SYMBOL",
           "name": "_type"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kind"
         }
       ]
     },
@@ -7719,6 +7801,23 @@
         }
       ]
     },
+    "infix_operator": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "`"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "qualified_name"
+        },
+        {
+          "type": "STRING",
+          "value": "`"
+        }
+      ]
+    },
     "binary_expression": {
       "type": "CHOICE",
       "members": [
@@ -7772,16 +7871,13 @@
                 "name": "_expression"
               },
               {
-                "type": "STRING",
-                "value": "`"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "qualified_name"
-              },
-              {
-                "type": "STRING",
-                "value": "`"
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "infix_operator"
+                },
+                "named": true,
+                "value": "operator"
               },
               {
                 "type": "SYMBOL",

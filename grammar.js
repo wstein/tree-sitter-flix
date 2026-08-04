@@ -71,6 +71,27 @@ function commaSep1(rule) {
  *
  * @param {GrammarSymbols<string>} $
  */
+/**
+ * The shared tail of `enum` and `restrictable enum`.
+ *
+ * @param {GrammarSymbols<string>} $ - the grammar's rule set.
+ * @returns {RuleOrLiteral[]} the members both forms accept.
+ */
+function enumTail($) {
+  return [
+    optional($.type_parameter_list),
+    optional($.case_body),
+    optional($.derivations),
+    optional($.enum_body),
+  ];
+}
+
+/**
+ * The declaration prologue: annotations then modifiers.
+ *
+ * @param {GrammarSymbols<string>} $ - the grammar's rule set.
+ * @returns {RuleOrLiteral[]} the prologue members, spread into each declaration.
+ */
 function prologue($) {
   return [repeat($.annotation), repeat($.modifier)];
 }
@@ -352,6 +373,7 @@ export default grammar({
         $.module_declaration,
         $.function_declaration,
         $.enum_declaration,
+        $.restrictable_enum_declaration,
         $.struct_declaration,
         $.trait_declaration,
         $.instance_declaration,
@@ -420,14 +442,22 @@ export default grammar({
     enum_declaration: $ =>
       seq(
         ...prologue($),
-        choice(
-          seq('enum', field('name', $._type_name)),
-          seq('restrictable', 'enum', field('name', $._type_name), $.restriction_parameter),
-        ),
-        optional($.type_parameter_list),
-        optional($.case_body),
-        optional($.derivations),
-        optional($.enum_body),
+        'enum',
+        field('name', $._type_name),
+        ...enumTail($),
+      ),
+
+    // A separate rule, not a branch of enum_declaration: the reference gives it its own
+    // TreeKind (Decl.RestrictableEnum), and a projection map keyed on node name cannot split
+    // one node into two canonical kinds.
+    restrictable_enum_declaration: $ =>
+      seq(
+        ...prologue($),
+        'restrictable',
+        'enum',
+        field('name', $._type_name),
+        $.restriction_parameter,
+        ...enumTail($),
       ),
     restriction_parameter: $ => seq('[', variableName($), ']'),
     enum_body: $ => seq('{', repeat($.enum_case), '}'),
@@ -519,8 +549,13 @@ export default grammar({
         field('name', $._type_name),
         optional($.type_parameter_list),
         '=',
-        $._type,
+        choice($._type, $.type_ascription),
       ),
+
+    // `a : Type`. Confined to the type-alias body rather than added to `_type` generally, because
+    // `:` already separates a name from its type in every parameter position and widening it there
+    // would be ambiguous.
+    type_ascription: $ => seq($._type, ':', $.kind),
 
     // ---------------------------------------------------------------------
     // Parameters, constraints, kinds
@@ -1030,6 +1065,8 @@ export default grammar({
     // used directly, or a projection map entry for `generic_operator`, cannot tell the two apart --
     // mapping `generic_operator` to `Operator` wholesale measurably makes conformance worse.
     // Aliasing per position is what carries the distinction into the tree.
+    infix_operator: $ => seq('`', $.qualified_name, '`'),
+
     binary_expression: $ =>
       choice(
         prec.right(
@@ -1038,7 +1075,9 @@ export default grammar({
         ),
         prec.left(
           PREC.infix_function,
-          seq($._expression, '`', $.qualified_name, '`', $._expression),
+          // The reference wraps the whole `` `add` `` -- backticks and name -- in a
+          // TreeKind.Operator, so this is an operator node containing the name, not a bare name.
+          seq($._expression, alias($.infix_operator, $.operator), $._expression),
         ),
         ...[
           [PREC.instanceof, 'instanceof'],
