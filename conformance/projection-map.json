@@ -94,5 +94,8 @@
     "enum_body",
     "match_body",
     "trait_body"
+  ],
+  "flattenCanonical": [
+    "UsesOrImports.UseOrImportList"
   ]
 }
