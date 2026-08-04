@@ -35,7 +35,7 @@
     "equality_constraints": "Decl.EqualityConstraintList",
     "ext_match_expression": "Expr.ExtMatch",
     "ext_match_lambda": "Expr.LambdaExtMatch",
-    "ext_match_rule": "Pattern.Tag",
+    "ext_match_rule": "Expr.ExtMatchRuleFragment",
     "ext_tag_expression": "Expr.ExtTag",
     "extensible_type": "Type.Extensible",
     "fixpoint_constraint": "Expr.FixpointConstraint",
@@ -60,7 +60,7 @@
     "generic_operator": "Ident",
     "get_field": "Expr.GetField",
     "handler_expression": "Expr.Handler",
-    "handler_rule": "Ident",
+    "handler_rule": "Expr.RunWithRuleFragment",
     "head_term_list": "Predicate.TermList",
     "hole_anonymous": "Expr.Hole",
     "hole_named": "Expr.Hole",
@@ -104,7 +104,7 @@
     "operation_declaration": "Decl.Op",
     "operator": "Operator",
     "operator_lambda": "Expr.OperatorAsLambda",
-    "par_fragment": "Ident",
+    "par_fragment": "Expr.ParYieldFragment",
     "par_yield_expression": "Expr.ParYield",
     "parameter": "Parameter",
     "parameter_list": "ParameterList",
@@ -210,11 +210,16 @@
     "CommentList",
     "Doc",
     "Expr.Expr",
+    "Expr.FixpointWith",
+    "Expr.RunWithBodyExpr",
     "Expr.Statement",
+    "Expr.StructPutRHS",
+    "Expr.UnsafeAsEffFragment",
     "ModifierList",
     "Pattern.Pattern",
     "Pattern.Variable",
     "Predicate.Body",
+    "Predicate.LatticeTerm",
     "QName",
     "Type.Apply",
     "Type.Argument",
@@ -241,6 +246,8 @@
     "trait_body"
   ],
   "flattenCanonical": [
+    "ErrorTree",
+    "Predicate.Param",
     "UsesOrImports.UseOrImportList"
   ]
 }
