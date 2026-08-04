@@ -650,80 +650,8 @@
         "required": false,
         "types": [
           {
-            "type": "!=",
-            "named": false
-          },
-          {
-            "type": "*",
-            "named": false
-          },
-          {
-            "type": "+",
-            "named": false
-          },
-          {
-            "type": "-",
-            "named": false
-          },
-          {
-            "type": "/",
-            "named": false
-          },
-          {
-            "type": "::",
-            "named": false
-          },
-          {
-            "type": ":::",
-            "named": false
-          },
-          {
-            "type": "<",
-            "named": false
-          },
-          {
-            "type": "<+>",
-            "named": false
-          },
-          {
-            "type": "<=",
-            "named": false
-          },
-          {
-            "type": "<=>",
-            "named": false
-          },
-          {
-            "type": "==",
-            "named": false
-          },
-          {
-            "type": ">",
-            "named": false
-          },
-          {
-            "type": ">=",
-            "named": false
-          },
-          {
-            "type": "and",
-            "named": false
-          },
-          {
-            "type": "generic_operator",
+            "type": "operator",
             "named": true
-          },
-          {
-            "type": "instanceof",
-            "named": false
-          },
-          {
-            "type": "name_math",
-            "named": true
-          },
-          {
-            "type": "or",
-            "named": false
           }
         ]
       }
@@ -4076,28 +4004,8 @@
         "required": true,
         "types": [
           {
-            "type": "+",
-            "named": false
-          },
-          {
-            "type": "-",
-            "named": false
-          },
-          {
-            "type": "discard",
-            "named": false
-          },
-          {
-            "type": "force",
-            "named": false
-          },
-          {
-            "type": "lazy",
-            "named": false
-          },
-          {
-            "type": "not",
-            "named": false
+            "type": "operator",
+            "named": true
           }
         ]
       }
@@ -4118,7 +4026,7 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
@@ -4139,6 +4047,10 @@
         },
         {
           "type": "null",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -4413,10 +4325,6 @@
     "named": false
   },
   {
-    "type": "<+>",
-    "named": false
-  },
-  {
     "type": "<-",
     "named": false
   },
@@ -4554,10 +4462,6 @@
     "named": false
   },
   {
-    "type": "discard",
-    "named": false
-  },
-  {
     "type": "doc_comment",
     "named": true,
     "extra": true
@@ -4600,10 +4504,6 @@
   },
   {
     "type": "forall",
-    "named": false
-  },
-  {
-    "type": "force",
     "named": false
   },
   {
@@ -4651,10 +4551,6 @@
     "named": false
   },
   {
-    "type": "instanceof",
-    "named": false
-  },
-  {
     "type": "integer",
     "named": true
   },
@@ -4672,10 +4568,6 @@
   },
   {
     "type": "lawful",
-    "named": false
-  },
-  {
-    "type": "lazy",
     "named": false
   },
   {
@@ -4730,6 +4622,10 @@
   {
     "type": "open_variant_as",
     "named": false
+  },
+  {
+    "type": "operator",
+    "named": true
   },
   {
     "type": "or",

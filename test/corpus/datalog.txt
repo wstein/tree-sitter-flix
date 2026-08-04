@@ -121,8 +121,10 @@ def f(): Unit = #{
               (binary_expression
                 (qualified_name
                   (name_lower))
+                (operator)
                 (qualified_name
                   (name_lower))))
+            (operator)
             (integer)))
         (predicate_functional
           (name_lower)
@@ -328,7 +330,7 @@ def f(): Unit = query db, pr select x from Reachable(x) |> Vector.toSet
             (body_term_list
               (variable_pattern
                 (name_lower))))))
-      (generic_operator)
+      (operator)
       (qualified_name
         (name_upper)
         (name_lower)))))
@@ -370,6 +372,7 @@ def f(): Unit = query db select (x, y) from Edge(x, y) where x < y
         (binary_expression
           (qualified_name
             (name_lower))
+          (operator)
           (qualified_name
             (name_lower)))))))
 

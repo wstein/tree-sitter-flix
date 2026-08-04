@@ -15,25 +15,33 @@ def f(): Unit = not a and b or c == d < e :: g + h * i
     (binary_expression
       (binary_expression
         (unary_expression
+          (operator)
           (qualified_name
             (name_lower)))
+        (operator)
         (qualified_name
           (name_lower)))
+      (operator)
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (binary_expression
           (qualified_name
             (name_lower))
+          (operator)
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (binary_expression
               (qualified_name
                 (name_lower))
+              (operator)
               (binary_expression
                 (qualified_name
                   (name_lower))
+                (operator)
                 (qualified_name
                   (name_lower))))))))))
 
@@ -54,9 +62,11 @@ def f(): Unit = a :: b :: c
     (binary_expression
       (qualified_name
         (name_lower))
+      (operator)
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (qualified_name
           (name_lower))))))
 
@@ -131,6 +141,7 @@ def f(): Unit = (x -> x + 1, (a, b) -> a, () -> 1, (x: Int32) -> x)
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (integer))))
       (argument
         (lambda
@@ -192,6 +203,7 @@ def f(): Unit =
                   (binary_expression
                     (qualified_name
                       (name_lower))
+                    (operator)
                     (qualified_name
                       (name_lower))))))))))))
 
@@ -224,6 +236,7 @@ def f(): Unit =
         (binary_expression
           (qualified_name
             (name_lower))
+          (operator)
           (integer))
         (apply_expression
           (qualified_name
@@ -283,6 +296,7 @@ def f(): Int32 = match x {
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (integer))
           (qualified_name
             (name_lower)))
@@ -309,7 +323,7 @@ def f(): Unit = xs |> List.map(match (a, b) -> a + b)
     (binary_expression
       (qualified_name
         (name_lower))
-      (generic_operator)
+      (operator)
       (apply_expression
         (qualified_name
           (name_upper)
@@ -325,6 +339,7 @@ def f(): Unit = xs |> List.map(match (a, b) -> a + b)
               (binary_expression
                 (qualified_name
                   (name_lower))
+                (operator)
                 (qualified_name
                   (name_lower))))))))))
 
@@ -523,6 +538,7 @@ def f(): Unit = foreach (x <- xs; if x > 1) println(x)
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (integer))))
       (apply_expression
         (qualified_name
@@ -560,6 +576,7 @@ def f(): Unit = forM (x <- xs; y = 1) yield x + y
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (qualified_name
           (name_lower))))))
 
@@ -934,6 +951,7 @@ def f(): Int32 = match xs {
         (match_rule
           (cons_pattern
             (unary_pattern
+              (operator)
               (integer))
             (variable_pattern
               (name_lower)))
@@ -1286,7 +1304,7 @@ def f(): Bool = a ⊆ b
     (binary_expression
       (qualified_name
         (name_lower))
-      (name_math)
+      (operator)
       (qualified_name
         (name_lower)))))
 

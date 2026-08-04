@@ -43,7 +43,8 @@
     "effect_annotation": "Type.Effect",
     "use_declaration": "UsesOrImports.Use",
     "import_declaration": "UsesOrImports.Import",
-    "ERROR": "ErrorTree"
+    "ERROR": "ErrorTree",
+    "operator": "Operator"
   },
   "ignored": [
     "annotation",

@@ -637,7 +637,7 @@ export default grammar({
     record_pattern: $ =>
       seq('{', commaSep($.record_pattern_field), optional(seq('|', $._pattern)), '}'),
     record_pattern_field: $ => seq(field('name', $.name_lower), optional(seq('=', $._pattern))),
-    unary_pattern: $ => seq('-', $._literal),
+    unary_pattern: $ => seq(alias('-', $.operator), $._literal),
     cons_pattern: $ => prec.right(seq($._pattern, '::', $._pattern)),
 
     // ---------------------------------------------------------------------
@@ -981,16 +981,26 @@ export default grammar({
         ].map(([p, op]) =>
           prec.right(
             /** @type {number} */ (p),
-            seq(field('operator', /** @type {RuleOrLiteral} */ (op)), $._expression),
+            seq(field('operator', alias(/** @type {RuleOrLiteral} */ (op), $.operator)), $._expression),
           ),
         ),
       ),
 
+    // Every operator spelling is `alias`ed to a named `operator` node rather than left as an
+    // anonymous token. `SyntaxTree.TreeKind` has an `Operator` node and the reference emits one in
+    // this position, so `Expr.Binary` has three children where an anonymous token gives us two --
+    // CLAUDE.md's rule is that node names mirror TreeKind, and this position did not.
+    //
+    // It is an alias and not a rule because the node has to be *positional*. `x +++ y` is an
+    // operator, but `def +++` is a definition name and the reference calls that one `Ident`; a rule
+    // used directly, or a projection map entry for `generic_operator`, cannot tell the two apart --
+    // mapping `generic_operator` to `Operator` wholesale measurably makes conformance worse.
+    // Aliasing per position is what carries the distinction into the tree.
     binary_expression: $ =>
       choice(
         prec.right(
           PREC.cons,
-          seq($._expression, field('operator', choice('::', ':::')), $._expression),
+          seq($._expression, field('operator', alias(choice('::', ':::'), $.operator)), $._expression),
         ),
         prec.left(
           PREC.infix_function,
@@ -1009,7 +1019,11 @@ export default grammar({
         ].map(([p, op]) =>
           prec.left(
             /** @type {number} */ (p),
-            seq($._expression, field('operator', /** @type {RuleOrLiteral} */ (op)), $._expression),
+            seq(
+              $._expression,
+              field('operator', alias(/** @type {RuleOrLiteral} */ (op), $.operator)),
+              $._expression,
+            ),
           ),
         ),
       ),

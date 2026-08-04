@@ -227,6 +227,17 @@
   "/"
 ] @operator
 
+; `lazy`, `force`, `discard` and `instanceof` are spelled as keywords but occupy an operator
+; position, and the reference compiler wraps each in a TreeKind.Operator, so the grammar emits them
+; as `operator` nodes rather than anonymous tokens. They are matched by text here to keep the
+; keyword highlighting they had before. These sit after the generic operator captures above on
+; purpose: tree-sitter takes the last pattern that matches, so keyword wins over operator.
+((operator) @keyword.function
+  (#any-of? @keyword.function "lazy" "force"))
+
+((operator) @keyword
+  (#any-of? @keyword "discard" "instanceof"))
+
 ; Keywords
 [
   "mod"
@@ -238,8 +249,6 @@
   "def"
   "redef"
   "law"
-  "lazy"
-  "force"
 ] @keyword.function
 
 [
@@ -265,9 +274,7 @@
   "open_variant_as"
   "new"
   "super"
-  "discard"
   "unsafe"
-  "instanceof"
   "as"
   "checked_cast"
   "checked_ecast"

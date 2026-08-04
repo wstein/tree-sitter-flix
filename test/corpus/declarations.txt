@@ -182,6 +182,7 @@ pub def testAdd(): Bool = 1 == 1
       (name_upper))
     (binary_expression
       (integer)
+      (operator)
       (integer))))
 
 ================================================================================
@@ -406,6 +407,7 @@ pub lawful trait Order[a] with Eq[a] {
               (argument
                 (qualified_name
                   (name_lower)))))
+          (operator)
           (qualified_name
             (name_upper)
             (name_upper)))))))
@@ -578,8 +580,10 @@ def _>==>(): Int32 = 1
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (qualified_name
           (name_lower)))
+      (operator)
       (integer)))
   (function_declaration
     (generic_operator)
