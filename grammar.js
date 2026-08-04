@@ -216,6 +216,20 @@ export default grammar({
     annotation: _ => /@[a-zA-Z]+/,
     intrinsic: _ => /%%[A-Z0-9_]*%%/,
 
+    // A literal opened and never closed. The reference's Lexer emits an error token for these and
+    // Parser2 keeps the enclosing declaration, putting an ErrorTree where the expression should be
+    // -- it does not throw the declaration away. Without a production for the unterminated form,
+    // tree-sitter's own recovery collapses the whole declaration into an ERROR node and that
+    // structure is lost, so the two disagree about far more than the error itself.
+    //
+    // Negative precedence, deliberately: a well-formed literal is both longer and higher
+    // precedence, so it always wins where both could match. The apostrophe, `regex"` and `%%` have
+    // no other use in the grammar, so nothing else can be captured by accident.
+    unterminated_literal: _ =>
+      token(
+        prec(-1, choice(/'(\\.|[^'\\\n])*/, /regex"(\\.|[^"\\\n])*/, /%%[A-Z0-9_]*/)),
+      ),
+
     hole_anonymous: _ => '???',
     hole_named: _ => /\?[a-zA-Z][a-zA-Z0-9_!$]*/,
     hole_variable: _ => /_?[a-zA-Z][a-zA-Z0-9_!$]*\?/,
@@ -293,10 +307,16 @@ export default grammar({
     // `Foo.Bar.baz` is a single name, but `sb.append` is just `sb`, leaving
     // `.append` to the postfix rules that build a field access or a method
     // invocation.
+    // `Foo.` closes a TrailingDot node in the reference (Parser2.nameAllowQualified) rather than
+    // failing, so the dot belongs inside the qualified name here too.
     qualified_name: $ =>
       seq(
         repeat(seq($._qualified_segment, $._dot)),
         choice($._qualified_segment, $.name_lower),
+        // Either dot: the scanner classifies `Foo.` at end of line as DOT_SPACED, because what
+        // follows the dot is whitespace. The reference does not care -- nameAllowQualified closes a
+        // TrailingDot for a dot with no name after it either way.
+        optional(alias(choice($._dot, $._dot_spaced), $.trailing_dot)),
       ),
     _qualified_segment: $ => choice($.name_upper, $.name_math),
 
@@ -711,6 +731,7 @@ export default grammar({
         $.fixpoint_constraint_set,
         $.fixpoint_solve,
         $.fixpoint_psolve,
+        $.unterminated_literal,
         $.fixpoint_inject,
         $.fixpoint_query,
         $.fixpoint_query_with_provenance,

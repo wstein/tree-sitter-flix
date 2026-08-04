@@ -93,6 +93,30 @@
       "type": "PATTERN",
       "value": "%%[A-Z0-9_]*%%"
     },
+    "unterminated_literal": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": -1,
+        "content": {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "'(\\\\.|[^'\\\\\\n])*"
+            },
+            {
+              "type": "PATTERN",
+              "value": "regex\"(\\\\.|[^\"\\\\\\n])*"
+            },
+            {
+              "type": "PATTERN",
+              "value": "%%[A-Z0-9_]*"
+            }
+          ]
+        }
+      }
+    },
     "hole_anonymous": {
       "type": "STRING",
       "value": "???"
@@ -351,6 +375,32 @@
             {
               "type": "SYMBOL",
               "name": "name_lower"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "_dot"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "_dot_spaced"
+                  }
+                ]
+              },
+              "named": true,
+              "value": "trailing_dot"
+            },
+            {
+              "type": "BLANK"
             }
           ]
         }
@@ -4082,6 +4132,10 @@
         {
           "type": "SYMBOL",
           "name": "fixpoint_psolve"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "unterminated_literal"
         },
         {
           "type": "SYMBOL",

@@ -326,6 +326,10 @@
         "named": true
       },
       {
+        "type": "unterminated_literal",
+        "named": true
+      },
+      {
         "type": "use_expression",
         "named": true
       },
@@ -2837,6 +2841,10 @@
         {
           "type": "name_upper",
           "named": true
+        },
+        {
+          "type": "trailing_dot",
+          "named": true
         }
       ]
     }
@@ -4633,6 +4641,10 @@
     "named": false
   },
   {
+    "type": "trailing_dot",
+    "named": true
+  },
+  {
     "type": "trait",
     "named": false
   },
@@ -4659,6 +4671,10 @@
   {
     "type": "unsafe",
     "named": false
+  },
+  {
+    "type": "unterminated_literal",
+    "named": true
   },
   {
     "type": "use",

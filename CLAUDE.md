@@ -51,8 +51,17 @@ does not support in the reference parser either -- `Parser2.scala`'s `foreachExp
 reference compiler regardless of what this grammar accepts. (An earlier negative test,
 `main/test/coverage/IfElseCoverage.flix`, no longer exists upstream; its disappearance from the
 failure list is not a fix here.) Two failures with these two names is a perfect score --
-every valid file parses. A different failing file, or a different count, needs investigating
-before assuming either grammar or corpus is at fault.
+every valid file parses.
+
+Note that `ford-fulkerson-prefix.flix` is reported by the script's *second* pass, not by
+tree-sitter's own tally. It is truncated at `let g4 = FordFulkerson.`, and the grammar models a
+trailing dot as a `trailing_dot` node rather than a parse failure, because `Parser2` builds a
+`TreeKind.TrailingDot` there and keeps going. The file therefore contains no ERROR node. The script
+queries for `unterminated_literal` and `trailing_dot` separately and fails on either, so modelling
+one of the reference's error markers as a node cannot quietly turn a negative test green.
+
+A different failing file, or a different count, needs investigating before assuming either
+grammar or corpus is at fault.
 
 Corpus tests in `test/corpus/` pin exact tree shapes; the corpus script catches breadth gaps
 that hand-written tests miss. Both must pass before a change is considered done.

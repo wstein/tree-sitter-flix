@@ -51,4 +51,42 @@ echo "parsing $count files from $corpus"
 #
 # tree-sitter parse exits non-zero when any file contains an ERROR node.
 # --quiet suppresses the parse trees; --stat prints the success/failure tally.
-tree-sitter parse --quiet --stat --paths "$paths"
+# `set -e` would abort here the moment any file fails to parse, which is the
+# normal case for a corpus containing negative tests -- and it would skip the
+# marker pass below entirely, silently disabling it.
+parse_status=0
+tree-sitter parse --quiet --stat --paths "$paths" || parse_status=$?
+
+# The grammar models two of the reference's own error markers as real nodes --
+# `unterminated_literal` and `trailing_dot` -- because Parser2 builds them and
+# keeps going rather than failing outright. That is deliberate (this grammar
+# follows the parser, not the weeder), but it means such a file contains no
+# ERROR node, so the tally above counts it as a clean parse.
+#
+# Without this second pass the gate silently weakens: adding trailing_dot made
+# main/test/flix/resiliency/ford-fulkerson-prefix.flix -- truncated at
+# `let g4 = FordFulkerson.`, a negative test that must not parse -- start
+# reporting as success. An error marker is a failure here even though
+# tree-sitter is content.
+markers=$(mktemp)
+flagged=$(mktemp)
+trap 'rm -f "$paths" "$markers" "$flagged"' EXIT
+printf '[(unterminated_literal) (trailing_dot)] @marker\n' > "$markers"
+
+# `tree-sitter query` prints every file it visited, matched or not, with any
+# captures indented beneath. Only a file followed by a capture actually contains
+# a marker, so pair them up rather than counting file lines.
+tree-sitter query --paths "$paths" "$markers" 2>/dev/null | awk '
+    /^[^[:space:]]/ { file = $0; next }
+    /capture:/ && file != "" { print file; file = "" }
+' | sort -u > "$flagged"
+
+count=$(wc -l < "$flagged" | tr -d ' ')
+if [ "$count" -gt 0 ]; then
+    echo
+    echo "$count file(s) parsed without an ERROR node but contain an explicit error marker:"
+    sed 's/^/    /' "$flagged"
+    exit 1
+fi
+
+exit $parse_status
