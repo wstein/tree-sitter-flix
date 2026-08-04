@@ -53,6 +53,7 @@
     "doc_comment",
     "enum_body",
     "line_comment",
+    "qualified_name",
     "type_reference"
   ],
   "elide": [

@@ -1,6 +1,6 @@
 {
   "note": "Divergence ratchet for scripts/flix-spec-conformance.mjs. Lower it as divergences are fixed; never raise it without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression.",
-  "divergences": 137,
+  "divergences": 99,
   "measuredAt": {
     "treeSitterFlix": "13fdaaf",
     "treeSitterCli": "0.26.11",
@@ -12,10 +12,10 @@
   "lanes": {
     "oracle_conformance": {
       "verdict": "fail",
-      "fixturesAgreeing": 77,
+      "fixturesAgreeing": 87,
       "fixturesCompared": 136,
-      "divergenceCount": 137,
-      "nodesCompared": 844,
+      "divergenceCount": 99,
+      "nodesCompared": 843,
       "nodesUnmapped": 184,
       "depthPercent": 82
     },
