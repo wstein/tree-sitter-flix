@@ -88,5 +88,11 @@
     "QName": "Elided only when single-child: the reference wraps a lone identifier in QName, which tree-sitter emits bare. A multi-part QName (Foo.Bar) has several children and is kept, so genuine qualification is still compared.",
     "argument": "Transparent, not mapped: canonical Argument is a single-child wrapper and is elided on the expected side, so the consumer's equivalent must be dropped symmetrically.",
     "ERROR": "tree-sitter's built-in ERROR node is the counterpart of the reference's ErrorTree. Mapping it lets negative fixtures be compared on where the parsers agree an error occurred, not just on whether both failed."
-  }
+  },
+  "flatten": [
+    "effect_body",
+    "enum_body",
+    "match_body",
+    "trait_body"
+  ]
 }
