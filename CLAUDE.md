@@ -168,11 +168,38 @@ expected in. It lives here, not in `flix-spec`, because every entry is knowledge
 grammar's own shape (which nodes are transparent wrappers, which native kinds collapse to which
 canonical one) — flix-spec owns the canonical vocabulary, the fixtures, and the comparison
 algorithm (`flix.spec.Conformance`), not this map. See `docs/CONFORMANCE.md` in flix-spec for
-what the comparison covers, the `mappings`/`ignored`/`elide` semantics, and how to run
-`./gradlew :tools:project:conformance` with `--map conformance/projection-map.json` against a
-projected tree from this grammar. There is no comparison harness committed in this repository
-yet — projecting a tree-sitter parse into the `{"kind":...,"children":[...]}` shape the comparator
-expects is still a manual/scratch step.
+what the comparison covers and the `mappings`/`ignored`/`elide` semantics.
+
+Run it:
+
+```bash
+export FLIX_SPEC=/path/to/flix-spec     # a checkout of github.com/wstein/flix-spec
+npm run conformance                     # adapt every fixture, then compare
+node scripts/flix-spec-conformance.mjs --no-compare --out DIR   # adapt only
+```
+
+`scripts/flix-spec-conformance.mjs` projects a tree-sitter parse into the
+`{"kind":…,"children":[…]}` shape the comparator reads, then invokes flix-spec's Gradle task with
+`conformance/projection-map.json` and the ratchet in `conformance/baseline.json`. It exits non-zero
+if any fixture cannot be adapted, or if divergences exceed the baseline. Lower the baseline as
+divergences are fixed; never raise it without saying why.
+
+Three things about it are deliberate:
+
+- **It shells out to the CLI, not the Node binding.** `build/Release/*.node` is a native build that
+  goes stale the moment `src/parser.c` is regenerated, and a stale binding reports `ERROR` for input
+  this grammar handles fine — a very convincing wrong answer. The CLI compiles the committed parser.
+- **It reads s-expressions, not `--xml`.** Only named nodes appear there, which is exactly the
+  comparable part; flix-spec gates kind, child order and nesting and drops token leaves. The XML
+  form additionally appends a plain-text timing line after `</sources>` that breaks a strict parser
+  on precisely the negative fixtures. Balanced parentheses stop at the tree's end on their own.
+- **It emits no token text.** This adapter has no Flix tokenization behind it, so synthesising
+  `text` would make flix-spec's `token-accounting` invariant evaluate a fiction. Emitting none makes
+  that check report `not-applicable`, which is the truth: this grammar currently presents a
+  *structural* profile to the conformance report, not a lexical one.
+
+Not in CI, for the same reason `parse-corpus.sh` is not: it needs an external checkout, plus a JDK
+and the pinned oracle jar. Run it before a release and when the map changes.
 
 ## Releasing
 

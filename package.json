@@ -54,9 +54,10 @@
     "prestart": "tree-sitter build --wasm",
     "start": "tree-sitter playground",
     "generate": "tree-sitter generate",
-    "lint": "eslint grammar.js eslint.config.js",
-    "fmt": "eslint --fix grammar.js eslint.config.js",
+    "lint": "eslint grammar.js eslint.config.js scripts/*.mjs",
+    "fmt": "eslint --fix grammar.js eslint.config.js scripts/*.mjs",
     "test": "tree-sitter test",
+    "conformance": "node scripts/flix-spec-conformance.mjs",
     "test:bindings": "node --test bindings/node/*_test.js"
   }
 }

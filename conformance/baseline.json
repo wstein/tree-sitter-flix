@@ -1,0 +1,29 @@
+{
+  "note": "Divergence ratchet for scripts/flix-spec-conformance.mjs. Lower it as divergences are fixed; never raise it without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression.",
+  "divergences": 137,
+  "measuredAt": {
+    "treeSitterFlix": "13fdaaf",
+    "treeSitterCli": "0.26.11",
+    "flixSpecPin": "v0.75.1",
+    "flixSpecPinCommit": "318bb51a953c58a8785251a80fad8aea005f729f",
+    "fixtureRevision": "6b6a42568d71ce4e94c99a4ac4ab28f163e8b7057b732547b03889d051145124",
+    "fixtures": 136
+  },
+  "lanes": {
+    "oracle_conformance": {
+      "verdict": "fail",
+      "fixturesAgreeing": 77,
+      "fixturesCompared": 136,
+      "divergenceCount": 137,
+      "nodesCompared": 844,
+      "nodesUnmapped": 184,
+      "depthPercent": 82
+    },
+    "source_invariants": {
+      "verdict": "pass",
+      "checksEvaluated": 1,
+      "checksNotApplicable": 3,
+      "comment": "document-shape passes. The two vocabulary checks stand down because a projection map is in play, and token-accounting stands down because this adapter emits no token text -- tree-sitter's named-node view has no Flix tokenization behind it. A structural profile, stated rather than implied."
+    }
+  }
+}
