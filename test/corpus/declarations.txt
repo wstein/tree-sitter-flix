@@ -91,41 +91,33 @@ pub def map(f: a -> b \ ef, t: Tree[a]): Tree[b] \ ef with Eq[a], Order[a] = ???
       (parameter
         (name_lower)
         (binary_type
-          (type_variable
-            (name_lower))
-          (type_variable
-            (name_lower))
+          (type_variable)
+          (type_variable)
           (effect_annotation
-            (type_variable
-              (name_lower)))))
+            (type_variable))))
       (parameter
         (name_lower)
         (type_application
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))))
+            (type_variable)))))
     (type_application
       (type_reference
         (name_upper))
       (type_argument_list
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (effect_annotation
-      (type_variable
-        (name_lower)))
+      (type_variable))
     (trait_constraints
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower)))
+        (type_variable))
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (hole_anonymous)))
 
 ================================================================================
@@ -140,25 +132,21 @@ def f(): b where Elm[t] ~ b, Foo[x] ~ Bar = ???
   (function_declaration
     (name_lower)
     (parameter_list)
-    (type_variable
-      (name_lower))
+    (type_variable)
     (equality_constraints
       (equality_constraint
         (type_application
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))
-        (type_variable
-          (name_lower)))
+            (type_variable)))
+        (type_variable))
       (equality_constraint
         (type_application
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (type_reference
           (name_upper))))
     (hole_anonymous)))
@@ -300,8 +288,7 @@ restrictable enum Expr[s][a] {
       (enum_case
         (name_upper)
         (case_body
-          (type_variable
-            (name_lower))))
+          (type_variable)))
       (enum_case
         (name_upper)
         (case_body
@@ -330,18 +317,15 @@ struct Node[t, r] {
     (struct_field
       (modifier)
       (name_lower)
-      (type_variable
-        (name_lower)))
+      (type_variable))
     (struct_field
       (name_lower)
       (type_application
         (type_reference
           (name_upper))
         (type_argument_list
-          (type_variable
-            (name_lower))
-          (type_variable
-            (name_lower)))))))
+          (type_variable)
+          (type_variable))))))
 
 ================================================================================
 Trait with law, signature and associated type
@@ -367,8 +351,7 @@ pub lawful trait Order[a] with Eq[a] {
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (trait_body
       (associated_type_signature
         (name_upper)
@@ -380,12 +363,10 @@ pub lawful trait Order[a] with Eq[a] {
         (parameter_list
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower)))
+            (type_variable))
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (type_reference
           (name_upper)))
       (law_declaration
@@ -393,8 +374,7 @@ pub lawful trait Order[a] with Eq[a] {
         (parameter_list
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (binary_expression
           (apply_expression
             (qualified_name
@@ -432,14 +412,12 @@ instance Order[Option[a]] with Order[a] {
       (type_reference
         (name_upper))
       (type_argument_list
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (trait_constraints
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (instance_body
       (associated_type_definition
         (name_upper)
@@ -448,10 +426,8 @@ instance Order[Option[a]] with Order[a] {
             (type_reference
               (name_upper))
             (type_argument_list
-              (type_variable
-                (name_lower)))))
-        (type_variable
-          (name_lower)))
+              (type_variable))))
+        (type_variable))
       (function_declaration
         (modifier)
         (name_lower)
@@ -462,16 +438,14 @@ instance Order[Option[a]] with Order[a] {
               (type_reference
                 (name_upper))
               (type_argument_list
-                (type_variable
-                  (name_lower)))))
+                (type_variable))))
           (parameter
             (name_lower)
             (type_application
               (type_reference
                 (name_upper))
               (type_argument_list
-                (type_variable
-                  (name_lower))))))
+                (type_variable)))))
         (type_reference
           (name_upper))
         (hole_anonymous))
@@ -482,8 +456,7 @@ instance Order[Option[a]] with Order[a] {
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (qualified_name
           (name_upper))))))
 
@@ -532,10 +505,8 @@ type alias Pair[a] = (a, a)
       (type_parameter
         (name_lower)))
     (tuple_type
-      (type_variable
-        (name_lower))
-      (type_variable
-        (name_lower)))))
+      (type_variable)
+      (type_variable))))
 
 ================================================================================
 Definitions may be named by a user-defined operator
@@ -554,14 +525,11 @@ def _>==>(): Int32 = 1
     (parameter_list
       (parameter
         (name_lower)
-        (type_variable
-          (name_lower)))
+        (type_variable))
       (parameter
         (name_lower)
-        (type_variable
-          (name_lower))))
-    (type_variable
-      (name_lower))
+        (type_variable)))
+    (type_variable)
     (hole_anonymous))
   (function_declaration
     (generic_operator)
@@ -637,12 +605,10 @@ instance T[Int32] {
         (parameter_list
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower)))
+            (type_variable))
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (type_reference
           (name_upper)))))
   (instance_declaration

@@ -541,7 +541,11 @@ export default grammar({
     _type: $ =>
       choice(
         $.type_reference,
-        $.type_variable,
+        // A leaf, like the reference's Type.Variable, which holds the name as a token rather than
+        // as a child node. Aliasing the three name rules here rather than wrapping them in a
+        // `type_variable` rule is what keeps it a leaf: a wrapper would give the node one named
+        // child where the reference has none, and every type variable would diverge on arity.
+        alias(choice($.name_lower, $.name_math, $.wildcard), $.type_variable),
         $.type_constant,
         $.tuple_type,
         $.record_row_type,
@@ -556,13 +560,18 @@ export default grammar({
         $.binary_type,
       ),
 
-    type_variable: $ => choice($.name_lower, $.name_math, $.wildcard),
     type_constant: _ => choice('Univ', 'true', 'false'),
 
     type_application: $ => prec.left(TPREC.apply, seq($._type, $.type_argument_list)),
 
+    // Type-level operators are nodes for the same reason expression-level ones are: the reference
+    // wraps them in TreeKind.Operator, so Type.Binary and Type.Unary each carry one more child than
+    // an anonymous token would give.
     unary_type: $ =>
-      prec.right(TPREC.unary, seq(field('operator', choice('not', '~', 'rvnot')), $._type)),
+      prec.right(
+        TPREC.unary,
+        seq(field('operator', alias(choice('not', '~', 'rvnot'), $.operator)), $._type),
+      ),
 
     binary_type: $ =>
       choice(
@@ -578,7 +587,7 @@ export default grammar({
         ].map(([p, op]) =>
           prec.left(
             /** @type {number} */ (p),
-            seq($._type, field('operator', /** @type {RuleOrLiteral} */ (op)), $._type),
+            seq($._type, field('operator', alias(/** @type {RuleOrLiteral} */ (op), $.operator)), $._type),
           ),
         ),
       ),

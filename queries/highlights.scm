@@ -331,16 +331,16 @@
   "fix"
 ] @keyword
 
+; `not` is still an anonymous token in Datalog body atoms, so it keeps a literal pattern. The rest
+; occur only in type and expression operator position, where the grammar now emits `operator` nodes
+; to mirror TreeKind.Operator, so they are matched by text instead. Placed after the generic
+; operator captures above: tree-sitter takes the last matching pattern, so keyword.operator wins.
 [
-  "and"
-  "or"
   "not"
-  "xor"
-  "rvadd"
-  "rvsub"
-  "rvand"
-  "rvnot"
 ] @keyword.operator
+
+((operator) @keyword.operator
+  (#any-of? @keyword.operator "and" "or" "not" "xor" "rvadd" "rvsub" "rvand" "rvnot"))
 
 ; Punctuation
 [

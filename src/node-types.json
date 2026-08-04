@@ -676,40 +676,8 @@
         "required": false,
         "types": [
           {
-            "type": "&",
-            "named": false
-          },
-          {
-            "type": "+",
-            "named": false
-          },
-          {
-            "type": "-",
-            "named": false
-          },
-          {
-            "type": "and",
-            "named": false
-          },
-          {
-            "type": "or",
-            "named": false
-          },
-          {
-            "type": "rvadd",
-            "named": false
-          },
-          {
-            "type": "rvand",
-            "named": false
-          },
-          {
-            "type": "rvsub",
-            "named": false
-          },
-          {
-            "type": "xor",
-            "named": false
+            "type": "operator",
+            "named": true
           }
         ]
       }
@@ -3973,29 +3941,6 @@
     }
   },
   {
-    "type": "type_variable",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "name_lower",
-          "named": true
-        },
-        {
-          "type": "name_math",
-          "named": true
-        },
-        {
-          "type": "wildcard",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "unary_expression",
     "named": true,
     "fields": {
@@ -4077,16 +4022,8 @@
         "required": true,
         "types": [
           {
-            "type": "not",
-            "named": false
-          },
-          {
-            "type": "rvnot",
-            "named": false
-          },
-          {
-            "type": "~",
-            "named": false
+            "type": "operator",
+            "named": true
           }
         ]
       }
@@ -4269,10 +4206,6 @@
     "named": false
   },
   {
-    "type": "&",
-    "named": false
-  },
-  {
     "type": "(",
     "named": false
   },
@@ -4406,10 +4339,6 @@
   },
   {
     "type": "alias",
-    "named": false
-  },
-  {
-    "type": "and",
     "named": false
   },
   {
@@ -4628,10 +4557,6 @@
     "named": true
   },
   {
-    "type": "or",
-    "named": false
-  },
-  {
     "type": "par",
     "named": false
   },
@@ -4673,22 +4598,6 @@
   },
   {
     "type": "run",
-    "named": false
-  },
-  {
-    "type": "rvadd",
-    "named": false
-  },
-  {
-    "type": "rvand",
-    "named": false
-  },
-  {
-    "type": "rvnot",
-    "named": false
-  },
-  {
-    "type": "rvsub",
     "named": false
   },
   {
@@ -4740,6 +4649,10 @@
     "named": false
   },
   {
+    "type": "type_variable",
+    "named": true
+  },
+  {
     "type": "unchecked_cast",
     "named": false
   },
@@ -4761,10 +4674,6 @@
   },
   {
     "type": "with",
-    "named": false
-  },
-  {
-    "type": "xor",
     "named": false
   },
   {

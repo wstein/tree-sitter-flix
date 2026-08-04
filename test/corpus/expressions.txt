@@ -1017,8 +1017,7 @@ def f(): Unit = {
         (unsafe_expression
           (type_reference
             (name_upper))
-          (type_variable
-            (name_lower))
+          (type_variable)
           (block
             (apply_expression
               (qualified_name
