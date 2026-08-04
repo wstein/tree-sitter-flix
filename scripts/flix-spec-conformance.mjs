@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Measure this grammar against wstein/flix-spec's fixtures and report both conformance lanes.
+// Measure this grammar against wstein/flix-spec's fixtures and report all three conformance lanes.
 //
 // flix-spec owns the canonical TreeKind vocabulary, the fixtures, the expected trees and the
 // comparison algorithm. This repository owns the grammar and `conformance/projection-map.json`,
@@ -201,9 +201,14 @@ function main(argv) {
     // `source` must be flix-spec-relative: the comparison matches units by it, and the
     // source-invariants lane resolves it from the flix-spec root.
     const rel = file.slice(specDir.length + 1);
+    // `raw`: our own tree, with our own wrappers and our own ERROR nodes intact. The comparison
+    // applies conformance/projection-map.json's transparency rules itself, and it needs both lanes'
+    // worth of information -- the structural lane splices our recovery markers out, the recovery
+    // lane keeps them. Emitting anything pre-normalized would throw the second lane away.
     const doc = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       generatedBy: 'tree-sitter-flix scripts/flix-spec-conformance.mjs',
+      form: 'raw',
       units: [{source: rel, diagnostics: [], tree}],
     };
     writeFileSync(join(out, `${basename(file, '.flix')}.json`), `${JSON.stringify(doc, null, 1)}\n`);
@@ -225,7 +230,7 @@ function main(argv) {
   const baselinePath = join(REPO, 'conformance', 'baseline.json');
   const baseline = existsSync(baselinePath) ?
     JSON.parse(readFileSync(baselinePath, 'utf8')) :
-    {divergences: 0};
+    {divergences: 0, recoveryDivergences: 0};
 
   console.log('');
   try {
@@ -234,14 +239,22 @@ function main(argv) {
       [
         '-q',
         ':tools:project:conformance',
-        `--args=--actual ${out} --map ${map} --report ${report} --baseline ${baseline.divergences}`,
+        // Two ratchets, because there are two derived lanes and they measure different things.
+        // Structure is closed one mapping at a time; error-recovery shape is a separate question a
+        // grammar may never fully answer, and a single number would have let either hide the other.
+        `--args=--actual ${out} --map ${map} --report ${report}` +
+          ` --baseline ${baseline.divergences}` +
+          ` --recovery-baseline ${baseline.recoveryDivergences ?? 0}`,
       ],
       {cwd: specDir, encoding: 'utf8', stdio: 'inherit'},
     );
   } catch {
     console.error('');
     console.error('error: conformance regressed against conformance/baseline.json');
-    console.error(`  baseline allows ${baseline.divergences} divergences; see ${report}`);
+    console.error(
+      `  baselines allow ${baseline.divergences} structural and ` +
+      `${baseline.recoveryDivergences ?? 0} recovery divergences; see ${report}`,
+    );
     return 1;
   }
   console.log('');

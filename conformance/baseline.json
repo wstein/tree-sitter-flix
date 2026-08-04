@@ -1,23 +1,35 @@
 {
-  "note": "Divergence ratchet for scripts/flix-spec-conformance.mjs. Lower it as divergences are fixed; never raise it without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression. NOTE: agreement fell from 122 to 107 when the mapping set was completed, because unmapped nodes are skipped rather than compared -- depth rose 84% to 90%. Read fixturesAgreeing together with depthPercent; a high agreement count at low depth is the number to distrust.",
-  "divergences": 67,
+  "note": "Divergence ratchets for scripts/flix-spec-conformance.mjs. Lower them as divergences are fixed; never raise one without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression. Two ratchets, because there are two derived lanes: `divergences` gates structure modulo error recovery, and `recoveryDivergences` gates error-recovery shape on its own. NOTE: agreement fell from 122 to 107 when the mapping set was completed, because unmapped nodes are skipped rather than compared -- depth rose 84% to 90%. Read fixturesAgreeing together with depthPercent; a high agreement count at low depth is the number to distrust.",
+  "divergences": 61,
+  "recoveryDivergences": 45,
   "measuredAt": {
     "treeSitterFlix": "HEAD",
     "treeSitterCli": "0.26.11",
     "flixSpecPin": "v0.75.1",
     "flixSpecPinCommit": "318bb51a953c58a8785251a80fad8aea005f729f",
-    "fixtureRevision": "6b6a42568d71ce4e94c99a4ac4ab28f163e8b7057b732547b03889d051145124",
+    "fixtureRevision": "4eccee6368ecb3c9235cc278b77f6596dffce1af19f63dfd578c3cefb60dde35",
     "fixtures": 136
   },
   "lanes": {
     "oracle_conformance": {
-      "verdict": "fail",
-      "fixturesAgreeing": 102,
+      "verdict": "pass",
+      "fixturesAgreeing": 103,
       "fixturesCompared": 136,
-      "divergenceCount": 67,
-      "nodesCompared": 1937,
-      "nodesUnmapped": 11,
-      "depthPercent": 99
+      "divergenceCount": 61,
+      "nodesCompared": 1923,
+      "nodesUnmapped": 12,
+      "depthPercent": 99,
+      "comment": "Structure modulo error recovery. flix-spec normalizes wrapper nodes and the error vocabulary out of fixtures/expected itself now, so ten `elide` entries and one `flattenCanonical` entry were deleted here as dead weight. The result is score-neutral exactly where it had to be: the same 21 positive fixtures diverge as before, none more and none fewer, and depth is unchanged at 99%. What moved is negative -- 67 structural divergences became 61, and types__effect-annotation-wrong-slash stopped diverging here at all, because its disagreement was purely about recovery shape."
+    },
+    "recovery_conformance": {
+      "verdict": "fail",
+      "fixturesExpected": 21,
+      "fixturesAgreeing": 5,
+      "fixturesCompared": 21,
+      "divergenceCount": 45,
+      "nodesCompared": 182,
+      "depthPercent": 100,
+      "comment": "Error-recovery shape alone, scoped to the 21 fixtures whose raw reference tree contains a recovery marker. Not a regression: this is signal that used to be averaged into one number and is now stated. Our ERROR node lands in different places than the reference's ErrorTree, and unterminated_literal/unterminated_string are named nodes here where the reference emits only an Err token -- a real modelling difference, which is what this lane exists to surface rather than absorb."
     },
     "source_invariants": {
       "verdict": "pass",

@@ -206,33 +206,26 @@
   ],
   "elide": [
     "AnnotationList",
-    "Argument",
     "CommentList",
-    "Doc",
     "Expr.Expr",
     "Expr.FixpointWith",
     "Expr.RunWithBodyExpr",
     "Expr.Statement",
-    "Expr.StructPutRHS",
-    "Expr.UnsafeAsEffFragment",
     "ModifierList",
     "Pattern.Pattern",
-    "Pattern.Variable",
-    "Predicate.Body",
-    "Predicate.LatticeTerm",
     "QName",
     "Type.Apply",
-    "Type.Argument",
-    "Type.Effect",
-    "Type.Type",
     "UsesOrImports.UseOrImportList"
   ],
   "notes": {
-    "name_lower": "Both name_lower and name_upper collapse to Ident: the reference does not distinguish case in the tree, only in the lexer.",
-    "type_reference": "Transparent, not mapped: the reference wraps most types in Type.Type, which is elided on the expected side, so the consumer's equivalent wrapper must be dropped symmetrically.",
+    "ERROR": "tree-sitter's built-in ERROR node is the counterpart of the reference's ErrorTree. It is declared in recoveryMarkers, not flatten: the structural lane splices it out of our side exactly as flix-spec's normalization splices ErrorTree out of the canonical side, and the recovery lane keeps it on both so where the two parsers decide an error occurred is actually compared.",
     "QName": "Elided only when single-child: the reference wraps a lone identifier in QName, which tree-sitter emits bare. A multi-part QName (Foo.Bar) has several children and is kept, so genuine qualification is still compared.",
     "argument": "Transparent, not mapped: canonical Argument is a single-child wrapper and is elided on the expected side, so the consumer's equivalent must be dropped symmetrically.",
-    "ERROR": "tree-sitter's built-in ERROR node is the counterpart of the reference's ErrorTree. Mapping it lets negative fixtures be compared on where the parsers agree an error occurred, not just on whether both failed."
+    "name_lower": "Both name_lower and name_upper collapse to Ident: the reference does not distinguish case in the tree, only in the lexer.",
+    "trailing_dot": "A recovery marker, mapped to the reference's TrailingDot. Both are spliced out of the structural comparison and compared in the recovery lane.",
+    "type_reference": "Transparent, not mapped: the reference wraps most types in Type.Type, which is elided on the expected side, so the consumer's equivalent wrapper must be dropped symmetrically.",
+    "unterminated_literal": "A recovery marker. The reference has no node here at all -- its lexer emits an Err token and the enclosing production keeps it -- so this is a genuine modelling difference, and the recovery lane is where it is measured rather than absorbed.",
+    "unterminated_string": "A recovery marker. The reference has no node here at all -- its lexer emits an Err token and the enclosing production keeps it -- so this is a genuine modelling difference, and the recovery lane is where it is measured rather than absorbed."
   },
   "flatten": [
     "effect_body",
@@ -246,8 +239,13 @@
     "trait_body"
   ],
   "flattenCanonical": [
-    "ErrorTree",
     "Predicate.Param",
     "UsesOrImports.UseOrImportList"
+  ],
+  "recoveryMarkers": [
+    "ERROR",
+    "trailing_dot",
+    "unterminated_literal",
+    "unterminated_string"
   ]
 }
