@@ -1,160 +1,226 @@
-# Migrating to Flix v0.77.0 and the current flix-spec
+# Migrating to Flix v0.77.0 and flix-spec 0.77.1
 
 Status: **not started.** This repository is at `flixSpecArtifact` 0.75.8, `flixSpecPin` v0.75.2
-(`conformance/baseline.json`), two Flix releases behind.
+(`conformance/baseline.json`). The target is flix-spec **0.77.1** (tag `v0.77.1`), which pins
+Flix **v0.77.0** (`4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`).
 
-## What changed in Flix
+This file is a work plan, not reference documentation. Delete it when the migration merges; the
+durable lessons (the `::` handling, the diagnostic lane) belong in CLAUDE.md, and the history in
+commit messages and the `baseline.json` comments.
 
-This repository is pinned to Flix **v0.75.2** (`40949531`). The reference has moved twice since.
+Upstream's own account of the changes, which this file does not restate:
+[`MIGRATION-v0.76.0.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/MIGRATION-v0.76.0.md),
+[`MIGRATION-v0.77.0.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/MIGRATION-v0.77.0.md),
+[`CONFORMANCE.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/CONFORMANCE.md) and
+[`DEFECTS.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/DEFECTS.md). What follows is
+only what each change means for this repository.
 
-### v0.75.2 → v0.76.0
+## What changed in Flix, and what it asks of this grammar
 
-- Effects accept type parameters. Generic *operations* remain invalid and now report
-  `IllegalOperationTypeParams` rather than `IllegalEffectTypeParams`.
-- Malformed `match` and `ematch` expressions retain the match node and the scrutinee through
-  ordinary recovery instead of collapsing.
-- **Vocabulary unchanged**: 191 TreeKinds and 158 TokenKinds, same names, same digests.
+Flix tags between the two pins: v0.75.3, v0.76.0, v0.76.1, v0.76.2, v0.77.0. The syntax changes
+below landed by **v0.76.2**; v0.76.2 → v0.77.0 touches only license headers in the lexer, parser
+and vocabulary files. Both vocabulary changes are additions — nothing was removed or renamed.
 
-### v0.76.0 → v0.77.0
+### Effect type parameters — a grammar gap
 
-- **`+UsesOrImports.Package`** (TreeKind 191 → 192). `use` now recognises a package path:
-  `use flixball::Game.Board` and `use flixball::{Game, Board}`.
-- **`+ColonColonTight`** (TokenKind 158 → 159). `::` written **without surrounding whitespace** lexes
-  as a distinct token. Tight `::` is the package-path separator; spaced `::` remains list cons.
-  Writing the separator with whitespace is now a `Malformed` error.
-- Nothing was removed or re-parented. Both releases are additive at the vocabulary level.
-- Internally, Flix deleted its `Reader` phase and `shared.Input`. That broke `flix-spec`'s own
-  adapter and is fixed there; it does not reach consumers.
+Since v0.76.0 an effect declaration may take type parameters: `effectDecl` calls
+`Type.parameters()` after the name when a `[` follows.
 
-> **`ColonColonTight` is the one that bites quietly.** Upstream left `("::", ColonColon)` in the
-> lexer's operator table and decides tightness in hand-written dispatch outside every table. Nothing
-> that scrapes or reflects over that table sees a change. A rule matching `ColonColon` today simply
-> stops matching `a::b`, with no error anywhere.
+**This grammar does not accept it.** `effect_declaration` (`grammar.js:532`) is
+`'eff' name_upper effect_body?`, so `eff E[a] { … }` produces an `ERROR` over `[a]`.
 
-## What changed in flix-spec
+Generic *operations* (`def op[a](…)`) are still rejected, now as `IllegalOperationTypeParams`. The
+error is typed as a `WeederError`, but it is raised by the parser: `operationDecl` parses the
+parameters and wraps them in an `ErrorTree` (`Parser2.scala:1364-1368`). This grammar already
+yields an `ERROR` there, which is the right answer.
 
-Beyond the pin, the release you are moving to changes four things that affect consumers.
+### `match` / `ematch` recovery — no grammar action
 
-**1. The transparency contract is stated per occurrence, and is much larger.**
-It used to admit a kind only if *every* occurrence had at most one child. It now fires per
-occurrence — dropped when empty, replaced when singular, kept when branching — which admitted four
-kinds every structural consumer was already eliding for itself: `Expr.Expr`, `Pattern.Pattern`,
-`QName`, `UsesOrImports.UseOrImportList`. A third rule, `elide-empty`, drops empty `AnnotationList`
-and `ModifierList` without splicing their tokens.
+Malformed `match` and `ematch` now keep the match node and the scrutinee through ordinary recovery.
+This changes the reference's recovery trees, not its accepted language. Expect
+`recoveryDivergences` to move on re-measurement; it is not a grammar regression.
 
-Normalisation now removes **2285 of 4449 nodes (51.4%)**, up from 753 of 4398 (17.1%). Canonical
-trees are substantially smaller and every baseline is stale.
+### `UsesOrImports.Package` and `ColonColonTight`
 
-Because the rules fire per occurrence, an elided kind is **not always absent**: `QName` survives
-wherever a name is qualified (23 occurrences), and `ModifierList` wherever it holds a modifier (12).
-Mappings onto those are legitimate, and `validateProjectionMap` now decides that by measuring
-`fixtures/expected` rather than inferring it from the rule name.
+TreeKind 191 → 192, TokenKind 158 → 159.
 
-**2. A fourth lane: `diagnostic_conformance`.**
-It compares whether the same units are **rejected**, and whether each carries the same gated
-`kind`/`line`. Accept/reject needs no tree, no projection map and no shared vocabulary. If your
-diagnostic names are your own, declare `diagnosticMappings` in your projection map; without it the
-lane compares accept/reject alone and says so. A consumer that emits no diagnostics at all is
-`not-applicable`, not failed.
+- **Lexing.** `::` with **no whitespace on either side** lexes as `ColonColonTight`; whitespace on
+  either side (`a ::b`, `a:: b`, `a :: b`) keeps `ColonColon` (`Lexer.scala:384-400`).
+- **Cons is unchanged.** Parser2 accepts *both* token kinds as list cons in expressions
+  (`Parser2.scala:1669`) and patterns (`:3327`). `x::xs` and `42::Nil` are cons exactly as before.
+- **Packages exist only in `use`.** In `use()` (`Parser2.scala:875-900`) a leading
+  `NAME_PACKAGE` — a single lower- *or* uppercase name — followed by either `::` kind opens
+  `UsesOrImports.Package`. It is then followed by a qualified name (`use flixball::Game.Board`) or
+  directly by `{` (`use flixball::{Game, Board}` — no `.` before the brace). `import`, types and
+  expressions take no package prefix; `pkg::Mod.f` in an expression is still cons.
+- **Spaced `::` in a `use` is not a parse failure.** When a path or `{` follows, Parser2 builds
+  the same `Package` node and attaches a `Malformed` error to the `::` token. A dangling
+  `use flixball ::` gets no such error.
 
-**3. Depth is published and can be gated.**
-Reports now carry `nodesExpected` and `depthPercent` beside `nodesCompared`, and the CLI accepts
-`--depth-floor` / `--recovery-depth-floor`. Report `schemaVersion` is **7**. A version-6 report's
-depth was computed against the walk rather than the expectation — it read *highest* for the maps
-that skipped most — so old and new depth figures are not comparable.
+## What changed in flix-spec, and what it asks of this repository
 
-**4. `source_invariants` gained `token-positions`.**
-Token `start`/`end` were schema-required and read by nothing. The lane now checks that each token's
-text is what its source holds at those offsets, that tokens advance in order, and that what lies
-between them is only whitespace or the `$` escape. It stands down for consumers that emit no tokens.
+- **Transparency is per occurrence and much larger.** `ast/transparency.json` now elides
+  `Expr.Expr`, `Pattern.Pattern`, `QName` and `UsesOrImports.UseOrImportList` where they have at
+  most one child, and drops `AnnotationList` and `ModifierList` only where they are **empty**
+  (`elide-empty`). Every lane number is stale. → Steps A3, A4.
+- **The projection-map keys `elide` and `flattenCanonical` are deprecated.** `validateProjectionMap`
+  prints a `NOTE` for as long as either key is present at all; see step A4 for why this repository
+  cannot drop them yet.
+- **A fourth lane, `diagnostic_conformance`.** It compares accept/reject per unit and, where
+  mapped, diagnostic `kind` and `line`. It reports `not-applicable` while a consumer emits no
+  diagnostics — which this repository does not — but it **gates the exit status** against
+  `--diagnostic-baseline` (default 0) as soon as any are emitted. → PR C.
+- **Depth floors.** `--depth-floor` and `--recovery-depth-floor` exist and default to off. Report
+  `schemaVersion` is 7. → Step A5.
+- **`token-positions`** joins `source_invariants`. It stands down here because the adapter emits
+  no tokens. No action.
+- **`dropWhenEmpty`** is a new optional key. No action: `prologue()` produces no wrapper node that
+  could be empty.
+- **New in 0.77.1**, with the same Flix pin as 0.77.0: `ast/annotation.json` (a coverage
+  vocabulary of the 16 annotations), `ast/retired.json` (`Decl.Law`, `KeywordLaw` and
+  `KeywordLawful`, removed at v0.75.2 → step B6), a 147th fixture for `@Deprecated`, `@DontInline`
+  and `@Skip` (already parses cleanly here), and defect FLIX-0002. FLIX-0002 asks nothing of a
+  parser. It does bound what a positive fixture promises: that it *parses*, and nothing more.
 
-New projection-map keys, both optional: `dropWhenEmpty` (the consumer-side counterpart of
-`elide-empty`) and `diagnosticMappings`.
+## Plan
 
-## Adopt 0.77.1, not 0.77.0
+Three PRs, so that the ~10-minute regenerations and any fuzz CI run stay out of the baseline
+change, and each one can be reverted on its own. No commit lands red.
 
-`0.77.1` carries the **same upstream pin** as `0.77.0` and is additive for consumers: the three
-vocabularies are unchanged, the report `schemaVersion` stays 7, and both fixture forms keep their
-shape. Pin to it directly.
+### PR A — `chore(conformance)`: move to flix-spec 0.77.1
 
-What it adds:
+- [ ] **A1. Check out the tag.** `git -C "$FLIX_SPEC" checkout v0.77.1`. Nothing verifies the
+      checkout against the baseline: `scripts/flix-spec-conformance.mjs` reads only `divergences`
+      and `recoveryDivergences` from `baseline.json`, and flix-spec computes `fixtureRevision`
+      itself. A checkout ahead of the tag silently measures unreleased fixtures.
+- [ ] **A2. Measure before touching the map.** Run `npm run conformance` and keep the report (call
+      it *A*). It will exceed the old ratchets; that is expected, and it is not committed.
+- [ ] **A3. Delete the four redundant `elide` entries.** Remove `Expr.Expr`, `Pattern.Pattern`,
+      `QName` and `UsesOrImports.UseOrImportList` from `conformance/projection-map.json`. Every
+      surviving occurrence of these four branches, and `elide` never removes a branching node, so
+      the re-run must match *A* exactly. Any difference is a bug in the reasoning, not a result.
+      Delete or rewrite `notes.QName`, which describes the removed entry.
+- [ ] **A4. Keep the rest — do not delete six.** Keep `ModifierList` and `AnnotationList` in
+      `elide`. `elide-empty` drops only empty ones, so their 13 one-child survivors (12 and 1) are
+      still in `fixtures/expected`. Today `elide` hides them. Deleting the entries would add 13
+      divergences, because this map maps nothing onto `modifier` or `annotation`. Keep the
+      consumer-specific five as well (`CommentList`, `Expr.FixpointWith`, `Expr.RunWithBodyExpr`,
+      `Expr.Statement`, `Type.Apply`).
+      Also keep `ignored: qualified_name`. It is what stops a single-segment `qualified_name` from
+      surfacing where the canonical side has no `QName`. The `QName` *mapping* stays too and now
+      only meets the branching case. Keep `flattenCanonical: UsesOrImports.UseOrImportList` as
+      well: it still splices the branching use list, which this grammar has no node for. As a
+      result, the deprecation `NOTE` stays until `elide` and `flattenCanonical` are replaced
+      outright — a separate decision.
+- [ ] **A5. Decide on depth floors.** Either wire `--depth-floor` / `--recovery-depth-floor` into
+      the `--args=` string in `scripts/flix-spec-conformance.mjs`, reading new `depthFloor` /
+      `recoveryDepthFloor` fields in `baseline.json`, or record in the commit why not. Without
+      them, depth — which the baseline note says to read alongside agreement — is reported but
+      not gated.
+- [ ] **A6. Re-record the baseline.** In `conformance/baseline.json`:
+  - every `measuredAt` field: `flixSpecArtifact` `0.77.1`, `flixSpecPin` `v0.77.0`,
+    `flixSpecPinCommit` `4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`, `fixtureRevision`,
+    `fixtures` `147`, `treeSitterCli`;
+  - both ratchets, `divergences` and `recoveryDivergences`. The recovery lane is live (currently
+    failing at 5/22 fixtures), and the new negative `::` fixture carries an `ErrorTree`, so it
+    likely joins the recovery set;
+  - every lane's figures and `comment`. The current comments describe 0.75.8.
+- [ ] **A7. Commit once.** The commit message records *A*, the result after A3 (identical), the
+      new figures, and why any ratchet rose: nine new fixtures, per-occurrence transparency, and
+      the new match recovery. Per the baseline note, a different pin is a different question,
+      not a regression.
 
-- **`ast/annotation.json`** — the 16 annotations the reference defines, digest-pinned in `pin.json`.
-  A third vocabulary, because the lexer emits a single `TokenKind.Annotation` for every one of them
-  and the name survives only in the token's `text`, where no `TokenKind` digest can see it change.
-  It is a **coverage** vocabulary and never a validity check: the token is genuinely open, because
-  Java interop annotations lex identically and upstream models exactly that with
-  `Annotation.Error`. 13 of the 16 occur in Flix's own 893-file corpus.
-- **`ast/retired.json`** — vocabulary the reference once defined and has removed, with the tag each
-  went at: `Decl.Law`, `KeywordLaw` and `KeywordLawful`, all gone at v0.75.2. An added kind appears
-  in the inventory under a name you can look up; a removed one leaves only a digest that stopped
-  matching, and this is what survives it.
-- **The fixture suite is 147**, not 146 — one fixture covers the three annotations Flix's own
-  corpus never exercises (`@Deprecated`, `@DontInline`, `@Skip`).
-- **FLIX-0002 in the defect ledger.** flix-spec now runs `Weeder2` over its positive fixtures,
-  advisory only, and the first run found a reference defect: `Parser2` has a dedicated
-  `BinaryOp.NameMath` and lists `NameMath` in `FIRST_BINARY_OP`, so `a ⊆ b` parses cleanly into
-  `Expr.Binary`, while `Weeder2`'s operator match omits `NameMath` and throws
-  `InternalCompilerException`. Confirmed against the released jar, which prints the compiler's own
-  bug-report banner. Nothing is required of a parser — the reference's own parser accepts the input
-  and produces the tree flix-spec publishes — but it bounds what a *positive* fixture means here:
-  it parses, and that is all it promises.
+### PR B — `feat`: package paths, effect type parameters
 
-## What this repository must do
+Write the corpus tests first. Each `tree-sitter generate` costs 7–11 minutes, and the tests pin
+the behaviour that must *not* change.
 
-### 1. Move the pin
+- [ ] **B1. Pin cons first.** Add corpus tests for tight and spaced cons in both expressions and
+      patterns: `42::Nil`, `x :: xs`, and `case x::xs =>`. Leave `cons_pattern`
+      (`grammar.js:711`) and the `::` binary operator (`:1079`) untouched.
+- [ ] **B2. Add `package` to `use_declaration`** (`grammar.js:362`). Today it is
+      `seq('use', qualified_name, optional(seq(_dot, use_many)))`. A lowercase segment is legal
+      only last in `qualified_name`, so `use flixball::Game.Board` fails. Target shape:
 
-`conformance/baseline.json` — `flixSpecArtifact` to `0.77.1`, `flixSpecPin` to `v0.77.0`,
-`flixSpecPinCommit` to `4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`. `scripts/flix-spec-conformance.mjs`
-refuses to run on a mismatch, so this is the first thing that will stop you.
+      ```js
+      use_declaration: $ => seq(
+        'use',
+        choice(
+          seq(optional($.package), $.qualified_name, optional(seq($._dot, $.use_many))),
+          seq($.package, $.use_many), // `use pkg::{A, B}` -- no `.` before the brace
+        ),
+      ),
+      package: $ => seq(choice($.name_lower, $.name_upper), '::'),
+      ```
 
-### 2. Re-measure. Every lane number is stale.
+      `package` is snake-cased from `UsesOrImports.Package`. `use_expression` (`:947`) reuses
+      `use_declaration` and inherits the change. A bare `use {A}` with no package stays illegal.
+      `name_upper '::'` competes with an ordinary `qualified_name` start, so check the conflict set
+      after `generate`.
+- [ ] **B3. Tight vs spaced — accept both, structurally.** The structural lanes need no whitespace
+      distinction: the two package fixtures
+      (`fixtures/positive/declarations__use-with-a-package-path.flix`,
+      `fixtures/negative/declarations__package-path-separator-must-be-tight.flix`) have identical
+      structure once the `ErrorTree` is spliced. Parse spaced `::` in a `use` as the same
+      `package`, following the parser rather than the weeder. The difference matters only to the
+      recovery and diagnostic lanes. If one of them needs it later, prefer a `use`-local
+      `token.immediate('::')`, or an external token offered only in `use` position, over a
+      general scanner change. Touching `src/scanner.c` triggers the fuzz CI job, and would need
+      the "four things" list in CLAUDE.md updated.
+- [ ] **B4. Effect type parameters.** Add `optional($.type_parameter_list)` after the name in
+      `effect_declaration`. Add a corpus test for `eff E[a] { def op(x: a): Unit }`. Leave
+      `operation_declaration` alone: a generic operation should keep producing an `ERROR`, as it
+      does in the reference parser.
+- [ ] **B5. Queries.** Capture the package name as `@module` in `highlights.scm`; otherwise the
+      `(name_lower) @variable` fall-through takes it. Check `locals.scm:122`
+      (`@local.definition.import`) and `indents.scm:42` (`use_many` is now reachable without
+      `.`). Run `ts_query_ls format queries/`.
+- [ ] **B6. Retired syntax (optional, may be split out).** `law_declaration` (`grammar.js:428`),
+      the `'lawful'` modifier (`:372`) and the `"law"` highlight (`highlights.scm:258`) cover
+      syntax the reference parser stopped accepting at v0.75.2 (`ast/retired.json`).
+      `law_declaration` is already in the map's `ignored`. Remove them, or record why they stay.
+      Keeping them does not break `law` as an identifier.
+- [ ] **B7. Mapping and ratchet.** Map `package` → `UsesOrImports.Package` in
+      `conformance/projection-map.json`, re-run conformance, and **lower** the ratchets in the
+      same commit.
+- [ ] **B8. Corpus.** Move `$FLIX_SRC` to tag `v0.77.0`; the local checkout is at v0.76.0, which
+      contains no package paths. Run `./scripts/parse-corpus.sh "$FLIX_SRC"`. Expect exactly
+      `ford-fulkerson-prefix.flix` and `examples/apps/langcensus/src/Analyse.flix`, checked by
+      name. File counts drift (upstream removed `examples/package-manager` at v0.77). In CLAUDE.md,
+      change "on master" to "at the tag `conformance/baseline.json` pins".
 
-The suite goes 138 → **147** fixtures and normalisation removes more than three times as many nodes,
-so `fixtureRevision` moves and the recorded `oracle_conformance` figures (105/138 agreeing, 61
-divergences, 1922 nodes compared, 95% depth) describe a different question. Re-run and re-record;
-do not treat the new numbers as a regression against the old ones.
+### PR C (optional) — `feat(conformance)`: the diagnostic lane
 
-### 3. Delete six now-redundant `elide` entries
-Expect a `NOTE:` from `validateProjectionMap` naming `elide` (and, for tree-sitter,
-`flattenCanonical`) as deprecated. They still work; the reduction below is what clears it.
+`scripts/flix-spec-conformance.mjs` emits `diagnostics: []` for every unit, so the lane stands
+down. Emitting diagnostics is the only way to measure this repository's accept/reject behaviour.
+Four pitfalls:
 
+- **Rejection is more than `ERROR`.** It also includes `MISSING` and this grammar's own markers
+  `trailing_dot`, `unterminated_literal` and `unterminated_string` (the map's `recoveryMarkers`).
+  Counting only `ERROR` would call `ford-fulkerson-prefix.flix` accepted. `parse-corpus.sh`
+  already queries the markers for this reason; mirror it.
+- **Emit one diagnostic per unit, not per node.** Nested and adjacent `ERROR` nodes over-count.
+  Leave `kind` unmapped and omit `line` at first: tree-sitter rows are 0-based, and an `ERROR`
+  spans the recovery region rather than the reference's error token. Start with accept/reject
+  alone and no `diagnosticMappings`.
+- **Some disagreements are permanent by design.** This grammar parses what `Weeder2` rejects, so
+  negative fixtures that only the weeder rejects will always disagree. The same holds for inputs
+  Parser2 accepts structurally while attaching an error, such as the spaced package `::` after
+  B3.
+- **It needs a ratchet.** Add `diagnosticDivergences` to `baseline.json` and pass it as
+  `--diagnostic-baseline`. Without it, the first run fails the build on any disagreement.
 
-`conformance/projection-map.json` declares 11 canonical kinds in `elide`. Six are now in
-`ast/transparency.json` and the canonical tree no longer contains them at those arities:
+## Definition of done
 
-```
-AnnotationList  Expr.Expr  ModifierList  Pattern.Pattern  QName  UsesOrImports.UseOrImportList
-```
-
-Five remain genuinely yours and should stay: `CommentList`, `Expr.FixpointWith`,
-`Expr.RunWithBodyExpr`, `Expr.Statement`, `Type.Apply`.
-
-Your `QName` **mapping** stays. `QName` survives wherever a name is qualified, so the mapping is
-reachable and now worth more: it is the branching case only.
-
-### 4. The `::` split — the change most likely to be silently wrong here
-
-`grammar.js` must distinguish tight `::` from spaced `::`. Tight is the package-path separator
-inside a `use`; spaced is list cons. Add a rule for `use flixball::Game.Board` and
-`use flixball::{Game, Board}`, mapping the package segment to `UsesOrImports.Package`.
-
-Two fixtures in flix-spec cover this and will be compared against you:
-`fixtures/positive/declarations__use-with-a-package-path.flix` and
-`fixtures/negative/declarations__package-path-separator-must-be-tight.flix`.
-
-### 5. The diagnostic lane will stand down, and that is a choice worth revisiting
-
-`scripts/flix-spec-conformance.mjs:212` emits `diagnostics: []` unconditionally, so the new lane
-reports `not-applicable` for this repository. That is permitted and will not fail the build.
-
-It is also the cheapest signal available here. Tree-sitter has `ERROR`/`MISSING` nodes; emitting one
-diagnostic per `ERROR` node would give accept/reject agreement across all 147 fixtures without any
-grammar work, and would be the only lane measuring this repository's error behaviour at all.
-
-### Suggested order
-
-1. Bump the pin, run conformance, accept that it fails.
-2. Delete the six redundant `elide` entries, re-run, re-record the baseline.
-3. Add the tight-`::` rules and the `UsesOrImports.Package` mapping.
-4. Optionally emit diagnostics from `ERROR` nodes and pick up the fourth lane.
+- [ ] `src/parser.c`, `src/grammar.json` and `src/node-types.json` are regenerated and committed
+      with every grammar change.
+- [ ] `tree-sitter test` passes, and so does `npm run lint`.
+- [ ] `ts_query_ls check -f queries/` passes.
+- [ ] `npm run conformance` passes against the re-recorded baseline, with flix-spec checked out at
+      `v0.77.1`.
+- [ ] `parse-corpus.sh` against Flix `v0.77.0` shows exactly the two expected failures, by name.
+- [ ] CI is green, including `fuzz` if the scanner changed.
+- [ ] CLAUDE.md is updated: `FLIX_SRC` guidance and, if applicable, the scanner's list.
+- [ ] Release per CLAUDE.md "Releasing" (`tree-sitter version`, lockfile, `generate`, then tag).
+      New syntax makes this a minor bump.
+- [ ] This file is deleted.
