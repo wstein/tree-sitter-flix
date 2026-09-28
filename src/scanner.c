@@ -19,6 +19,8 @@ enum TokenType {
     DOT,
     DOT_SPACED,
     UNTERMINATED_STRING,
+    PACKAGE_SEPARATOR,
+    PACKAGE_SEPARATOR_SPACED,
     ERROR_SENTINEL,
 };
 
@@ -200,6 +202,22 @@ bool tree_sitter_flix_external_scanner_scan(void *payload, TSLexer *lexer,
         // reference lexer's `outOfBounds = true`.
         bool tight = !space_before && !is_space(lexer->lookahead) && !lexer->eof(lexer);
         lexer->result_symbol = tight ? ARROW_TIGHT : ARROW_SPACED;
+        return valid_symbols[lexer->result_symbol];
+    }
+
+    // The `::` after a package name in a `use`. The reference lexer makes `::` ColonColonTight only
+    // with no whitespace on either side (end of file counts as whitespace), and Parser2 reports the
+    // spaced form as Malformed while still building the package. Only offered in that position, so
+    // cons -- tight or spaced -- never reaches this branch and stays with the internal lexer.
+    if (!recovering && (valid_symbols[PACKAGE_SEPARATOR] || valid_symbols[PACKAGE_SEPARATOR_SPACED]) &&
+        lexer->lookahead == ':') {
+        advance(lexer);
+        if (lexer->lookahead != ':') return false;
+        advance(lexer);
+        // `:::` and `::=`-style runs are other operators; leave them to the internal lexer.
+        if (lexer->lookahead == ':' || is_user_op(lexer->lookahead)) return false;
+        bool tight = !space_before && !is_space(lexer->lookahead) && !lexer->eof(lexer);
+        lexer->result_symbol = tight ? PACKAGE_SEPARATOR : PACKAGE_SEPARATOR_SPACED;
         return valid_symbols[lexer->result_symbol];
     }
 

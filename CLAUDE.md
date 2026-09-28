@@ -114,11 +114,13 @@ error recovery useful in editors.
     that matches a node, so the generic `(name_lower) @variable` fall-through sits at the *top*
     of the file. Moving it to the bottom silently erases every `@function`, `@variable.member`
     and `@variable.parameter` capture.
-- `src/scanner.c` is a stateless external scanner. It exists because four things cannot be
+- `src/scanner.c` is a stateless external scanner. It exists because five things cannot be
   written as regular expressions: nested block comments, the segmentation of interpolated
   strings (`"a${`, `}b${`, `}c"`), the whitespace-sensitive `->` split (`a->b` is struct field
-  access, `a -> b` is the function arrow), and the `.` trichotomy (qualified-name separator vs
-  Datalog constraint terminator vs the illegal space-before form). It also recognises the `d`
+  access, `a -> b` is the function arrow), the `.` trichotomy (qualified-name separator vs
+  Datalog constraint terminator vs the illegal space-before form), and the package separator
+  in `use pkg::Mod` (tight, or spaced and therefore `Malformed` -- offered only in that
+  position, so cons `::` never reaches the scanner). It also recognises the `d`
   of `d"..."`. Because it keeps no state, `serialize`/`deserialize` are no-ops — keep it that
   way; every decision is made from the character stream plus `valid_symbols`. Changing the file
   activates the `fuzz` CI job. It also declares `_error_sentinel` as its last external: in error

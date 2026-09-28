@@ -150,6 +150,10 @@ export default grammar({
     // A string with no closing quote. Modelled rather than left to tree-sitter's recovery for the
     // same reason as `unterminated_literal`: the reference keeps the enclosing declaration.
     $.unterminated_string,
+    // The `::` after a package name in a `use`: tight, or with whitespace on either side, which the
+    // reference reports as Malformed. See `package`.
+    $._package_separator,
+    $.malformed_package_separator,
     // Referenced by no rule, so it is only ever valid in tree-sitter's error
     // recovery state, where every external is marked valid. The scanner uses it
     // to tell recovery from a real parse and stand down. Must stay last.
@@ -371,9 +375,15 @@ export default grammar({
         ),
       ),
     // The reference lexes `::` with whitespace on either side as ColonColon rather than
-    // ColonColonTight, and here reports it as Malformed -- but still builds the same Package node.
-    // Following the parser, not its diagnostic, both spellings parse alike.
-    package: $ => seq(choice($.name_lower, $.name_upper), '::'),
+    // ColonColonTight, and here reports it as Malformed -- but still builds the same Package node,
+    // with the spaced separator inside an ErrorTree. So both spellings parse, and the spaced one is
+    // a `malformed_package_separator`: a recovery marker, like trailing_dot. The tight separator is
+    // aliased to an anonymous `::` so queries can still name it.
+    package: $ =>
+      seq(
+        choice($.name_lower, $.name_upper),
+        choice(alias($._package_separator, '::'), $.malformed_package_separator),
+      ),
     import_declaration: $ =>
       seq('import', $.java_qualified_name, optional(seq($._dot, alias($.use_many, $.import_many)))),
     use_many: $ => seq('{', commaSep($.aliased_name), '}'),

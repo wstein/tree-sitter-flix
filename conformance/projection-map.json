@@ -85,6 +85,7 @@
     "let_expression": "Expr.LetMatch",
     "list_literal": "Expr.LiteralList",
     "local_def_expression": "Expr.LocalDef",
+    "malformed_package_separator": "ErrorTree",
     "map_entry": "Expr.LiteralMapKeyValueFragment",
     "map_literal": "Expr.LiteralMap",
     "match_expression": "Expr.Match",
@@ -220,6 +221,7 @@
     "debug_interpolation": "Transparent on our side, mirroring ast/transparency.json's rule for the canonical kind it used to map onto. The mapping was unreachable once the reference stopped emitting that node, and an unreachable mapping manufactures divergences rather than doing nothing.",
     "hole_variable": "Transparent on our side, mirroring ast/transparency.json's rule for the canonical kind it used to map onto. The mapping was unreachable once the reference stopped emitting that node, and an unreachable mapping manufactures divergences rather than doing nothing.",
     "illegal_type_parameters": "A recovery marker, mapped to ErrorTree: Parser2's operationDecl wraps an operation's type parameters in an ErrorTree carrying IllegalOperationTypeParams and keeps the operation whole. The structural lane splices both out, leaving the TypeParameterList in place; the recovery lane compares the wrapper; the diagnostic lane counts the unit as rejected.",
+    "malformed_package_separator": "A recovery marker, mapped to ErrorTree: for `use pkg :: Mod` Parser2 lexes the spaced separator as ColonColon, reports Malformed and wraps that token in an ErrorTree inside an otherwise complete UsesOrImports.Package. The structural lane splices both out; the recovery lane compares the wrapper; the diagnostic lane counts the unit as rejected.",
     "name_lower": "Both name_lower and name_upper collapse to Ident: the reference does not distinguish case in the tree, only in the lexer.",
     "trailing_dot": "A recovery marker, mapped to the reference's TrailingDot. Both are spliced out of the structural comparison and compared in the recovery lane.",
     "type_argument": "Transparent on our side, mirroring ast/transparency.json's rule for the canonical kind it used to map onto. The mapping was unreachable once the reference stopped emitting that node, and an unreachable mapping manufactures divergences rather than doing nothing.",
@@ -247,6 +249,7 @@
     "trailing_dot",
     "unterminated_literal",
     "unterminated_string",
-    "illegal_type_parameters"
+    "illegal_type_parameters",
+    "malformed_package_separator"
   ]
 }

@@ -649,7 +649,8 @@ use flixball :: Game
         (name_lower))))
   (use_declaration
     (package
-      (name_lower))
+      (name_lower)
+      (malformed_package_separator))
     (qualified_name
       (name_upper))))
 
@@ -775,3 +776,52 @@ trait Order[a] {
 --------------------------------------------------------------------------------
 
 (source_file)
+
+================================================================================
+A package separator with whitespace on either side is malformed
+================================================================================
+
+use flixball ::Game
+use flixball:: Game
+use flixball :: {Game, Board}
+def f(): List[Int32] = x ::xs
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    (package
+      (name_lower)
+      (malformed_package_separator))
+    (qualified_name
+      (name_upper)))
+  (use_declaration
+    (package
+      (name_lower)
+      (malformed_package_separator))
+    (qualified_name
+      (name_upper)))
+  (use_declaration
+    (package
+      (name_lower)
+      (malformed_package_separator))
+    (use_many
+      (aliased_name
+        (name_upper))
+      (aliased_name
+        (name_upper))))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_reference
+          (name_upper))))
+    (binary_expression
+      (qualified_name
+        (name_lower))
+      (operator)
+      (qualified_name
+        (name_lower)))))

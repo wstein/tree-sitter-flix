@@ -2660,9 +2660,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "malformed_package_separator",
+          "named": true
+        },
         {
           "type": "name_lower",
           "named": true
@@ -4749,6 +4753,10 @@
     "type": "line_comment",
     "named": true,
     "extra": true
+  },
+  {
+    "type": "malformed_package_separator",
+    "named": true
   },
   {
     "type": "match",

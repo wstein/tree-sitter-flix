@@ -573,8 +573,22 @@
           ]
         },
         {
-          "type": "STRING",
-          "value": "::"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_package_separator"
+              },
+              "named": false,
+              "value": "::"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "malformed_package_separator"
+            }
+          ]
         }
       ]
     },
@@ -8398,6 +8412,14 @@
     {
       "type": "SYMBOL",
       "name": "unterminated_string"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_package_separator"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "malformed_package_separator"
     },
     {
       "type": "SYMBOL",

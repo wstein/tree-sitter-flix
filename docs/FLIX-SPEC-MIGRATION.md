@@ -170,6 +170,9 @@ the behaviour that must *not* change.
       `token.immediate('::')`, or an external token offered only in `use` position, over a
       general scanner change. Touching `src/scanner.c` triggers the fuzz CI job, and would need
       the "four things" list in CLAUDE.md updated.
+      **Follow-up, done:** the spaced form is now a `malformed_package_separator` marker, mapped
+      to `ErrorTree`. Two scanner externals are offered only in package position, so cons never
+      reaches them. Recovery 55 -> 54 and diagnostic 8 -> 7; that fixture now agrees in both.
 - [x] **B4. Effect type parameters.** Add `optional($.type_parameter_list)` after the name in
       `effect_declaration`, and add a corpus test for `eff E[a] { def op(x: a): Unit }`.
       **Also add it to `operation_declaration`.** The plan was to leave generic operations an
@@ -211,8 +214,8 @@ the behaviour that must *not* change.
 Implemented as planned: one `tree-sitter.ParseError` per unit containing an `ERROR`, a `MISSING`
 token or a recovery marker; no `diagnosticMappings`, so the lane compares accept/reject only; a
 `diagnosticDivergences` ratchet passed as `--diagnostic-baseline`. First measurement: **138/147
-fixtures agree, 9 divergences** (8 since the `illegal_type_parameters` marker) -- one by design,
-six grammar gaps, and `operator-error.flix`,
+fixtures agree, 9 divergences** (7 since the `illegal_type_parameters` and
+`malformed_package_separator` markers) -- six grammar gaps, and `operator-error.flix`,
 which the reference accepts and this grammar rejects (listed in the baseline comment). One trap
 the pitfalls below missed: tree-sitter's dump omits an anonymous `MISSING` token and reports it only
 on the per-file summary line, so the marker scan reads the whole output.
