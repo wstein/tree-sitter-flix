@@ -8373,10 +8373,6 @@
     ],
     [
       "qualified_name",
-      "record_op_update"
-    ],
-    [
-      "qualified_name",
       "record_op_restrict"
     ],
     [

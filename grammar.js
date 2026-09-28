@@ -161,9 +161,10 @@ export default grammar({
   conflicts: $ => [
     // --- conflicts added while converging the parser tables ---
     [$.qualified_name, $.record_pattern_field],
-    // Both record forms that begin with a name-like token collide with a bare qualified name until
-    // the `=` or the enclosing `}` disambiguates: `{ -x }` is a restriction, `-x` a negation.
-    [$.qualified_name, $.record_op_update],
+    // A record restriction begins with a name-like token and collides with a bare qualified name
+    // until the enclosing `}` disambiguates: `{ -x }` is a restriction, `-x` a negation. (The
+    // update form `{ x = e }` needs no entry: the `=` is already in the lookahead when the name is
+    // reduced.)
     [$.qualified_name, $.record_op_restrict],
     [$._qualified_segment, $.parameter, $.variable_pattern],
     [$.qualified_name, $.parameter, $.variable_pattern],
