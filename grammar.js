@@ -359,7 +359,22 @@ export default grammar({
 
     _use_or_import: $ => seq(choice($.use_declaration, $.import_declaration), optional(';')),
 
-    use_declaration: $ => seq('use', $.qualified_name, optional(seq($._dot, $.use_many))),
+    // `use flixball::Game.Board`, `use flixball::{Game, Board}`: Parser2.use() opens
+    // UsesOrImports.Package over a leading NAME_PACKAGE and its `::`, and a use-many may then follow
+    // the package directly, with no `.` before the brace. Only in a use: everywhere else `::` is
+    // cons, tight or spaced.
+    use_declaration: $ =>
+      seq(
+        'use',
+        choice(
+          seq(optional($.package), $.qualified_name, optional(seq($._dot, $.use_many))),
+          seq($.package, $.use_many),
+        ),
+      ),
+    // The reference lexes `::` with whitespace on either side as ColonColon rather than
+    // ColonColonTight, and here reports it as Malformed -- but still builds the same Package node.
+    // Following the parser, not its diagnostic, both spellings parse alike.
+    package: $ => seq(choice($.name_lower, $.name_upper), '::'),
     import_declaration: $ =>
       seq('import', $.java_qualified_name, optional(seq($._dot, alias($.use_many, $.import_many)))),
     use_many: $ => seq('{', commaSep($.aliased_name), '}'),
@@ -530,7 +545,14 @@ export default grammar({
       ),
 
     effect_declaration: $ =>
-      seq(...prologue($), 'eff', field('name', $.name_upper), optional($.effect_body)),
+      seq(
+        ...prologue($),
+        'eff',
+        field('name', $.name_upper),
+        // Since v0.76.0 `effectDecl` takes type parameters. Operations still may not.
+        optional($.type_parameter_list),
+        optional($.effect_body),
+      ),
     effect_body: $ => seq('{', repeat($.operation_declaration), '}'),
     // Effect operations take no `\ eff` and no body.
     operation_declaration: $ =>
@@ -538,6 +560,9 @@ export default grammar({
         ...prologue($),
         'def',
         field('name', functionName($)),
+        // Illegal, but parsed: `operationDecl` consumes the type parameters and wraps them in an
+        // ErrorTree carrying IllegalOperationTypeParams, so the operation keeps its shape.
+        optional($.type_parameter_list),
         optional($.parameter_list),
         ':',
         $._type,

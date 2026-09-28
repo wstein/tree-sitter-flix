@@ -1337,3 +1337,61 @@ def f(): Unit = region rc { new Counter @ rc { count = 0, step = 1 } }
           (struct_field_init
             (name_lower)
             (integer)))))))
+
+================================================================================
+Tight cons in expressions and patterns
+================================================================================
+
+def f(): List[Int32] = 42::Nil
+
+def g(l: List[Int32]): Int32 = match l {
+    case x::xs => x
+    case _ => 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_reference
+          (name_upper))))
+    (binary_expression
+      (integer)
+      (operator)
+      (qualified_name
+        (name_upper))))
+  (function_declaration
+    (name_lower)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (type_application
+          (type_reference
+            (name_upper))
+          (type_argument_list
+            (type_reference
+              (name_upper))))))
+    (type_reference
+      (name_upper))
+    (match_expression
+      (qualified_name
+        (name_lower))
+      (match_body
+        (match_rule
+          (cons_pattern
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower)))
+          (qualified_name
+            (name_lower)))
+        (match_rule
+          (variable_pattern
+            (wildcard))
+          (integer))))))

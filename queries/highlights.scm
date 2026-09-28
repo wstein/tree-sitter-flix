@@ -204,6 +204,13 @@
   (name_upper) @module
   (name_lower))
 
+; `use flixball::Game.Board`: the package names a namespace, like a module path.
+(package
+  [
+    (name_lower)
+    (name_upper)
+  ] @module)
+
 ; Operators
 (generic_operator) @operator
 
@@ -371,3 +378,8 @@
 ; `->` is scanned externally as a hidden token, so it has no queryable node
 ; type; only `=>` can be matched here.
 "=>" @punctuation.special
+
+; In a package path `::` separates; everywhere else it is cons. Later patterns win, so this
+; overrides the operator capture above.
+(package
+  "::" @punctuation.delimiter)

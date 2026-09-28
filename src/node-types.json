@@ -987,6 +987,10 @@
         {
           "type": "modifier",
           "named": true
+        },
+        {
+          "type": "type_parameter_list",
+          "named": true
         }
       ]
     }
@@ -2662,6 +2666,10 @@
         {
           "type": "trait_constraints",
           "named": true
+        },
+        {
+          "type": "type_parameter_list",
+          "named": true
         }
       ]
     }
@@ -2691,6 +2699,25 @@
       "types": [
         {
           "type": "generic_operator",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "package",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "name_lower",
+          "named": true
+        },
+        {
+          "type": "name_upper",
           "named": true
         }
       ]
@@ -4370,6 +4397,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "package",
+          "named": true
+        },
         {
           "type": "qualified_name",
           "named": true

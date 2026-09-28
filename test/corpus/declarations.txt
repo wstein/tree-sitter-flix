@@ -632,3 +632,134 @@ instance T[Int32] {
         (type_reference
           (name_upper))
         (boolean)))))
+
+================================================================================
+Use with a package path
+================================================================================
+
+use flixball::Game.Board
+use flixball::{Game, Board}
+use Pkg::Game.{a, b => c}
+use flixball :: Game
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    (package
+      (name_lower))
+    (qualified_name
+      (name_upper)
+      (name_upper)))
+  (use_declaration
+    (package
+      (name_lower))
+    (use_many
+      (aliased_name
+        (name_upper))
+      (aliased_name
+        (name_upper))))
+  (use_declaration
+    (package
+      (name_upper))
+    (qualified_name
+      (name_upper))
+    (use_many
+      (aliased_name
+        (name_lower))
+      (aliased_name
+        (name_lower)
+        (name_lower))))
+  (use_declaration
+    (package
+      (name_lower))
+    (qualified_name
+      (name_upper))))
+
+================================================================================
+Use with a package path inside an expression
+================================================================================
+
+def f(): Unit = {
+    use flixball::Game.Board;
+    ()
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (block
+      (use_expression
+        (use_declaration
+          (package
+            (name_lower))
+          (qualified_name
+            (name_upper)
+            (name_upper)))
+        (unit_expression)))))
+
+================================================================================
+Effect with type parameters
+================================================================================
+
+eff State[s: Type] {
+    def get(): s
+    def put(value: s): Unit
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (effect_declaration
+    (name_upper)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)
+        (kind
+          (name_upper))))
+    (effect_body
+      (operation_declaration
+        (name_lower)
+        (parameter_list)
+        (type_variable))
+      (operation_declaration
+        (name_lower)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable)))
+        (type_reference
+          (name_upper))))))
+
+================================================================================
+Generic effect operations parse, as in the reference
+================================================================================
+
+eff Console {
+    def print[a: Type](value: a): Unit
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (effect_declaration
+    (name_upper)
+    (effect_body
+      (operation_declaration
+        (name_lower)
+        (type_parameter_list
+          (type_parameter
+            (name_lower)
+            (kind
+              (name_upper))))
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable)))
+        (type_reference
+          (name_upper))))))

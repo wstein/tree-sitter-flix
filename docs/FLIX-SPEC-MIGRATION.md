@@ -1,6 +1,7 @@
 # Migrating to Flix v0.77.0 and flix-spec 0.77.1
 
-Status: **PR A done** (baseline at flix-spec 0.77.1); PR B and PR C not started. The target is flix-spec **0.77.1** (tag `v0.77.1`), which pins
+Status: **PR A and PR B done** (baseline at flix-spec 0.77.1, grammar at Flix v0.77.0); PR C not
+started. The target is flix-spec **0.77.1** (tag `v0.77.1`), which pins
 Flix **v0.77.0** (`4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`).
 
 This file is a work plan, not reference documentation. Delete it when the migration merges; the
@@ -30,8 +31,8 @@ Since v0.76.0 an effect declaration may take type parameters: `effectDecl` calls
 
 Generic *operations* (`def op[a](…)`) are still rejected, now as `IllegalOperationTypeParams`. The
 error is typed as a `WeederError`, but it is raised by the parser: `operationDecl` parses the
-parameters and wraps them in an `ErrorTree` (`Parser2.scala:1364-1368`). This grammar already
-yields an `ERROR` there, which is the right answer.
+parameters and wraps them in an `ErrorTree` (`Parser2.scala:1364-1368`), keeping the operation's
+shape. The grammar follows that tree: see B4 for why leaving it an `ERROR` was measurably worse.
 
 ### `match` / `ematch` recovery — no grammar action
 
@@ -135,10 +136,10 @@ change, and each one can be reverted on its own. No commit lands red.
 Write the corpus tests first. Each `tree-sitter generate` costs 7–11 minutes, and the tests pin
 the behaviour that must *not* change.
 
-- [ ] **B1. Pin cons first.** Add corpus tests for tight and spaced cons in both expressions and
+- [x] **B1. Pin cons first.** Add corpus tests for tight and spaced cons in both expressions and
       patterns: `42::Nil`, `x :: xs`, and `case x::xs =>`. Leave `cons_pattern`
       (`grammar.js:711`) and the `::` binary operator (`:1079`) untouched.
-- [ ] **B2. Add `package` to `use_declaration`** (`grammar.js:362`). Today it is
+- [x] **B2. Add `package` to `use_declaration`** (`grammar.js:362`). Today it is
       `seq('use', qualified_name, optional(seq(_dot, use_many)))`. A lowercase segment is legal
       only last in `qualified_name`, so `use flixball::Game.Board` fails. Target shape:
 
@@ -157,7 +158,7 @@ the behaviour that must *not* change.
       `use_declaration` and inherits the change. A bare `use {A}` with no package stays illegal.
       `name_upper '::'` competes with an ordinary `qualified_name` start, so check the conflict set
       after `generate`.
-- [ ] **B3. Tight vs spaced — accept both, structurally.** The structural lanes need no whitespace
+- [x] **B3. Tight vs spaced — accept both, structurally.** The structural lanes need no whitespace
       distinction: the two package fixtures
       (`fixtures/positive/declarations__use-with-a-package-path.flix`,
       `fixtures/negative/declarations__package-path-separator-must-be-tight.flix`) have identical
@@ -167,27 +168,33 @@ the behaviour that must *not* change.
       `token.immediate('::')`, or an external token offered only in `use` position, over a
       general scanner change. Touching `src/scanner.c` triggers the fuzz CI job, and would need
       the "four things" list in CLAUDE.md updated.
-- [ ] **B4. Effect type parameters.** Add `optional($.type_parameter_list)` after the name in
-      `effect_declaration`. Add a corpus test for `eff E[a] { def op(x: a): Unit }`. Leave
-      `operation_declaration` alone: a generic operation should keep producing an `ERROR`, as it
-      does in the reference parser.
-- [ ] **B5. Queries.** Capture the package name as `@module` in `highlights.scm`; otherwise the
+- [x] **B4. Effect type parameters.** Add `optional($.type_parameter_list)` after the name in
+      `effect_declaration`, and add a corpus test for `eff E[a] { def op(x: a): Unit }`.
+      **Also add it to `operation_declaration`.** The plan was to leave generic operations an
+      `ERROR`, but the new optional list on `eff` gave error recovery a cheaper, wrong path: it
+      read `{ def print` as garbage and handed `[a: Type]` to the effect. Recovery went from 56 to
+      57 divergences and depth fell below the floor. Parsing the operation's type parameters
+      structurally, as `operationDecl` does, fixed both.
+- [x] **B5. Queries.** Capture the package name as `@module` in `highlights.scm`; otherwise the
       `(name_lower) @variable` fall-through takes it. Check `locals.scm:122`
       (`@local.definition.import`) and `indents.scm:42` (`use_many` is now reachable without
-      `.`). Run `ts_query_ls format queries/`.
-- [ ] **B6. Retired syntax (optional, may be split out).** `law_declaration` (`grammar.js:428`),
+      `.`). Run `ts_query_ls format queries/`. (Not run locally -- the binary is not installed
+      here; CI's `ts_query_ls check -f` is the check. Node names were verified with
+      `tree-sitter query`.)
+- [ ] **B6. Retired syntax (optional, split out — not done).** `law_declaration` (`grammar.js:428`),
       the `'lawful'` modifier (`:372`) and the `"law"` highlight (`highlights.scm:258`) cover
       syntax the reference parser stopped accepting at v0.75.2 (`ast/retired.json`).
       `law_declaration` is already in the map's `ignored`. Remove them, or record why they stay.
       Keeping them does not break `law` as an identifier.
-- [ ] **B7. Mapping and ratchet.** Map `package` → `UsesOrImports.Package` in
+- [x] **B7. Mapping and ratchet.** Map `package` → `UsesOrImports.Package` in
       `conformance/projection-map.json`, re-run conformance, and **lower** the ratchets in the
       same commit.
-- [ ] **B8. Corpus.** Move `$FLIX_SRC` to tag `v0.77.0`; the local checkout is at v0.76.0, which
-      contains no package paths. Run `./scripts/parse-corpus.sh "$FLIX_SRC"`. Expect exactly
-      `ford-fulkerson-prefix.flix` and `examples/apps/langcensus/src/Analyse.flix`, checked by
-      name. File counts drift (upstream removed `examples/package-manager` at v0.77). In CLAUDE.md,
-      change "on master" to "at the tag `conformance/baseline.json` pins".
+- [x] **B8. Corpus.** Move `$FLIX_SRC` to tag `v0.77.0`; the local checkout is at v0.76.0, which
+      contains no package paths. Run `./scripts/parse-corpus.sh "$FLIX_SRC"`. Result: 893 files,
+      and **one** failure, `ford-fulkerson-prefix.flix`. `langcensus/src/Analyse.flix` no longer
+      fails: upstream rewrote its `foreach (...) yield` to `forM` in v0.77.0 (#13382). CLAUDE.md,
+      README and the `parse-corpus.sh` header now expect that one failure, and CLAUDE.md tells
+      `FLIX_SRC` to sit at the pinned tag rather than on master.
 
 ### PR C (optional) — `feat(conformance)`: the diagnostic lane
 
@@ -212,15 +219,15 @@ Four pitfalls:
 
 ## Definition of done
 
-- [ ] `src/parser.c`, `src/grammar.json` and `src/node-types.json` are regenerated and committed
+- [x] `src/parser.c`, `src/grammar.json` and `src/node-types.json` are regenerated and committed
       with every grammar change.
-- [ ] `tree-sitter test` passes, and so does `npm run lint`.
+- [x] `tree-sitter test` passes, and so does `npm run lint`.
 - [ ] `ts_query_ls check -f queries/` passes.
-- [ ] `npm run conformance` passes against the re-recorded baseline, with flix-spec checked out at
+- [x] `npm run conformance` passes against the re-recorded baseline, with flix-spec checked out at
       `v0.77.1`.
-- [ ] `parse-corpus.sh` against Flix `v0.77.0` shows exactly the two expected failures, by name.
+- [x] `parse-corpus.sh` against Flix `v0.77.0` shows exactly the one expected failure, by name.
 - [ ] CI is green, including `fuzz` if the scanner changed.
-- [ ] CLAUDE.md is updated: `FLIX_SRC` guidance and, if applicable, the scanner's list.
+- [x] CLAUDE.md is updated: `FLIX_SRC` guidance and, if applicable, the scanner's list.
 - [ ] Release per CLAUDE.md "Releasing" (`tree-sitter version`, lockfile, `generate`, then tag).
       New syntax makes this a minor bump.
 - [ ] This file is deleted.
