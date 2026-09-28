@@ -108,7 +108,7 @@ function variableName($) {
 }
 
 /**
- * NAME_FUNCTION — `def`, `redef`, `law` and effect-operation names. Flix lets a
+ * NAME_FUNCTION — `def`, `redef` and effect-operation names. Flix lets a
  * definition be named by a user-defined operator, which is how the standard
  * library declares `>>`, `=<<` and friends.
  *
@@ -183,8 +183,6 @@ export default grammar({
     [$.parameter, $.variable_pattern],
     [$.variable_pattern, $._expression],
     [$.paren_expression, $.argument],
-    // `(a, b)` is a tuple until a `->` turns it into a lambda parameter list.
-    [$.unit_expression, $.parameter_list],
     // `x` alone can be a variable reference or a one-parameter lambda head.
     [$._expression, $.parameter],
     // `use A.B` vs `use A.{b, c}` — the `.` needs two tokens of lookahead.
@@ -385,7 +383,7 @@ export default grammar({
     // Declarations
     // ---------------------------------------------------------------------
 
-    modifier: _ => choice('pub', 'sealed', 'lawful', 'mut'),
+    modifier: _ => choice('pub', 'sealed', 'mut'),
 
     _declaration: $ =>
       choice(
@@ -439,20 +437,6 @@ export default grammar({
         optional($.trait_constraints),
         optional($.equality_constraints),
         optional(seq('=', field('body', $._statement))),
-      ),
-
-    law_declaration: $ =>
-      seq(
-        ...prologue($),
-        'law',
-        field('name', functionName($)),
-        ':',
-        'forall',
-        optional($.type_parameter_list),
-        optional($.parameter_list),
-        optional($.trait_constraints),
-        optional($.equality_constraints),
-        field('body', $._expression),
       ),
 
     // A restrictable enum takes a mandatory bare `[s]` restriction parameter
@@ -509,7 +493,9 @@ export default grammar({
     trait_body: $ =>
       seq(
         '{',
-        repeat(choice($.law_declaration, $.signature_declaration, $.associated_type_signature)),
+        // Flix v0.75.2 removed law declarations and the `lawful` modifier (flix-spec
+        // ast/retired.json: Decl.Law, KeywordLaw, KeywordLawful); `law` is an ordinary name again.
+        repeat(choice($.signature_declaration, $.associated_type_signature)),
         '}',
       ),
     associated_type_signature: $ =>

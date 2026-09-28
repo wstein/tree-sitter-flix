@@ -11,9 +11,6 @@
 (operation_declaration
   name: (_) @name) @definition.method
 
-(law_declaration
-  name: (_) @name) @definition.function
-
 (jvm_method
   name: (_) @name) @definition.method
 

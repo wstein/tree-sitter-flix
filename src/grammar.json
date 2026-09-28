@@ -740,10 +740,6 @@
         },
         {
           "type": "STRING",
-          "value": "lawful"
-        },
-        {
-          "type": "STRING",
           "value": "mut"
         }
       ]
@@ -1077,114 +1073,6 @@
               "type": "BLANK"
             }
           ]
-        }
-      ]
-    },
-    "law_declaration": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "annotation"
-          }
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "modifier"
-          }
-        },
-        {
-          "type": "STRING",
-          "value": "law"
-        },
-        {
-          "type": "FIELD",
-          "name": "name",
-          "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "name_lower"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "name_math"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "generic_operator"
-              }
-            ]
-          }
-        },
-        {
-          "type": "STRING",
-          "value": ":"
-        },
-        {
-          "type": "STRING",
-          "value": "forall"
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "type_parameter_list"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "parameter_list"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "trait_constraints"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "equality_constraints"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
-          "type": "FIELD",
-          "name": "body",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_expression"
-          }
         }
       ]
     },
@@ -1738,10 +1626,6 @@
           "content": {
             "type": "CHOICE",
             "members": [
-              {
-                "type": "SYMBOL",
-                "name": "law_declaration"
-              },
               {
                 "type": "SYMBOL",
                 "name": "signature_declaration"
@@ -8445,10 +8329,6 @@
     [
       "paren_expression",
       "argument"
-    ],
-    [
-      "unit_expression",
-      "parameter_list"
     ],
     [
       "_expression",

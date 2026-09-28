@@ -64,9 +64,6 @@
 (operation_declaration
   name: (_) @function)
 
-(law_declaration
-  name: (_) @function)
-
 (local_def_expression
   name: (_) @function)
 
@@ -262,7 +259,6 @@
 [
   "def"
   "redef"
-  "law"
 ] @keyword.function
 
 [
@@ -275,7 +271,6 @@
   "type"
   "alias"
   "restrictable"
-  "forall"
   "where"
   "with"
 ] @keyword

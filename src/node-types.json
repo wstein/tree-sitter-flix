@@ -2185,70 +2185,6 @@
     }
   },
   {
-    "type": "law_declaration",
-    "named": true,
-    "fields": {
-      "body": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "_expression",
-            "named": true
-          }
-        ]
-      },
-      "name": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "generic_operator",
-            "named": true
-          },
-          {
-            "type": "name_lower",
-            "named": true
-          },
-          {
-            "type": "name_math",
-            "named": true
-          }
-        ]
-      }
-    },
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "annotation",
-          "named": true
-        },
-        {
-          "type": "equality_constraints",
-          "named": true
-        },
-        {
-          "type": "modifier",
-          "named": true
-        },
-        {
-          "type": "parameter_list",
-          "named": true
-        },
-        {
-          "type": "trait_constraints",
-          "named": true
-        },
-        {
-          "type": "type_parameter_list",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "let_expression",
     "named": true,
     "fields": {
@@ -3909,10 +3845,6 @@
           "named": true
         },
         {
-          "type": "law_declaration",
-          "named": true
-        },
-        {
           "type": "signature_declaration",
           "named": true
         }
@@ -4739,10 +4671,6 @@
     "named": false
   },
   {
-    "type": "forall",
-    "named": false
-  },
-  {
     "type": "foreach",
     "named": false
   },
@@ -4797,14 +4725,6 @@
   {
     "type": "intrinsic",
     "named": true
-  },
-  {
-    "type": "law",
-    "named": false
-  },
-  {
-    "type": "lawful",
-    "named": false
   },
   {
     "type": "let",

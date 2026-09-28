@@ -8,7 +8,6 @@
   (module_declaration)
   (function_declaration)
   (signature_declaration)
-  (law_declaration)
   (operation_declaration)
   (local_def_expression)
   (jvm_method)
@@ -47,9 +46,6 @@
   name: (_) @local.definition.function)
 
 (signature_declaration
-  name: (_) @local.definition.function)
-
-(law_declaration
   name: (_) @local.definition.function)
 
 (operation_declaration

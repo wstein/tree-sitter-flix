@@ -2,7 +2,6 @@
   (module_declaration)
   (function_declaration)
   (signature_declaration)
-  (law_declaration)
   (operation_declaration)
   (local_def_expression)
   (enum_declaration)

@@ -328,13 +328,12 @@ struct Node[t, r] {
           (type_variable))))))
 
 ================================================================================
-Trait with law, signature and associated type
+Trait with signature and associated type
 ================================================================================
 
-pub lawful trait Order[a] with Eq[a] {
+pub sealed trait Order[a] with Eq[a] {
     type Elm: Type
     pub def compare(x: a, y: a): Comparison
-    law reflexive: forall(x: a) Order.compare(x, x) == Comparison.EqualTo
 }
 
 --------------------------------------------------------------------------------
@@ -368,29 +367,7 @@ pub lawful trait Order[a] with Eq[a] {
             (name_lower)
             (type_variable)))
         (type_reference
-          (name_upper)))
-      (law_declaration
-        (name_lower)
-        (parameter_list
-          (parameter
-            (name_lower)
-            (type_variable)))
-        (binary_expression
-          (apply_expression
-            (qualified_name
-              (name_upper)
-              (name_lower))
-            (argument_list
-              (argument
-                (qualified_name
-                  (name_lower)))
-              (argument
-                (qualified_name
-                  (name_lower)))))
-          (operator)
-          (qualified_name
-            (name_upper)
-            (name_upper)))))))
+          (name_upper))))))
 
 ================================================================================
 Instance with redef and associated type definition
@@ -763,3 +740,37 @@ eff Console {
             (type_variable)))
         (type_reference
           (name_upper))))))
+
+================================================================================
+law and lawful are ordinary names since Flix v0.75.2
+================================================================================
+
+def law(lawful: Int32): Int32 = lawful
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (type_reference
+          (name_upper))))
+    (type_reference
+      (name_upper))
+    (qualified_name
+      (name_lower))))
+
+================================================================================
+A law declaration is no longer parsed
+:error
+================================================================================
+
+trait Order[a] {
+    law reflexive: forall(x: a) x == x
+}
+
+--------------------------------------------------------------------------------
+
+(source_file)
