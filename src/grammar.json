@@ -1975,6 +1975,15 @@
         }
       ]
     },
+    "illegal_type_parameters": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "type_parameter_list"
+        }
+      ]
+    },
     "operation_declaration": {
       "type": "SEQ",
       "members": [
@@ -2022,7 +2031,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "type_parameter_list"
+              "name": "illegal_type_parameters"
             },
             {
               "type": "BLANK"

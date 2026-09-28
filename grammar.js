@@ -541,6 +541,8 @@ export default grammar({
         optional($.effect_body),
       ),
     effect_body: $ => seq('{', repeat($.operation_declaration), '}'),
+    // `def op[a](...)` inside an effect: IllegalOperationTypeParams (see operation_declaration).
+    illegal_type_parameters: $ => seq($.type_parameter_list),
     // Effect operations take no `\ eff` and no body.
     operation_declaration: $ =>
       seq(
@@ -548,8 +550,10 @@ export default grammar({
         'def',
         field('name', functionName($)),
         // Illegal, but parsed: `operationDecl` consumes the type parameters and wraps them in an
-        // ErrorTree carrying IllegalOperationTypeParams, so the operation keeps its shape.
-        optional($.type_parameter_list),
+        // ErrorTree carrying IllegalOperationTypeParams, so the operation keeps its shape. The
+        // wrapper is the counterpart of that ErrorTree -- a recovery marker, like trailing_dot --
+        // so the operation parses whole and is still visibly rejected.
+        optional($.illegal_type_parameters),
         optional($.parameter_list),
         ':',
         $._type,

@@ -56,9 +56,10 @@ echo "parsing $count files from $corpus"
 parse_status=0
 tree-sitter parse --quiet --stat --paths "$paths" || parse_status=$?
 
-# The grammar models two of the reference's own error markers as real nodes --
-# `unterminated_literal` and `trailing_dot` -- because Parser2 builds them and
-# keeps going rather than failing outright. That is deliberate (this grammar
+# The grammar models some of the reference's own error markers as real nodes --
+# `unterminated_literal`, `trailing_dot`, and `illegal_type_parameters` for an
+# effect operation's type parameters -- because Parser2 builds them and keeps
+# going rather than failing outright. That is deliberate (this grammar
 # follows the parser, not the weeder), but it means such a file contains no
 # ERROR node, so the tally above counts it as a clean parse.
 #
@@ -70,7 +71,7 @@ tree-sitter parse --quiet --stat --paths "$paths" || parse_status=$?
 markers=$(mktemp)
 flagged=$(mktemp)
 trap 'rm -f "$paths" "$markers" "$flagged"' EXIT
-printf '[(unterminated_literal) (unterminated_string) (trailing_dot)] @marker\n' > "$markers"
+printf '[(unterminated_literal) (unterminated_string) (trailing_dot) (illegal_type_parameters)] @marker\n' > "$markers"
 
 # `tree-sitter query` prints every file it visited, matched or not, with any
 # captures indented beneath. Only a file followed by a capture actually contains

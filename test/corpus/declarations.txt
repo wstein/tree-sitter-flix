@@ -714,7 +714,7 @@ eff State[s: Type] {
           (name_upper))))))
 
 ================================================================================
-Generic effect operations parse, as in the reference
+Generic effect operations keep their shape behind an error marker
 ================================================================================
 
 eff Console {
@@ -729,11 +729,12 @@ eff Console {
     (effect_body
       (operation_declaration
         (name_lower)
-        (type_parameter_list
-          (type_parameter
-            (name_lower)
-            (kind
-              (name_upper))))
+        (illegal_type_parameters
+          (type_parameter_list
+            (type_parameter
+              (name_lower)
+              (kind
+                (name_upper)))))
         (parameter_list
           (parameter
             (name_lower)

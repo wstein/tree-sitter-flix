@@ -294,7 +294,8 @@ function main(argv) {
       'conformance/baseline.json was measured against:');
     for (const m of mismatches) say(`  ${m}`);
     if (!remeasure) {
-      console.error('  check out the recorded tag, or pass --remeasure to measure a new release');
+      console.error(`  check out flix-spec tag v${baseline.measuredAt?.flixSpecArtifact} (flixSpecPin names the ` +
+        'Flix tag flix-spec pins, not a flix-spec tag), or pass --remeasure to measure a new release');
       return 2;
     }
   }

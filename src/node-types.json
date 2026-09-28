@@ -1804,6 +1804,21 @@
     }
   },
   {
+    "type": "illegal_type_parameters",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "type_parameter_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "import_declaration",
     "named": true,
     "fields": {},
@@ -2592,6 +2607,10 @@
           "named": true
         },
         {
+          "type": "illegal_type_parameters",
+          "named": true
+        },
+        {
           "type": "modifier",
           "named": true
         },
@@ -2601,10 +2620,6 @@
         },
         {
           "type": "trait_constraints",
-          "named": true
-        },
-        {
-          "type": "type_parameter_list",
           "named": true
         }
       ]

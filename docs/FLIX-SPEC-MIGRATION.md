@@ -2,18 +2,18 @@
 
 Status: **all three PRs done, plus B6 and both guards** -- baseline at flix-spec 0.77.2, grammar at
 Flix v0.77.0, diagnostic lane active. Left: CI, the `ts_query_ls` format check, and the release.
-The target was flix-spec **0.77.1** (tag `v0.77.1`), since moved to 0.77.2; both pin
-Flix **v0.77.0** (`4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`).
+The target is flix-spec **0.77.2** (check out tag `v0.77.2`; the work began at 0.77.1, which
+measures identically). Both pin Flix **v0.77.0** (`4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`).
 
 This file is a work plan, not reference documentation. Delete it when the migration merges; the
 durable lessons (the `::` handling, the diagnostic lane) belong in CLAUDE.md, and the history in
 commit messages and the `baseline.json` comments.
 
 Upstream's own account of the changes, which this file does not restate:
-[`MIGRATION-v0.76.0.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/MIGRATION-v0.76.0.md),
-[`MIGRATION-v0.77.0.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/MIGRATION-v0.77.0.md),
-[`CONFORMANCE.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/CONFORMANCE.md) and
-[`DEFECTS.md`](https://github.com/wstein/flix-spec/blob/v0.77.1/docs/DEFECTS.md). What follows is
+[`MIGRATION-v0.76.0.md`](https://github.com/wstein/flix-spec/blob/v0.77.2/docs/MIGRATION-v0.76.0.md),
+[`MIGRATION-v0.77.0.md`](https://github.com/wstein/flix-spec/blob/v0.77.2/docs/MIGRATION-v0.77.0.md),
+[`CONFORMANCE.md`](https://github.com/wstein/flix-spec/blob/v0.77.2/docs/CONFORMANCE.md) and
+[`DEFECTS.md`](https://github.com/wstein/flix-spec/blob/v0.77.2/docs/DEFECTS.md). What follows is
 only what each change means for this repository.
 
 ## What changed in Flix, and what it asks of this grammar
@@ -33,7 +33,8 @@ Since v0.76.0 an effect declaration may take type parameters: `effectDecl` calls
 Generic *operations* (`def op[a](…)`) are still rejected, now as `IllegalOperationTypeParams`. The
 error is typed as a `WeederError`, but it is raised by the parser: `operationDecl` parses the
 parameters and wraps them in an `ErrorTree` (`Parser2.scala:1364-1368`), keeping the operation's
-shape. The grammar follows that tree: see B4 for why leaving it an `ERROR` was measurably worse.
+shape. The grammar follows that tree, wrapping the parameters in an `illegal_type_parameters`
+marker mapped to `ErrorTree`: see B4 for why leaving it an `ERROR` was measurably worse.
 
 ### `match` / `ematch` recovery — no grammar action
 
@@ -91,10 +92,9 @@ change, and each one can be reverted on its own. No commit lands red.
 ### PR A — `chore(conformance)`: move to flix-spec 0.77.1
 
 - [x] **A1. Check out the tag.** `git -C "$FLIX_SPEC" checkout v0.77.2` (measured first at
-      `v0.77.1`; see the 0.77.2 section). Nothing verifies the checkout against the baseline:
-      `scripts/flix-spec-conformance.mjs` reads only `divergences`, `recoveryDivergences` and the
-      depth floors from `baseline.json`, and flix-spec computes `fixtureRevision` itself. A
-      checkout ahead of the tag silently measures unreleased fixtures.
+      `v0.77.1`; see the 0.77.2 section). At the time nothing verified the checkout against the
+      baseline, so a checkout ahead of the tag silently measured unreleased fixtures. The input
+      guard added since (see "Two guards") now refuses such a checkout.
 - [x] **A2. Measure before touching the map.** Run `npm run conformance` and keep the report (call
       it *A*). It will exceed the old ratchets; that is expected, and it is not committed.
 - [x] **A3. Delete the four redundant `elide` entries.** Remove `Expr.Expr`, `Pattern.Pattern`,
@@ -176,7 +176,10 @@ the behaviour that must *not* change.
       `ERROR`, but the new optional list on `eff` gave error recovery a cheaper, wrong path: it
       read `{ def print` as garbage and handed `[a: Type]` to the effect. Recovery went from 56 to
       57 divergences and depth fell below the floor. Parsing the operation's type parameters
-      structurally, as `operationDecl` does, fixed both.
+      structurally, as `operationDecl` does, fixed both. A later review then pointed out that a
+      clean parse hid the rejection, so they now sit inside an `illegal_type_parameters` node --
+      a recovery marker mapped to `ErrorTree`, like `trailing_dot` -- and `parse-corpus.sh`'s
+      marker pass flags it. That fixture now agrees in the recovery and diagnostic lanes too.
 - [x] **B5. Queries.** Capture the package name as `@module` in `highlights.scm`; otherwise the
       `(name_lower) @variable` fall-through takes it. Check `locals.scm:122`
       (`@local.definition.import`) and `indents.scm:42` (`use_many` is now reachable without
@@ -208,7 +211,8 @@ the behaviour that must *not* change.
 Implemented as planned: one `tree-sitter.ParseError` per unit containing an `ERROR`, a `MISSING`
 token or a recovery marker; no `diagnosticMappings`, so the lane compares accept/reject only; a
 `diagnosticDivergences` ratchet passed as `--diagnostic-baseline`. First measurement: **138/147
-fixtures agree, 9 divergences** -- two by design, six grammar gaps, and `operator-error.flix`,
+fixtures agree, 9 divergences** (8 since the `illegal_type_parameters` marker) -- one by design,
+six grammar gaps, and `operator-error.flix`,
 which the reference accepts and this grammar rejects (listed in the baseline comment). One trap
 the pitfalls below missed: tree-sitter's dump omits an anonymous `MISSING` token and reports it only
 on the per-file summary line, so the marker scan reads the whole output.
