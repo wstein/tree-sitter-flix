@@ -242,9 +242,13 @@ function main(argv) {
         // Two ratchets, because there are two derived lanes and they measure different things.
         // Structure is closed one mapping at a time; error-recovery shape is a separate question a
         // grammar may never fully answer, and a single number would have let either hide the other.
+        // Each lane also has a depth floor: divergences can fall simply because less of the tree is
+        // compared, and the floor is what stops that from reading as progress.
         `--args=--actual ${out} --map ${map} --report ${report}` +
           ` --baseline ${baseline.divergences}` +
-          ` --recovery-baseline ${baseline.recoveryDivergences ?? 0}`,
+          ` --recovery-baseline ${baseline.recoveryDivergences ?? 0}` +
+          ` --depth-floor ${baseline.depthFloor ?? 0}` +
+          ` --recovery-depth-floor ${baseline.recoveryDepthFloor ?? 0}`,
       ],
       {cwd: specDir, encoding: 'utf8', stdio: 'inherit'},
     );
@@ -253,7 +257,8 @@ function main(argv) {
     console.error('error: conformance regressed against conformance/baseline.json');
     console.error(
       `  baselines allow ${baseline.divergences} structural and ` +
-      `${baseline.recoveryDivergences ?? 0} recovery divergences; see ${report}`,
+      `${baseline.recoveryDivergences ?? 0} recovery divergences, at depth floors of ` +
+      `${baseline.depthFloor ?? 0}% and ${baseline.recoveryDepthFloor ?? 0}%; see ${report}`,
     );
     return 1;
   }

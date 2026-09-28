@@ -1,7 +1,6 @@
 # Migrating to Flix v0.77.0 and flix-spec 0.77.1
 
-Status: **not started.** This repository is at `flixSpecArtifact` 0.75.8, `flixSpecPin` v0.75.2
-(`conformance/baseline.json`). The target is flix-spec **0.77.1** (tag `v0.77.1`), which pins
+Status: **PR A done** (baseline at flix-spec 0.77.1); PR B and PR C not started. The target is flix-spec **0.77.1** (tag `v0.77.1`), which pins
 Flix **v0.77.0** (`4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`).
 
 This file is a work plan, not reference documentation. Delete it when the migration merges; the
@@ -89,21 +88,22 @@ change, and each one can be reverted on its own. No commit lands red.
 
 ### PR A — `chore(conformance)`: move to flix-spec 0.77.1
 
-- [ ] **A1. Check out the tag.** `git -C "$FLIX_SPEC" checkout v0.77.1`. Nothing verifies the
+- [x] **A1. Check out the tag.** `git -C "$FLIX_SPEC" checkout v0.77.1`. Nothing verifies the
       checkout against the baseline: `scripts/flix-spec-conformance.mjs` reads only `divergences`
       and `recoveryDivergences` from `baseline.json`, and flix-spec computes `fixtureRevision`
       itself. A checkout ahead of the tag silently measures unreleased fixtures.
-- [ ] **A2. Measure before touching the map.** Run `npm run conformance` and keep the report (call
+- [x] **A2. Measure before touching the map.** Run `npm run conformance` and keep the report (call
       it *A*). It will exceed the old ratchets; that is expected, and it is not committed.
-- [ ] **A3. Delete the four redundant `elide` entries.** Remove `Expr.Expr`, `Pattern.Pattern`,
+- [x] **A3. Delete the four redundant `elide` entries.** Remove `Expr.Expr`, `Pattern.Pattern`,
       `QName` and `UsesOrImports.UseOrImportList` from `conformance/projection-map.json`. Every
       surviving occurrence of these four branches, and `elide` never removes a branching node, so
       the re-run must match *A* exactly. Any difference is a bug in the reasoning, not a result.
       Delete or rewrite `notes.QName`, which describes the removed entry.
-- [ ] **A4. Keep the rest — do not delete six.** Keep `ModifierList` and `AnnotationList` in
+- [x] **A4. Keep the rest — do not delete six.** Keep `ModifierList` and `AnnotationList` in
       `elide`. `elide-empty` drops only empty ones, so their 13 one-child survivors (12 and 1) are
-      still in `fixtures/expected`. Today `elide` hides them. Deleting the entries would add 13
-      divergences, because this map maps nothing onto `modifier` or `annotation`. Keep the
+      still in `fixtures/expected`. Today `elide` hides them. Deleting the entries measured **+48**
+      divergences, not just the 13 nodes: this map maps nothing onto `modifier` or `annotation`,
+      and each exposed node shifts its parent's arity. Keep the
       consumer-specific five as well (`CommentList`, `Expr.FixpointWith`, `Expr.RunWithBodyExpr`,
       `Expr.Statement`, `Type.Apply`).
       Also keep `ignored: qualified_name`. It is what stops a single-segment `qualified_name` from
@@ -112,12 +112,12 @@ change, and each one can be reverted on its own. No commit lands red.
       well: it still splices the branching use list, which this grammar has no node for. As a
       result, the deprecation `NOTE` stays until `elide` and `flattenCanonical` are replaced
       outright — a separate decision.
-- [ ] **A5. Decide on depth floors.** Either wire `--depth-floor` / `--recovery-depth-floor` into
+- [x] **A5. Decide on depth floors.** Either wire `--depth-floor` / `--recovery-depth-floor` into
       the `--args=` string in `scripts/flix-spec-conformance.mjs`, reading new `depthFloor` /
       `recoveryDepthFloor` fields in `baseline.json`, or record in the commit why not. Without
       them, depth — which the baseline note says to read alongside agreement — is reported but
       not gated.
-- [ ] **A6. Re-record the baseline.** In `conformance/baseline.json`:
+- [x] **A6. Re-record the baseline.** In `conformance/baseline.json`:
   - every `measuredAt` field: `flixSpecArtifact` `0.77.1`, `flixSpecPin` `v0.77.0`,
     `flixSpecPinCommit` `4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`, `fixtureRevision`,
     `fixtures` `147`, `treeSitterCli`;
@@ -125,7 +125,7 @@ change, and each one can be reverted on its own. No commit lands red.
     failing at 5/22 fixtures), and the new negative `::` fixture carries an `ErrorTree`, so it
     likely joins the recovery set;
   - every lane's figures and `comment`. The current comments describe 0.75.8.
-- [ ] **A7. Commit once.** The commit message records *A*, the result after A3 (identical), the
+- [x] **A7. Commit once.** The commit message records *A*, the result after A3 (identical), the
       new figures, and why any ratchet rose: nine new fixtures, per-occurrence transparency, and
       the new match recovery. Per the baseline note, a different pin is a different question,
       not a regression.
