@@ -184,15 +184,22 @@ Run it:
 export FLIX_SPEC=/path/to/flix-spec     # a checkout of github.com/wstein/flix-spec
 npm run conformance                     # adapt every fixture, then compare
 node scripts/flix-spec-conformance.mjs --no-compare --out DIR   # adapt only
+node scripts/flix-spec-conformance.mjs --remeasure    # measure a flix-spec the baseline doesn't record
 ```
 
 `scripts/flix-spec-conformance.mjs` projects a tree-sitter parse into the
 `{"kind":…,"children":[…]}` shape the comparator reads, then invokes flix-spec's Gradle task with
-`conformance/projection-map.json` and the ratchet in `conformance/baseline.json`. It exits non-zero
-if any fixture cannot be adapted, or if divergences exceed the baseline. Lower the baseline as
-divergences are fixed; never raise it without saying why.
+`conformance/projection-map.json` and the ratchets in `conformance/baseline.json`: one divergence
+count per derived lane (structural, recovery, diagnostic) and a depth floor for the first two. It
+exits non-zero if any fixture cannot be adapted, if a lane exceeds its ratchet or falls below its
+floor, or if the flix-spec checkout is not the one the baseline was measured against -- artifact
+version, pin, both vocabulary digests and the fixture revision are compared with `measuredAt`
+(`--remeasure` reports instead of refusing, for the first run against a new release). It also
+fails if the grammar still reserves a keyword flix-spec's `ast/retired.json` lists: that is how
+`law` and `lawful` went stale here. Lower a ratchet or raise a floor as the grammar improves; never
+move either the other way without saying why.
 
-Three things about it are deliberate:
+Four things about it are deliberate:
 
 - **It shells out to the CLI, not the Node binding.** `build/Release/*.node` is a native build that
   goes stale the moment `src/parser.c` is regenerated, and a stale binding reports `ERROR` for input
@@ -205,6 +212,14 @@ Three things about it are deliberate:
   `text` would make flix-spec's `token-accounting` invariant evaluate a fiction. Emitting none makes
   that check report `not-applicable`, which is the truth: this grammar currently presents a
   *structural* profile to the conformance report, not a lexical one.
+- **Its diagnostics are parse-phase only, one per rejected unit.** A unit containing an `ERROR`
+  node, a `MISSING` token or a recovery marker gets a single `tree-sitter.ParseError`. flix-spec's
+  canonical diagnostics are lexer and parser errors alone, so a validation-level check written into
+  this output would add a diagnostic the reference cannot have. The name is deliberately not the
+  reference's and nothing maps it, so the lane compares accept/reject only: an `ERROR` spans the
+  recovery region, not the reference's error token. Note that the CLI omits an anonymous `MISSING`
+  token from the tree dump and reports it only on the per-file summary line, which is why the
+  script scans the whole output.
 
 Not in CI, for the same reason `parse-corpus.sh` is not: it needs an external checkout, plus a JDK
 and the pinned oracle jar. Run it before a release and when the map changes.

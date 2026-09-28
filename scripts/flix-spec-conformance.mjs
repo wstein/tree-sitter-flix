@@ -12,9 +12,12 @@
 //   scripts/flix-spec-conformance.mjs [flix-spec-dir]
 //   FLIX_SPEC=~/src/flix-spec scripts/flix-spec-conformance.mjs
 //   scripts/flix-spec-conformance.mjs --out DIR --no-compare   # adapt only, skip the comparison
+//   scripts/flix-spec-conformance.mjs --remeasure   # measure a flix-spec the baseline doesn't record
 //
-// Exits non-zero when a fixture cannot be adapted, or when the comparison reports a regression
-// against `conformance/baseline.json`.
+// Exits non-zero when a fixture cannot be adapted, when the comparison reports a regression
+// against `conformance/baseline.json`, when the flix-spec checkout is not the one the baseline was
+// measured against (pin, artifact version, vocabulary digests, fixture revision), or when the
+// grammar still reserves a keyword flix-spec's `ast/retired.json` lists.
 //
 // Why the CLI and not the Node binding: `build/Release/*.node` is a native build that goes stale
 // the moment `src/parser.c` is regenerated, and a stale binding reports ERROR for input the
@@ -121,10 +124,107 @@ function parseSExpression(text) {
 }
 
 /**
+ * The diagnostic this adapter reports for a unit it rejects, or none.
+ *
+ * Only parse-phase evidence counts: an ERROR node, a MISSING node, or one of this grammar's own
+ * recovery markers. flix-spec's canonical diagnostics are `lexerErrors ++ parserErrors` and nothing
+ * later -- its docs/CONFORMANCE.md calls Weeder2 errors out of scope by construction -- so a
+ * validation-level check written into this output would add a diagnostic the reference side cannot
+ * have, and break agreement on exactly the negative fixtures the lane exists to measure. Keep any
+ * such check out of the projection.
+ *
+ * One diagnostic per unit, at the first marker: nested and adjacent ERROR nodes would otherwise
+ * over-count a single rejection. The kind is our own name, not the reference's, and no
+ * `diagnosticMappings` translates it, so the lane compares accept/reject only -- an ERROR spans the
+ * recovery region rather than the reference's error token, so kind and line would not be a fair
+ * comparison.
+ *
+ * @param {string} text - `tree-sitter parse` output for one file.
+ * @param {string[]} markers - node kinds that mark a rejection.
+ * @returns {object[]} zero or one diagnostic.
+ */
+function diagnosticsOf(text, markers) {
+  // The whole output, not just the tree: tree-sitter's dump omits an anonymous MISSING token
+  // (`(MISSING ")" [1, 12] - [1, 12])`) and reports it only on the per-file summary line, so a
+  // quoted token name, possibly a parenthesis, may stand between the marker and its position.
+  const pattern = new RegExp(
+    `\\((${markers.join('|')})\\b(?:"(?:[^"\\\\]|\\\\.)*"|[^()\\["])*\\[(\\d+), (\\d+)\\]`,
+    'g',
+  );
+  let first = null;
+  for (const m of text.matchAll(pattern)) {
+    const at = {kind: m[1], row: Number(m[2]), col: Number(m[3])};
+    if (!first || at.row < first.row || (at.row === first.row && at.col < first.col)) first = at;
+  }
+  if (!first) return [];
+  return [{
+    kind: 'tree-sitter.ParseError',
+    line: first.row + 1,
+    col: first.col + 1,
+    message: `${first.kind} node`,
+  }];
+}
+
+/**
+ * Checks that the flix-spec checkout is the one `conformance/baseline.json` was measured against.
+ *
+ * A moving commit says *that* the reference changed, never *what* changed -- which is how `law` and
+ * `lawful` went stale here unnoticed. So the vocabulary digests are asserted too, not just the pin.
+ *
+ * @param {string} specDir - the flix-spec checkout.
+ * @param {object} measuredAt - `baseline.measuredAt`.
+ * @returns {string[]} one line per mismatch; empty when the inputs agree.
+ */
+function inputMismatches(specDir, measuredAt) {
+  const pin = JSON.parse(readFileSync(join(specDir, 'pin.json'), 'utf8'));
+  const props = readFileSync(join(specDir, 'gradle.properties'), 'utf8');
+  const version = /^version=(.+)$/m.exec(props)?.[1]?.trim();
+  const expected = [
+    ['flixSpecArtifact', version],
+    ['flixSpecPin', pin.upstream?.tag],
+    ['flixSpecPinCommit', pin.upstream?.commit],
+    ['treeKindDigest', pin.treeKindDigest],
+    ['tokenKindDigest', pin.tokenKindDigest],
+  ];
+  return expected
+    .filter(([key, actual]) => measuredAt[key] !== actual)
+    .map(([key, actual]) => `${key}: baseline has ${measuredAt[key]}, checkout has ${actual}`);
+}
+
+/**
+ * Keywords this grammar still reserves although the reference has retired them.
+ *
+ * flix-spec's `ast/retired.json` records removed vocabulary. A retired `Keyword*` TokenKind that is
+ * still a literal token in `src/grammar.json` is the `law`/`lawful` class of staleness: a keyword
+ * that is now an ordinary name.
+ *
+ * @param {string} specDir - the flix-spec checkout.
+ * @returns {string[]} the stale keywords; empty when there are none or flix-spec predates the file.
+ */
+function staleKeywords(specDir) {
+  const retiredPath = join(specDir, 'ast', 'retired.json');
+  if (!existsSync(retiredPath)) return [];
+  const retired = JSON.parse(readFileSync(retiredPath, 'utf8')).retired ?? [];
+  const words = retired
+    .filter((r) => r.vocabulary === 'TokenKind' && r.name.startsWith('Keyword'))
+    .map((r) => r.name.slice('Keyword'.length).toLowerCase());
+  const strings = new Set();
+  const walk = (node) => {
+    if (Array.isArray(node)) node.forEach(walk);
+    else if (node && typeof node === 'object') {
+      if (node.type === 'STRING') strings.add(node.value);
+      Object.values(node).forEach(walk);
+    }
+  };
+  walk(JSON.parse(readFileSync(join(REPO, 'src', 'grammar.json'), 'utf8')).rules);
+  return words.filter((w) => strings.has(w));
+}
+
+/**
  * Parses one fixture, returning either a tree or the reason it could not be adapted.
  *
  * @param {string} file - absolute path to a .flix fixture.
- * @returns {{tree?: object, error?: string}} exactly one of the two is set.
+ * @returns {{tree?: object, raw?: string, error?: string}} `error`, or `tree` with its `raw` text.
  */
 function parseFixture(file) {
   let out;
@@ -142,7 +242,7 @@ function parseFixture(file) {
   }
   const tree = parseSExpression(out);
   if (!tree || !tree.kind) return {error: 'no root node in parse output'};
-  return {tree};
+  return {tree, raw: out};
 }
 
 /**
@@ -156,10 +256,14 @@ function main(argv) {
   let specDir = process.env.FLIX_SPEC ?? '';
   let outDir = '';
   let compare = true;
+  let remeasure = false;
 
   for (let n = 0; n < args.length; n += 1) {
     if (args[n] === '--out') outDir = args[n + 1], n += 1;
     else if (args[n] === '--no-compare') compare = false;
+    // Measuring a flix-spec release the baseline does not record yet -- the first step of every
+    // migration. The input checks still run, but report instead of refusing.
+    else if (args[n] === '--remeasure') remeasure = true;
     else specDir = args[n];
   }
 
@@ -172,6 +276,33 @@ function main(argv) {
   if (!existsSync(fixturesDir)) {
     console.error(`error: no fixtures/ under ${specDir} — is that a flix-spec checkout?`);
     return 2;
+  }
+
+  const baselinePath = join(REPO, 'conformance', 'baseline.json');
+  const baseline = existsSync(baselinePath) ?
+    JSON.parse(readFileSync(baselinePath, 'utf8')) :
+    {divergences: 0, recoveryDivergences: 0, measuredAt: {}};
+  const map = join(REPO, 'conformance', 'projection-map.json');
+  const markers = [...JSON.parse(readFileSync(map, 'utf8')).recoveryMarkers ?? ['ERROR'], 'MISSING'];
+
+  // The numbers in baseline.json answer a question about one flix-spec release; measured against
+  // another they answer a different one. Refuse rather than compare the two.
+  const mismatches = inputMismatches(specDir, baseline.measuredAt ?? {});
+  if (mismatches.length > 0) {
+    const say = remeasure ? console.log : console.error;
+    say(`${remeasure ? 'note' : 'error'}: ${specDir} is not the flix-spec checkout ` +
+      'conformance/baseline.json was measured against:');
+    for (const m of mismatches) say(`  ${m}`);
+    if (!remeasure) {
+      console.error('  check out the recorded tag, or pass --remeasure to measure a new release');
+      return 2;
+    }
+  }
+  const stale = staleKeywords(specDir);
+  if (stale.length > 0) {
+    console.error(`error: grammar.js still reserves keyword(s) the reference has retired: ${stale.join(', ')}`);
+    console.error('  see ast/retired.json in flix-spec');
+    return 1;
   }
 
   const out = outDir ? resolve(outDir) : join(REPO, 'build', 'flix-spec-actual');
@@ -193,7 +324,7 @@ function main(argv) {
 
   const skipped = [];
   for (const file of fixtures) {
-    const {tree, error} = parseFixture(file);
+    const {tree, raw, error} = parseFixture(file);
     if (error) {
       skipped.push(`${basename(file)}: ${error}`);
       continue;
@@ -209,7 +340,7 @@ function main(argv) {
       schemaVersion: 2,
       generatedBy: 'tree-sitter-flix scripts/flix-spec-conformance.mjs',
       form: 'raw',
-      units: [{source: rel, diagnostics: [], tree}],
+      units: [{source: rel, diagnostics: diagnosticsOf(raw, markers), tree}],
     };
     writeFileSync(join(out, `${basename(file, '.flix')}.json`), `${JSON.stringify(doc, null, 1)}\n`);
   }
@@ -225,12 +356,7 @@ function main(argv) {
   }
   if (!compare) return 0;
 
-  const map = join(REPO, 'conformance', 'projection-map.json');
   const report = join(out, '..', 'flix-spec-report.json');
-  const baselinePath = join(REPO, 'conformance', 'baseline.json');
-  const baseline = existsSync(baselinePath) ?
-    JSON.parse(readFileSync(baselinePath, 'utf8')) :
-    {divergences: 0, recoveryDivergences: 0};
 
   console.log('');
   try {
@@ -247,6 +373,7 @@ function main(argv) {
         `--args=--actual ${out} --map ${map} --report ${report}` +
           ` --baseline ${baseline.divergences}` +
           ` --recovery-baseline ${baseline.recoveryDivergences ?? 0}` +
+          ` --diagnostic-baseline ${baseline.diagnosticDivergences ?? 0}` +
           ` --depth-floor ${baseline.depthFloor ?? 0}` +
           ` --recovery-depth-floor ${baseline.recoveryDepthFloor ?? 0}`,
       ],
@@ -257,10 +384,19 @@ function main(argv) {
     console.error('error: conformance regressed against conformance/baseline.json');
     console.error(
       `  baselines allow ${baseline.divergences} structural and ` +
-      `${baseline.recoveryDivergences ?? 0} recovery divergences, at depth floors of ` +
+      `${baseline.recoveryDivergences ?? 0} recovery and ` +
+      `${baseline.diagnosticDivergences ?? 0} diagnostic divergences, at depth floors of ` +
       `${baseline.depthFloor ?? 0}% and ${baseline.recoveryDepthFloor ?? 0}%; see ${report}`,
     );
     return 1;
+  }
+  // flix-spec computes the fixture revision itself, so it can only be checked after the run.
+  const revision = JSON.parse(readFileSync(report, 'utf8')).provenance?.fixtureRevision;
+  const recorded = baseline.measuredAt?.fixtureRevision;
+  if (revision !== recorded) {
+    const say = remeasure ? console.log : console.error;
+    say(`${remeasure ? 'note' : 'error'}: fixtureRevision ${revision} differs from the baseline's ${recorded}`);
+    if (!remeasure) return 1;
   }
   console.log('');
   console.log(`report: ${report}`);

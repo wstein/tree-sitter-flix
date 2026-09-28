@@ -1,7 +1,8 @@
-# Migrating to Flix v0.77.0 and flix-spec 0.77.1
+# Migrating to Flix v0.77.0 and flix-spec 0.77.2
 
-Status: **PR A and PR B done** (baseline at flix-spec 0.77.1, grammar at Flix v0.77.0); PR C not
-started. The target is flix-spec **0.77.1** (tag `v0.77.1`), which pins
+Status: **all three PRs done, plus B6 and both guards** -- baseline at flix-spec 0.77.2, grammar at
+Flix v0.77.0, diagnostic lane active. Left: CI, the `ts_query_ls` format check, and the release.
+The target was flix-spec **0.77.1** (tag `v0.77.1`), since moved to 0.77.2; both pin
 Flix **v0.77.0** (`4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9`).
 
 This file is a work plan, not reference documentation. Delete it when the migration merges; the
@@ -182,11 +183,16 @@ the behaviour that must *not* change.
       `.`). Run `ts_query_ls format queries/`. (Not run locally -- the binary is not installed
       here; CI's `ts_query_ls check -f` is the check. Node names were verified with
       `tree-sitter query`.)
-- [ ] **B6. Retired syntax (optional, split out — not done).** `law_declaration` (`grammar.js:428`),
+- [x] **B6. Retired syntax (done separately).** `law_declaration` (`grammar.js:428`),
       the `'lawful'` modifier (`:372`) and the `"law"` highlight (`highlights.scm:258`) cover
       syntax the reference parser stopped accepting at v0.75.2 (`ast/retired.json`).
       `law_declaration` is already in the map's `ignored`. Remove them, or record why they stay.
       Keeping them does not break `law` as an identifier.
+      **Done:** removed `law_declaration`, `lawful` and the now-unused `forall` token, with their
+      query captures and map entries; this also let one more conflict entry go. The negative law
+      fixture is now rejected, as by the reference. Cost: +1 structural and +1 recovery
+      divergence (a leaf difference -- tree-sitter's `ERROR` keeps `lawful` as a child node),
+      while recovery depth rose 63% -> 65%.
 - [x] **B7. Mapping and ratchet.** Map `package` → `UsesOrImports.Package` in
       `conformance/projection-map.json`, re-run conformance, and **lower** the ratchets in the
       same commit.
@@ -197,10 +203,18 @@ the behaviour that must *not* change.
       README and the `parse-corpus.sh` header now expect that one failure, and CLAUDE.md tells
       `FLIX_SRC` to sit at the pinned tag rather than on master.
 
-### PR C (optional) — `feat(conformance)`: the diagnostic lane
+### PR C (optional) — `feat(conformance)`: the diagnostic lane — **done**
 
-`scripts/flix-spec-conformance.mjs` emits `diagnostics: []` for every unit, so the lane stands
-down. Emitting diagnostics is the only way to measure this repository's accept/reject behaviour.
+Implemented as planned: one `tree-sitter.ParseError` per unit containing an `ERROR`, a `MISSING`
+token or a recovery marker; no `diagnosticMappings`, so the lane compares accept/reject only; a
+`diagnosticDivergences` ratchet passed as `--diagnostic-baseline`. First measurement: **138/147
+fixtures agree, 9 divergences** -- two by design, six grammar gaps, and `operator-error.flix`,
+which the reference accepts and this grammar rejects (listed in the baseline comment). One trap
+the pitfalls below missed: tree-sitter's dump omits an anonymous `MISSING` token and reports it only
+on the per-file summary line, so the marker scan reads the whole output.
+
+Before this, `scripts/flix-spec-conformance.mjs` emitted `diagnostics: []` for every unit, so the
+lane stood down. Emitting diagnostics is the only way to measure this repository's accept/reject behaviour.
 Four pitfalls:
 
 - **Rejection is more than `ERROR`.** It also includes `MISSING` and this grammar's own markers
@@ -278,7 +292,14 @@ they published were still exactly what they published. Time passing is not evide
 The oracle changing is — and it is the only thing that can make one of these entries stop being
 true. Any ratchet you keep against a pinned input is better tied to that input than to a clock.
 
-## Two guards worth adding while you are here
+## Two guards worth adding while you are here — **both done**
+
+Both are implemented in `scripts/flix-spec-conformance.mjs`. Diagnostics come from parse-phase
+evidence only. The script refuses a flix-spec checkout whose artifact version, pin, tree- and
+token-kind digests (now in `measuredAt`) or fixture revision differ from the baseline, unless
+`--remeasure` is passed. It also fails when `src/grammar.json` still has a literal token for a
+retired `Keyword*` (checked against the pre-B6 grammar: it names `law` and `lawful`). Each guard
+was exercised with a deliberate mismatch.
 
 Neither is required by the release. Both close gaps this migration exposed.
 

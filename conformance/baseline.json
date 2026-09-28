@@ -1,7 +1,8 @@
 {
-  "note": "Divergence ratchets and depth floors for scripts/flix-spec-conformance.mjs. Lower a ratchet or raise a floor as the grammar improves; never move either the other way without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression. Nothing checks those inputs: check flix-spec out at the recorded tag before measuring. Two ratchets, because there are two derived lanes: `divergences` gates structure modulo error recovery, and `recoveryDivergences` gates error-recovery shape on its own. Each lane also has a depth floor (`depthFloor`, `recoveryDepthFloor`, in percent), because unmapped nodes are skipped rather than compared: agreement once fell from 122 to 107 when the mapping set was completed, while depth rose 84% to 90%. A divergence count that falls together with depth is the number to distrust, and the floor is what fails the build on it.",
+  "note": "Divergence ratchets and depth floors for scripts/flix-spec-conformance.mjs. Lower a ratchet or raise a floor as the grammar improves; never move either the other way without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression. scripts/flix-spec-conformance.mjs refuses a checkout whose artifact version, pin, vocabulary digests or fixture revision differ from `measuredAt`; pass --remeasure to measure a new release. Three ratchets, one per derived lane: `divergences` gates structure modulo error recovery, `recoveryDivergences` gates error-recovery shape on its own, and `diagnosticDivergences` gates accept/reject agreement. Each lane also has a depth floor (`depthFloor`, `recoveryDepthFloor`, in percent), because unmapped nodes are skipped rather than compared: agreement once fell from 122 to 107 when the mapping set was completed, while depth rose 84% to 90%. A divergence count that falls together with depth is the number to distrust, and the floor is what fails the build on it.",
   "divergences": 86,
   "recoveryDivergences": 56,
+  "diagnosticDivergences": 9,
   "depthFloor": 93,
   "recoveryDepthFloor": 65,
   "measuredAt": {
@@ -11,7 +12,9 @@
     "flixSpecPinCommit": "4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9",
     "fixtureRevision": "648ce33ea86d074b1ac8911ddb50b19dd326a4a14f57669a13ea46811a19b7df",
     "fixtures": 147,
-    "flixSpecArtifact": "0.77.2"
+    "flixSpecArtifact": "0.77.2",
+    "treeKindDigest": "3080221809bc0a3501d36727c782934f6cd5a3981ac768ae68752cb8c84c5526",
+    "tokenKindDigest": "d665b11181ef4639282ea5a32d180c0b445c2298fd0ab128c753ee0fd8026887"
   },
   "lanes": {
     "oracle_conformance": {
@@ -35,8 +38,11 @@
       "comment": "Error-recovery shape alone, over the 28 fixtures whose raw reference tree contains a recovery marker (22 before). All 47 divergences in the previously measured fixtures are unchanged; the 9 new ones sit in new negative fixtures -- match/ematch with a missing body, operation type parameters, and the spaced package separator. The dominant disagreement is unchanged and diagnosed in flix-spec's docs/CONFORMANCE.md: both parsers reject `1_`, and they disagree about where the error is. Lowered 56 -> 55 by the same grammar work. Two divergences remain by design: for a spaced package `::` and a generic effect operation the reference wraps the offending part in an ErrorTree inside an otherwise complete node, and this grammar parses both without a marker -- it follows the parser's tree, not its diagnostic. Raised 55 -> 56 by the same removal, which also lifted depth 63% -> 65%: the law fixture now recovers in the reference's shape -- an error for `lawful`, then a trait whose body holds an error for the `law` line -- and differs only at the leaves."
     },
     "diagnostic_conformance": {
-      "verdict": "not-applicable",
-      "comment": "The adapter emits `diagnostics: []` for every unit, so accept/reject is not compared. Emitting diagnostics from ERROR/MISSING/recovery-marker nodes is planned separately; it needs its own ratchet, because the lane gates the exit status as soon as any diagnostic is emitted."
+      "verdict": "pass",
+      "fixturesAgreeing": 138,
+      "fixturesCompared": 147,
+      "divergenceCount": 9,
+      "comment": "Accept/reject only: the adapter reports one `tree-sitter.ParseError` per unit that contains an ERROR node, a MISSING token or a recovery marker, and no diagnosticMappings translates that name, so kind and line stand down -- an ERROR spans the recovery region, not the reference's error token. Parse-phase evidence only, as flix-spec's canonical set is lexer and parser errors alone. Of the 9 disagreements, 8 are units the reference rejects and this grammar accepts: two by design (a spaced package `::` and a generic effect operation, parsed as Parser2 builds them), and six grammar gaps (unterminated block comment, unterminated string interpolation, `static` as a name, a misplaced doc comment, an operator signature in a trait, an anonymous class). The ninth runs the other way: operator-error.flix, which the reference accepts and this grammar rejects."
     },
     "source_invariants": {
       "verdict": "pass",
