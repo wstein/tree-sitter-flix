@@ -11,7 +11,7 @@
     "flixSpecPinCommit": "4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9",
     "fixtureRevision": "648ce33ea86d074b1ac8911ddb50b19dd326a4a14f57669a13ea46811a19b7df",
     "fixtures": 147,
-    "flixSpecArtifact": "0.77.1"
+    "flixSpecArtifact": "0.77.2"
   },
   "lanes": {
     "oracle_conformance": {

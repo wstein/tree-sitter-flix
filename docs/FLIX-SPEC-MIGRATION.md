@@ -89,10 +89,11 @@ change, and each one can be reverted on its own. No commit lands red.
 
 ### PR A — `chore(conformance)`: move to flix-spec 0.77.1
 
-- [x] **A1. Check out the tag.** `git -C "$FLIX_SPEC" checkout v0.77.1`. Nothing verifies the
-      checkout against the baseline: `scripts/flix-spec-conformance.mjs` reads only `divergences`
-      and `recoveryDivergences` from `baseline.json`, and flix-spec computes `fixtureRevision`
-      itself. A checkout ahead of the tag silently measures unreleased fixtures.
+- [x] **A1. Check out the tag.** `git -C "$FLIX_SPEC" checkout v0.77.2` (measured first at
+      `v0.77.1`; see the 0.77.2 section). Nothing verifies the checkout against the baseline:
+      `scripts/flix-spec-conformance.mjs` reads only `divergences`, `recoveryDivergences` and the
+      depth floors from `baseline.json`, and flix-spec computes `fixtureRevision` itself. A
+      checkout ahead of the tag silently measures unreleased fixtures.
 - [x] **A2. Measure before touching the map.** Run `npm run conformance` and keep the report (call
       it *A*). It will exceed the old ratchets; that is expected, and it is not committed.
 - [x] **A3. Delete the four redundant `elide` entries.** Remove `Expr.Expr`, `Pattern.Pattern`,
@@ -224,7 +225,7 @@ Four pitfalls:
 - [x] `tree-sitter test` passes, and so does `npm run lint`.
 - [ ] `ts_query_ls check -f queries/` passes.
 - [x] `npm run conformance` passes against the re-recorded baseline, with flix-spec checked out at
-      `v0.77.1`.
+      `v0.77.2`.
 - [x] `parse-corpus.sh` against Flix `v0.77.0` shows exactly the one expected failure, by name.
 - [ ] CI is green, including `fuzz` if the scanner changed.
 - [x] CLAUDE.md is updated: `FLIX_SRC` guidance and, if applicable, the scanner's list.
@@ -247,6 +248,28 @@ The one published change is `defects/ledger.json`, and one schema field moved wi
   reproduction you can run with only a JDK:
   [FLIX-0001](https://github.com/wstein/flix-repro-predicate-paramuntyped) ·
   [FLIX-0002](https://github.com/wstein/flix-repro-namemath-infix-crash).
+
+**Measured here, and done:** against a `v0.77.2` checkout both lanes are identical divergence for
+divergence (same `fixtureRevision`), so `measuredAt.flixSpecArtifact` is now `0.77.2` and nothing
+else moved.
+
+**Do not follow the new validator's "removable now" list for this map.** 0.77.2 also changes
+`ProjectionMapValidator.scala` -- not only the ledger -- so that the deprecation `NOTE` names
+entries it considers covered by `ast/transparency.json`. For this map it names `AnnotationList`
+and `ModifierList` (under `elide`) and `UsesOrImports.UseOrImportList` (under `flattenCanonical`).
+All three were measured, and removing any of them makes things worse:
+
+| Removed | Structural divergences | Depth |
+|---|---|---|
+| (nothing) | 85 | 93% |
+| `AnnotationList`, `ModifierList` | +48 (measured at PR A) | falls |
+| `UsesOrImports.UseOrImportList` | 90 (+5) | 91% |
+
+The validator treats a kind listed in `transparency.json` as fully covered, but those rules fire
+per occurrence: `elide-empty` leaves non-empty `ModifierList`/`AnnotationList` in the canonical
+tree, and a branching `UseOrImportList` survives while this grammar has no node for it. That is
+worth reporting to flix-spec: "removable" should be decided by measuring `fixtures/expected`, as
+`validateProjectionMap` already does for mapping reachability.
 
 **Why the field changed, since the reasoning may be worth borrowing.** The date gate failed the
 build once it passed, which put a fuse in every tag: rebuilding `v0.77.0` or `v0.77.1` after
