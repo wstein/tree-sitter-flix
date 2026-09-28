@@ -12,13 +12,11 @@
 #
 # Exits non-zero if any file fails to parse, so it can gate a release.
 #
-# NOTE: a full Flix checkout contains two files that are expected to fail —
-# main/test/flix/resiliency/ford-fulkerson-prefix.flix (a negative test,
-# truncated mid-expression) and examples/apps/langcensus/src/Analyse.flix (uses
-# `foreach (...) yield`, which the reference parser rejects too). This script
-# has no way to know that, so it reports them as failures. Two failures with
-# those names is the expected result for a full checkout, and means every valid
-# file parsed.
+# NOTE: a full Flix checkout contains one file that is expected to fail —
+# main/test/flix/resiliency/ford-fulkerson-prefix.flix, a negative test
+# truncated mid-expression. This script has no way to know that, so it reports
+# it as a failure. One failure with that name is the expected result for a full
+# checkout at Flix v0.77.0, and means every valid file parsed.
 
 set -eu
 

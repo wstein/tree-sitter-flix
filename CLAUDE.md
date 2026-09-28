@@ -36,22 +36,21 @@ The real measure of progress. `scripts/parse-corpus.sh` parses a tree of `.flix`
 reports a success percentage:
 
 ```bash
-export FLIX_SRC=/path/to/flix          # a checkout of github.com/flix/flix, on master --
-                                        # a stray local branch will not match the reference
-./scripts/parse-corpus.sh "$FLIX_SRC/examples"   # ~190 files
-./scripts/parse-corpus.sh                        # ~870 files incl. stdlib, drifts with upstream
+export FLIX_SRC=/path/to/flix          # a checkout of github.com/flix/flix at the tag that
+                                        # conformance/baseline.json pins (flixSpecPin) --
+                                        # master drifts, and a stray branch will not match
+./scripts/parse-corpus.sh "$FLIX_SRC/examples"   # ~180 files
+./scripts/parse-corpus.sh                        # ~890 files incl. stdlib and tests
 ```
 
-Two files are expected to fail, and neither is a grammar gap. Both are worth checking by name
-after a run, not just by count, since the corpus is not static: **`resiliency/ford-fulkerson-prefix.flix`**
-is truncated mid-expression to exercise the compiler's error recovery and must not parse.
-**`examples/apps/langcensus/src/Analyse.flix`** uses `foreach (...) yield expr`, which `foreach`
-does not support in the reference parser either -- `Parser2.scala`'s `foreachExpr()` has no
-`yield` production, unlike `forA`/`forM` -- so the example does not compile against the
-reference compiler regardless of what this grammar accepts. (An earlier negative test,
-`main/test/coverage/IfElseCoverage.flix`, no longer exists upstream; its disappearance from the
-failure list is not a fix here.) Two failures with these two names is a perfect score --
-every valid file parses.
+One file is expected to fail, and it is not a grammar gap. Check it by name after a run, not
+just by count, since the corpus is not static: **`resiliency/ford-fulkerson-prefix.flix`** is
+truncated mid-expression to exercise the compiler's error recovery and must not parse. One
+failure with this name is a perfect score -- every valid file parses. (Up to Flix v0.76.x a
+second file failed too: `examples/apps/langcensus/src/Analyse.flix` used `foreach (...) yield`,
+which the reference parser rejects as well; upstream rewrote it to `forM` in v0.77.0. An earlier
+negative test, `main/test/coverage/IfElseCoverage.flix`, no longer exists upstream. Neither
+disappearance is a fix here.)
 
 Note that `ford-fulkerson-prefix.flix` is reported by the script's *second* pass, not by
 tree-sitter's own tally. It is truncated at `let g4 = FordFulkerson.`, and the grammar models a
