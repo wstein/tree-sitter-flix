@@ -1,10 +1,10 @@
 {
   "note": "Divergence ratchets and depth floors for scripts/flix-spec-conformance.mjs. Lower a ratchet or raise a floor as the grammar improves; never move either the other way without saying why in the commit message. The measurement is only comparable against the flix-spec inputs recorded below -- a different pin or fixture revision is a different question, not a regression. Measure with flix-spec checked out at tag `v` + `measuredAt.flixSpecArtifact` (v0.77.2); `flixSpecPin` is the Flix tag that flix-spec release pins, not a flix-spec tag. scripts/flix-spec-conformance.mjs refuses a checkout whose artifact version, pin, vocabulary digests or fixture revision differ from `measuredAt`; pass --remeasure to measure a new release. Three ratchets, one per derived lane: `divergences` gates structure modulo error recovery, `recoveryDivergences` gates error-recovery shape on its own, and `diagnosticDivergences` gates accept/reject agreement. Each lane also has a depth floor (`depthFloor`, `recoveryDepthFloor`, in percent), because unmapped nodes are skipped rather than compared: agreement once fell from 122 to 107 when the mapping set was completed, while depth rose 84% to 90%. A divergence count that falls together with depth is the number to distrust, and the floor is what fails the build on it.",
   "divergences": 81,
-  "recoveryDivergences": 51,
-  "diagnosticDivergences": 4,
+  "recoveryDivergences": 50,
+  "diagnosticDivergences": 2,
   "depthFloor": 93,
-  "recoveryDepthFloor": 67,
+  "recoveryDepthFloor": 68,
   "measuredAt": {
     "treeSitterFlix": "HEAD",
     "treeSitterCli": "0.27.0",
@@ -32,17 +32,17 @@
       "fixturesExpected": 28,
       "fixturesAgreeing": 10,
       "fixturesCompared": 28,
-      "divergenceCount": 51,
-      "nodesCompared": 228,
-      "depthPercent": 67,
-      "comment": "Current: 51 divergences over the 28 fixtures whose reference tree contains a recovery marker, 10/28 agree, depth 67%. The dominant disagreement is diagnosed in flix-spec's docs/CONFORMANCE.md: both parsers reject `1_`, and they disagree about where the error is. Where Parser2 builds a complete node around an error, the grammar carries a recovery marker mapped to ErrorTree, and each agrees: illegal_type_parameters (generic effect operation), malformed_package_separator (spaced `use pkg :: Mod`), reserved_keyword (`static`, or a keyword as an anonymous-class method name). unterminated_block_comment, like unterminated_string, marks a lexer error the reference has no node for. History: 47 over 22 fixtures at flix-spec 0.75.8; 56 over 28 at 0.77.1 (the 47 unchanged, 9 in new negative fixtures); 55 after the v0.77.0 grammar work; 56 after the law removal, which also lifted depth 63% -> 65%; 55 and 67% with illegal_type_parameters; 54 with malformed_package_separator; 51 with reserved keywords and unterminated_block_comment."
+      "divergenceCount": 50,
+      "nodesCompared": 229,
+      "depthPercent": 68,
+      "comment": "Current: 50 divergences over the 28 fixtures whose reference tree contains a recovery marker, 10/28 agree, depth 68%. The dominant disagreement is diagnosed in flix-spec's docs/CONFORMANCE.md: both parsers reject `1_`, and they disagree about where the error is. Where Parser2 builds a complete node around an error, the grammar carries a recovery marker mapped to ErrorTree, and each agrees: illegal_type_parameters (generic effect operation), malformed_package_separator (spaced `use pkg :: Mod`), reserved_keyword (`static`, or a keyword as an anonymous-class method name), reserved_operator (a fixed operator such as `<=>` as a definition name), unterminated_interpolation (end of input inside `\"${`). unterminated_block_comment, like unterminated_string, marks a lexer error the reference has no node for. History: 47 over 22 fixtures at flix-spec 0.75.8; 56 over 28 at 0.77.1 (the 47 unchanged, 9 in new negative fixtures); 55 after the v0.77.0 grammar work; 56 after the law removal, which also lifted depth 63% -> 65%; 55 and 67% with illegal_type_parameters; 54 with malformed_package_separator; 51 with reserved keywords and unterminated_block_comment; 50 with reserved_operator and unterminated_interpolation."
     },
     "diagnostic_conformance": {
       "verdict": "pass",
-      "fixturesAgreeing": 143,
+      "fixturesAgreeing": 145,
       "fixturesCompared": 147,
-      "divergenceCount": 4,
-      "comment": "Current: 4 divergences, 143/147 fixtures agree, accept/reject only. The adapter reports one `tree-sitter.ParseError` per unit containing an ERROR node, a MISSING token or a recovery marker; no diagnosticMappings translates that name, so kind and line stand down -- an ERROR spans the recovery region, not the reference's error token. Parse-phase evidence only, as flix-spec's canonical set is lexer and parser errors alone. Three are grammar gaps, units the reference rejects and this grammar accepts: an unterminated string interpolation, a misplaced doc comment, and an operator signature in a trait (the reference lexes `<=>` as `<=` then `>`). The fourth runs the other way: operator-error.flix, which the reference accepts and this grammar rejects. History: first measured at 9; the illegal_type_parameters and malformed_package_separator markers each brought one fixture into agreement; reserving the reference's keywords and marking an unterminated block comment brought three more."
+      "divergenceCount": 2,
+      "comment": "Current: 2 divergences, 145/147 fixtures agree, accept/reject only. The adapter reports one `tree-sitter.ParseError` per unit containing an ERROR node, a MISSING token or a recovery marker; no diagnosticMappings translates that name, so kind and line stand down -- an ERROR spans the recovery region, not the reference's error token. Parse-phase evidence only, as flix-spec's canonical set is lexer and parser errors alone. One is a grammar gap: a doc comment between `if` and its `(`, which the reference reports as MisplacedDocComments and this grammar accepts, because doc comments are extras here. The other runs the other way: operator-error.flix, which the reference accepts and this grammar rejects. History: first measured at 9; the illegal_type_parameters and malformed_package_separator markers each brought one fixture into agreement; reserving the reference's keywords and marking an unterminated block comment brought three more; marking a fixed operator as a definition name and end of input inside an interpolation, two more."
     },
     "source_invariants": {
       "verdict": "pass",

@@ -72,7 +72,7 @@ tree-sitter parse --quiet --stat --paths "$paths" || parse_status=$?
 markers=$(mktemp)
 flagged=$(mktemp)
 trap 'rm -f "$paths" "$markers" "$flagged"' EXIT
-printf '[(unterminated_literal) (unterminated_string) (trailing_dot) (illegal_type_parameters) (malformed_package_separator) (unterminated_block_comment) (reserved_keyword)] @marker\n' > "$markers"
+printf '[(unterminated_literal) (unterminated_string) (trailing_dot) (illegal_type_parameters) (malformed_package_separator) (unterminated_block_comment) (reserved_keyword) (unterminated_interpolation) (reserved_operator)] @marker\n' > "$markers"
 
 # `tree-sitter query` prints every file it visited, matched or not, with any
 # captures indented beneath. Only a file followed by a capture actually contains

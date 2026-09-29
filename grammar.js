@@ -115,7 +115,19 @@ function variableName($) {
  * @param {GrammarSymbols<string>} $
  */
 function functionName($) {
-  return choice($.name_lower, $.name_math, $.generic_operator);
+  return choice($.name_lower, $.name_math, $.generic_operator, fixedOperatorName($));
+}
+
+/**
+ * Lexer.scala's fixed operators that `generic_operator` would also match. The reference lexes each
+ * exact run as its own token (`<=>` is AngledEqual), not as a GenericOperator, and no NAME_* set
+ * admits one -- so `def <=>(...)` is rejected there. Here it is a `reserved_operator` marker, like
+ * `reserved_keyword`. A longer run (`>=>`, `<=<`) is still a user-defined operator, in both lexers.
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+function fixedOperatorName($) {
+  return alias(choice('!=', '<+>', '<-', '<=', '<=>', '==', '=>', '>='), $.reserved_operator);
 }
 
 /**
@@ -126,7 +138,9 @@ function functionName($) {
  * @param {GrammarSymbols<string>} $
  */
 function definitionName($) {
-  return choice($.name_lower, $.name_upper, $.name_math, $.generic_operator);
+  return choice(
+    $.name_lower, $.name_upper, $.name_math, $.generic_operator, fixedOperatorName($),
+  );
 }
 
 export default grammar({
@@ -176,6 +190,8 @@ export default grammar({
     // A `/*` with no closing `*/`. Still consumed to end of file, for the reason given in the
     // scanner, but as a token of its own: a recovery marker, so the file reads as rejected.
     $.unterminated_block_comment,
+    // End of input inside an interpolated string: Parser2 closes it with an ErrorTree.
+    $.unterminated_interpolation,
     // Referenced by no rule, so it is only ever valid in tree-sitter's error
     // recovery state, where every external is marked valid. The scanner uses it
     // to tell recovery from a real parse and stand down. Must stay last.
@@ -347,7 +363,7 @@ export default grammar({
         $._interpolation_start,
         $._statement,
         repeat(seq($._interpolation_middle, $._statement)),
-        $._interpolation_end,
+        choice($._interpolation_end, $.unterminated_interpolation),
       ),
 
     // `debug_prefix` is scanned externally: it is the letter `d` only when a

@@ -490,6 +490,10 @@
         {
           "type": "name_upper",
           "named": true
+        },
+        {
+          "type": "reserved_operator",
+          "named": true
         }
       ]
     }
@@ -1624,6 +1628,10 @@
           {
             "type": "name_math",
             "named": true
+          },
+          {
+            "type": "reserved_operator",
+            "named": true
           }
         ]
       },
@@ -2328,6 +2336,10 @@
           {
             "type": "name_math",
             "named": true
+          },
+          {
+            "type": "reserved_operator",
+            "named": true
           }
         ]
       },
@@ -2598,6 +2610,10 @@
           },
           {
             "type": "name_math",
+            "named": true
+          },
+          {
+            "type": "reserved_operator",
             "named": true
           }
         ]
@@ -3559,6 +3575,10 @@
           {
             "type": "name_math",
             "named": true
+          },
+          {
+            "type": "reserved_operator",
+            "named": true
           }
         ]
       },
@@ -3675,6 +3695,10 @@
         },
         {
           "type": "sequence_expression",
+          "named": true
+        },
+        {
+          "type": "unterminated_interpolation",
           "named": true
         }
       ]
@@ -3940,6 +3964,10 @@
           },
           {
             "type": "name_upper",
+            "named": true
+          },
+          {
+            "type": "reserved_operator",
             "named": true
           }
         ]
@@ -4881,6 +4909,10 @@
     "named": false
   },
   {
+    "type": "reserved_operator",
+    "named": true
+  },
+  {
     "type": "restrictable",
     "named": false
   },
@@ -4976,6 +5008,10 @@
     "type": "unterminated_block_comment",
     "named": true,
     "extra": true
+  },
+  {
+    "type": "unterminated_interpolation",
+    "named": true
   },
   {
     "type": "unterminated_literal",
