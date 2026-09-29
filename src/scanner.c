@@ -22,6 +22,7 @@ enum TokenType {
     PACKAGE_SEPARATOR,
     PACKAGE_SEPARATOR_SPACED,
     UNTERMINATED_BLOCK_COMMENT,
+    UNTERMINATED_INTERPOLATION,
     ERROR_SENTINEL,
 };
 
@@ -170,6 +171,15 @@ bool tree_sitter_flix_external_scanner_scan(void *payload, TSLexer *lexer,
         lexer->lookahead == '}') {
         advance(lexer);
         return scan_string_body(lexer, valid_symbols, INTERPOLATION_MIDDLE, INTERPOLATION_END);
+    }
+
+    // End of input inside `"${ ... }"`: the reference lexer reports
+    // UnterminatedStringInterpolation and Parser2 closes the interpolation with an
+    // ErrorTree. Zero-width, and only at end of input -- the interpolated
+    // expression itself may span lines.
+    if (!recovering && valid_symbols[UNTERMINATED_INTERPOLATION] && lexer->eof(lexer)) {
+        lexer->result_symbol = UNTERMINATED_INTERPOLATION;
+        return true;
     }
 
     if (valid_symbols[BLOCK_COMMENT] && lexer->lookahead == '/') {

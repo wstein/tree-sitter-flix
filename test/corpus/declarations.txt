@@ -556,7 +556,7 @@ use Bool.{==>, <==>}
         (generic_operator)))))
 
 ================================================================================
-Trait and instance with an operator signature
+A fixed operator in a trait and an instance is marked
 ================================================================================
 
 trait T[a] {
@@ -578,7 +578,7 @@ instance T[Int32] {
     (trait_body
       (signature_declaration
         (modifier)
-        (generic_operator)
+        (reserved_operator)
         (parameter_list
           (parameter
             (name_lower)
@@ -596,7 +596,7 @@ instance T[Int32] {
     (instance_body
       (function_declaration
         (modifier)
-        (generic_operator)
+        (reserved_operator)
         (parameter_list
           (parameter
             (name_lower)
@@ -825,3 +825,59 @@ def f(): List[Int32] = x ::xs
       (operator)
       (qualified_name
         (name_lower)))))
+
+================================================================================
+A fixed operator cannot name a definition
+================================================================================
+
+use Monad.{>=>, <=<}
+
+trait T[a] {
+    pub def <=>(x: a, y: a): Bool
+}
+
+def ==(x: Int32, y: Int32): Bool = true
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    (qualified_name
+      (name_upper))
+    (use_many
+      (aliased_name
+        (generic_operator))
+      (aliased_name
+        (generic_operator))))
+  (trait_declaration
+    (name_upper)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)))
+    (trait_body
+      (signature_declaration
+        (modifier)
+        (reserved_operator)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable))
+          (parameter
+            (name_lower)
+            (type_variable)))
+        (type_reference
+          (name_upper)))))
+  (function_declaration
+    (reserved_operator)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (type_reference
+          (name_upper)))
+      (parameter
+        (name_lower)
+        (type_reference
+          (name_upper))))
+    (type_reference
+      (name_upper))
+    (boolean)))

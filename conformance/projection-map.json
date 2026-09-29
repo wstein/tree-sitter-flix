@@ -129,6 +129,7 @@
     "region_expression": "Expr.Region",
     "region_name": "Expr.RegionName",
     "reserved_keyword": "ErrorTree",
+    "reserved_operator": "ErrorTree",
     "restrictable_choose": "Expr.RestrictableChoose",
     "restrictable_choose_star": "Expr.RestrictableChooseStar",
     "restrictable_enum_declaration": "Decl.RestrictableEnum",
@@ -180,6 +181,7 @@
     "unit_expression": "Expr.Tuple",
     "unsafe_expression": "Expr.Unsafe",
     "unterminated_block_comment": "ErrorTree",
+    "unterminated_interpolation": "ErrorTree",
     "unterminated_literal": "ErrorTree",
     "unterminated_string": "ErrorTree",
     "use_declaration": "UsesOrImports.Use",
@@ -226,10 +228,12 @@
     "malformed_package_separator": "A recovery marker, mapped to ErrorTree: for `use pkg :: Mod` Parser2 lexes the spaced separator as ColonColon, reports Malformed and wraps that token in an ErrorTree inside an otherwise complete UsesOrImports.Package. The structural lane splices both out; the recovery lane compares the wrapper; the diagnostic lane counts the unit as rejected.",
     "name_lower": "Both name_lower and name_upper collapse to Ident: the reference does not distinguish case in the tree, only in the lexer.",
     "reserved_keyword": "A recovery marker, mapped to ErrorTree: `static` and `forall` are hard keywords in the reference lexer that no Parser2 rule uses, so in expression position Parser2 reports UnexpectedToken and wraps the token in an ErrorTree.",
+    "reserved_operator": "A recovery marker, mapped to ErrorTree: a fixed operator of the reference lexer (`<=>`, `==`, `<=`, ...) used as a definition or use name. The reference lexes it as its own token, which no NAME_* set admits, so Parser2 rejects the name.",
     "trailing_dot": "A recovery marker, mapped to the reference's TrailingDot. Both are spliced out of the structural comparison and compared in the recovery lane.",
     "type_argument": "Transparent on our side, mirroring ast/transparency.json's rule for the canonical kind it used to map onto. The mapping was unreachable once the reference stopped emitting that node, and an unreachable mapping manufactures divergences rather than doing nothing.",
     "type_reference": "Transparent, not mapped: the reference wraps most types in Type.Type, which is elided on the expected side, so the consumer's equivalent wrapper must be dropped symmetrically.",
     "unterminated_block_comment": "A recovery marker, like unterminated_string: the reference lexer rejects a `/*` with no closing `*/` and has no node for it. Consumed to end of file for editor performance, so it is compared in the recovery lane and makes the unit read as rejected in the diagnostic lane.",
+    "unterminated_interpolation": "A recovery marker, mapped to ErrorTree: at end of input inside `\"${ ... }\"` the reference lexer reports UnterminatedStringInterpolation and Parser2 closes Expr.StringInterpolation with an empty ErrorTree. Zero-width, emitted by the scanner only at end of input.",
     "unterminated_literal": "A recovery marker. The reference has no node here at all -- its lexer emits an Err token and the enclosing production keeps it -- so this is a genuine modelling difference, and the recovery lane is where it is measured rather than absorbed.",
     "unterminated_string": "A recovery marker. The reference has no node here at all -- its lexer emits an Err token and the enclosing production keeps it -- so this is a genuine modelling difference, and the recovery lane is where it is measured rather than absorbed."
   },
@@ -256,6 +260,8 @@
     "illegal_type_parameters",
     "malformed_package_separator",
     "unterminated_block_comment",
-    "reserved_keyword"
+    "reserved_keyword",
+    "unterminated_interpolation",
+    "reserved_operator"
   ]
 }

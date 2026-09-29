@@ -321,3 +321,22 @@ def f(): Unit = 1 /* unterminated
       (name_upper))
     (integer))
   (unterminated_block_comment))
+
+================================================================================
+End of input inside an interpolation is marked
+================================================================================
+
+def f(): Unit = "${x
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (string_interpolation
+      (qualified_name
+        (name_lower))
+      (unterminated_interpolation))))
