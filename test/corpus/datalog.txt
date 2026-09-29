@@ -350,13 +350,11 @@ def f(): Unit = query db select (x, y) from Edge(x, y) where x < y
       (qualified_name
         (name_lower))
       (fixpoint_select
-        (tuple_expression
-          (argument
-            (qualified_name
-              (name_lower)))
-          (argument
-            (qualified_name
-              (name_lower)))))
+        (select_terms
+          (qualified_name
+            (name_lower))
+          (qualified_name
+            (name_lower))))
       (fixpoint_from
         (predicate_atom
           (name_upper)
@@ -465,7 +463,7 @@ def f(): #{ Edge(Int32, Int32) | r } = ???
           (name_upper))
         (type_reference
           (name_upper)))
-      (type_variable))
+      (name_lower))
     (hole_anonymous)))
 
 ================================================================================
@@ -546,9 +544,11 @@ def f(): Unit = {
         (fixpoint_query_with_provenance
           (qualified_name
             (name_lower))
-          (predicate_head
-            (name_upper)
-            (head_term_list
-              (qualified_name
-                (name_lower))))
-          (name_upper))))))
+          (fixpoint_select
+            (predicate_head
+              (name_upper)
+              (head_term_list
+                (qualified_name
+                  (name_lower)))))
+          (fixpoint_with
+            (name_upper)))))))

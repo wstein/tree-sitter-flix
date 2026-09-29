@@ -365,3 +365,33 @@ def f(): Array[Int32, Static] = ???
         (type_reference
           (static_type))))
     (hole_anonymous)))
+
+================================================================================
+Schema predicates with an alias and with types
+================================================================================
+
+def f(r: #{ A[t], B(Int32) | r }): Int32 = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (schema_type
+          (schema_alias_term
+            (qualified_name
+              (name_upper))
+            (type_argument_list
+              (type_variable)))
+          (schema_term
+            (qualified_name
+              (name_upper))
+            (type_reference
+              (name_upper)))
+          (name_lower))))
+    (type_reference
+      (name_upper))
+    (integer)))
