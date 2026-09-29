@@ -5955,8 +5955,21 @@
           "name": "_expression"
         },
         {
-          "type": "SYMBOL",
-          "name": "match_body"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "match_body"
+            },
+            {
+              "type": "PREC_DYNAMIC",
+              "value": -1,
+              "content": {
+                "type": "SYMBOL",
+                "name": "missing_match_body"
+              }
+            }
+          ]
         }
       ]
     },
@@ -6076,8 +6089,21 @@
           "name": "_expression"
         },
         {
-          "type": "SYMBOL",
-          "name": "ext_match_body"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "ext_match_body"
+            },
+            {
+              "type": "PREC_DYNAMIC",
+              "value": -1,
+              "content": {
+                "type": "SYMBOL",
+                "name": "missing_match_body"
+              }
+            }
+          ]
         }
       ]
     },
@@ -9513,6 +9539,10 @@
     {
       "type": "SYMBOL",
       "name": "unterminated_interpolation"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "missing_match_body"
     },
     {
       "type": "SYMBOL",

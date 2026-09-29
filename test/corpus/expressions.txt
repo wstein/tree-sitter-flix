@@ -1437,3 +1437,94 @@ def f(): Unit = static
     (type_reference
       (name_upper))
     (reserved_keyword)))
+
+================================================================================
+A match without a body keeps its scrutinee behind a marker
+================================================================================
+
+def f(): Int32 = match x
+def g(): Int32 = ematch y
+def h(): Int32 = match x + 1 {
+    case _ => 1
+}
+def i(): Int32 = match x
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (match_expression
+      (qualified_name
+        (name_lower))
+      (missing_match_body)))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (ext_match_expression
+      (qualified_name
+        (name_lower))
+      (missing_match_body)))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (match_expression
+      (binary_expression
+        (qualified_name
+          (name_lower))
+        (operator)
+        (integer))
+      (match_body
+        (match_rule
+          (variable_pattern
+            (wildcard))
+          (integer)))))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (match_expression
+      (qualified_name
+        (name_lower))
+      (missing_match_body))))
+
+================================================================================
+A match lambda before a declaration is not a bodiless match
+================================================================================
+
+def a(): Int32 -> Int32 = match x -> x
+
+@Test
+def b(): Int32 = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (binary_type
+      (type_reference
+        (name_upper))
+      (type_reference
+        (name_upper)))
+    (match_lambda
+      (variable_pattern
+        (name_lower))
+      (qualified_name
+        (name_lower))))
+  (function_declaration
+    (annotation)
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (integer)))
