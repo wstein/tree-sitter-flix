@@ -226,8 +226,7 @@ def f(): Unit = inject edges into Edge/2
       (qualified_name
         (name_lower))
       (predicate_arity
-        (name_upper)
-        (integer)))))
+        (name_upper)))))
 
 ================================================================================
 Inject several relations
@@ -266,11 +265,9 @@ def f(): Unit =
             (qualified_name
               (name_lower)))))
       (predicate_arity
-        (name_upper)
-        (integer))
+        (name_upper))
       (predicate_arity
-        (name_upper)
-        (integer)))))
+        (name_upper)))))
 
 ================================================================================
 Query with select and from

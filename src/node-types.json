@@ -214,6 +214,10 @@
         "named": true
       },
       {
+        "type": "malformed_number",
+        "named": true
+      },
+      {
         "type": "map_literal",
         "named": true
       },
@@ -499,6 +503,21 @@
     }
   },
   {
+    "type": "annotation_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "annotation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "apply_expression",
     "named": true,
     "fields": {},
@@ -621,7 +640,15 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -663,11 +690,19 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "kind",
           "named": true
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -989,11 +1024,19 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "effect_body",
           "named": true
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -1087,6 +1130,10 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "case_body",
           "named": true
         },
@@ -1100,6 +1147,10 @@
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -1659,6 +1710,10 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "effect_annotation",
           "named": true
         },
@@ -1668,6 +1723,10 @@
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -1941,6 +2000,10 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "equality_constraints",
           "named": true
         },
@@ -1950,6 +2013,10 @@
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -2126,6 +2193,10 @@
         },
         {
           "type": "annotation",
+          "named": true
+        },
+        {
+          "type": "annotation_list",
           "named": true
         },
         {
@@ -2367,6 +2438,10 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "effect_annotation",
           "named": true
         }
@@ -2485,6 +2560,21 @@
     "fields": {}
   },
   {
+    "type": "modifier_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "modifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "module_declaration",
     "named": true,
     "fields": {
@@ -2512,11 +2602,19 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "import_declaration",
           "named": true
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -2632,11 +2730,19 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "illegal_type_parameters",
           "named": true
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -2825,13 +2931,9 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
-        {
-          "type": "integer",
-          "named": true
-        },
         {
           "type": "name_upper",
           "named": true
@@ -3318,6 +3420,10 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "case_body",
           "named": true
         },
@@ -3331,6 +3437,10 @@
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -3606,6 +3716,10 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "effect_annotation",
           "named": true
         },
@@ -3615,6 +3729,10 @@
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -3732,7 +3850,15 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -3771,6 +3897,10 @@
         },
         {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         }
       ]
@@ -3982,7 +4112,15 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -4096,7 +4234,15 @@
           "named": true
         },
         {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
           "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
           "named": true
         },
         {
@@ -4650,6 +4796,10 @@
     "named": true
   },
   {
+    "type": "arity",
+    "named": false
+  },
+  {
     "type": "as",
     "named": false
   },
@@ -4819,6 +4969,10 @@
     "type": "line_comment",
     "named": true,
     "extra": true
+  },
+  {
+    "type": "malformed_number",
+    "named": true
   },
   {
     "type": "malformed_package_separator",
