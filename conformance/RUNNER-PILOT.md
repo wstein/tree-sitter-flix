@@ -1,5 +1,24 @@
 # Standalone runner pilot
 
+## Current status (2026-09-29)
+
+Implemented in `ad132be`: the local standalone gate passes with data **0.77.2**,
+runner **0.77.4**, report schema **9**, and the reviewed structural floor **92%**.
+The initial failure below is historical; count allowances were not increased.
+
+[CI at ad132be passed](https://github.com/wstein/tree-sitter-flix/actions/runs/36582290916).
+That workflow checks grammar/build behavior, not the standalone conformance gate;
+it is not evidence of remote runner qualification. Local qualification included
+114 grammar tests, four adapter tests and lint.
+
+The runner is still a pre-release dependency. The
+[flix-spec publish run](https://github.com/wstein/flix-spec/actions/runs/36582083655)
+was cancelled, so it does not establish completed publication verification.
+Use the staged runner until the stable artifact is published and verified. Then
+re-run this gate with the downloaded artifact, preserving the data pin and gates.
+
+## Running the migrated adapter
+
 This adapter now invokes the executable `flix-spec-runner` jar, not a Gradle task
 inside a flix-spec checkout. It needs Java 21+, Node and tree-sitter; it does not
 need Gradle or the Flix oracle. The grammar and the pinned data version (0.77.2)
@@ -28,12 +47,12 @@ conformance gate fails. Invalid runner input exits 2; a failed conformance gate
 exits 1. `--remeasure` never updates the baseline or relaxes its gates.
 
 Schema 9 uses the reference tree as the depth denominator. Old numeric floors
-must be reviewed against the new measurement; the pilot deliberately preserves
-them so a changed metric is visible, not silently accepted. Results are recorded
+must be reviewed against the new measurement; the reviewed migration below
+records that decision explicitly. Results are recorded
 in flix-spec's consumer pilot notes. The runner is not yet released; do not assume
 that the public Maven repository already provides it.
 
-## Measured result (2026-09-29)
+## Initial pilot result (historical, 2026-09-29)
 
 Data 0.77.2, runner 0.77.4/report schema 9, tree-sitter CLI 0.27.0:
 
@@ -44,11 +63,11 @@ Data 0.77.2, runner 0.77.4/report schema 9, tree-sitter CLI 0.27.0:
 | Diagnostics | 7 accept/reject divergences; 140/147 agree; native kinds unmeasured |
 | Source invariants | Shape passes; no tokenization claim |
 
-The invocation exits 1 because the existing structural floor is 93%, not because
+The initial invocation exited 1 because the then-existing structural floor was 93%, not because
 any divergence count changed. The old comparator let consumer normalization
 shrink the depth denominator. No grammar, mapping target, count baseline or depth
 floor was changed to make the pilot pass. HTML is emitted even on this failure.
-The baseline owner must review the 93→92 metric migration before release adoption.
+That prompted the explicit 93→92 metric review below.
 
 ## Reviewed metric migration
 
