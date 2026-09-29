@@ -93,7 +93,29 @@ function enumTail($) {
  * @returns {RuleOrLiteral[]} the prologue members, spread into each declaration.
  */
 function prologue($) {
-  return [repeat($.annotation), repeat($.modifier)];
+  return [annotations($), modifiers($)];
+}
+
+/**
+ * Zero or more annotations. The reference's AnnotationList survives normalisation only with two
+ * or more members -- flix-spec drops an empty one and a one-member one is a single token -- so a
+ * lone annotation stays bare here and two or more are wrapped in `annotation_list`.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @returns {RuleOrLiteral} an optional annotation or annotation list.
+ */
+function annotations($) {
+  return optional(choice($.annotation, $.annotation_list));
+}
+
+/**
+ * Zero or more modifiers, shaped like `annotations` and for the same reason (ModifierList).
+ *
+ * @param {GrammarSymbols<string>} $
+ * @returns {RuleOrLiteral} an optional modifier or modifier list.
+ */
+function modifiers($) {
+  return optional(choice($.modifier, $.modifier_list));
 }
 
 /**
@@ -358,6 +380,15 @@ export default grammar({
         ),
       ),
 
+    // A numeric run the reference lexer rejects as one token: `1_`, `0xZ`, `1i99`, `1.5i32`,
+    // `0x1g`, `1x`. Lexer.acceptNumber keeps consuming number-like characters (digits, letters,
+    // `.`, `_`) and emits a single error token, which Parser2 wraps in an ErrorTree. Deliberately
+    // the same precedence as integer and float, and defined after them: explicit token precedence
+    // outranks match length, so a negative one would lose to the shorter `1` and split `1x`
+    // again. At equal precedence the longest match wins, and an exact tie -- a valid literal --
+    // goes to the rule defined first.
+    malformed_number: _ => token(/[0-9][0-9a-zA-Z_.]*/),
+
     string_interpolation: $ =>
       seq(
         $._interpolation_start,
@@ -451,6 +482,8 @@ export default grammar({
     // ---------------------------------------------------------------------
 
     modifier: _ => choice('pub', 'sealed', 'mut'),
+    modifier_list: $ => seq($.modifier, repeat1($.modifier)),
+    annotation_list: $ => seq($.annotation, repeat1($.annotation)),
 
     _declaration: $ =>
       choice(
@@ -546,7 +579,7 @@ export default grammar({
         $.type_parameter_list,
         optional(seq('{', commaSep($.struct_field), '}')),
       ),
-    struct_field: $ => seq(repeat($.modifier), field('name', $.name_lower), ':', $._type),
+    struct_field: $ => seq(modifiers($), field('name', $.name_lower), ':', $._type),
 
     trait_declaration: $ =>
       seq(
@@ -861,6 +894,7 @@ export default grammar({
         $.fixpoint_psolve,
         $.unterminated_literal,
         $.unterminated_string,
+        $.malformed_number,
         $.reserved_keyword,
         $.fixpoint_inject,
         $.fixpoint_query,
@@ -915,7 +949,7 @@ export default grammar({
     local_def_expression: $ =>
       prec.right(
         seq(
-          repeat($.annotation),
+          annotations($),
           'def',
           field('name', functionName($)),
           field('parameters', $.parameter_list),
@@ -1002,7 +1036,7 @@ export default grammar({
     struct_field_init: $ => seq(field('name', $.name_lower), '=', $._expression),
     jvm_method: $ =>
       seq(
-        repeat($.annotation),
+        annotations($),
         'def',
         // A keyword here is Parser2's ErrorTree inside an otherwise complete JvmMethod (`def run()`),
         // so the method keeps its shape. `new` is excluded: `def new(` is jvm_constructor.
@@ -1076,7 +1110,8 @@ export default grammar({
     // rather than closing the enclosing argument list.
     fixpoint_inject: $ =>
       prec.right(seq('inject', $._fixpoint_expressions, 'into', commaSep1($.predicate_arity))),
-    predicate_arity: $ => seq($.name_upper, '/', $.integer),
+    // The arity is a token, not a child: PredicateAndArity holds only the name as a tree node.
+    predicate_arity: $ => seq($.name_upper, '/', alias($.integer, 'arity')),
 
     // `Parser2` takes the three clauses in a fixed order, each optional. Three
     // chained optionals after a greedy expression list is by far the most

@@ -340,8 +340,9 @@ pub sealed trait Order[a] with Eq[a] {
 
 (source_file
   (trait_declaration
-    (modifier)
-    (modifier)
+    (modifier_list
+      (modifier)
+      (modifier))
     (name_upper)
     (type_parameter_list
       (type_parameter
@@ -878,6 +879,37 @@ def ==(x: Int32, y: Int32): Bool = true
         (name_lower)
         (type_reference
           (name_upper))))
+    (type_reference
+      (name_upper))
+    (boolean)))
+
+================================================================================
+One annotation stays bare, two or more form a list
+================================================================================
+
+@Test
+def a(): Bool = true
+
+@Skip
+@Test
+def b(): Bool = true
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (annotation)
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (boolean))
+  (function_declaration
+    (annotation_list
+      (annotation)
+      (annotation))
+    (name_lower)
+    (parameter_list)
     (type_reference
       (name_upper))
     (boolean)))

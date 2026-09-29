@@ -340,3 +340,59 @@ def f(): Unit = "${x
       (qualified_name
         (name_lower))
       (unterminated_interpolation))))
+
+================================================================================
+A malformed number is one marker, valid literals are untouched
+================================================================================
+
+def a(): Unit = 1_
+def b(): Unit = 1i99
+def c(): Unit = 1.5i32
+def d(): Unit = 1x
+def e(): Float64 = 1.5 + 2.1e4.5 + 0x1F + 1_000ii + 3f32
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (malformed_number))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (malformed_number))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (malformed_number))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (malformed_number))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (binary_expression
+      (binary_expression
+        (binary_expression
+          (binary_expression
+            (float)
+            (operator)
+            (float))
+          (operator)
+          (integer))
+        (operator)
+        (integer))
+      (operator)
+      (float))))

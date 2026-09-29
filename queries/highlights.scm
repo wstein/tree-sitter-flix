@@ -180,6 +180,10 @@
 (predicate_arity
   (name_upper) @function.call)
 
+; The arity is an anonymous token (`P/2`), so `(integer) @number` no longer reaches it.
+(predicate_arity
+  "arity" @number)
+
 (schema_term
   (qualified_name
     (name_upper) @function.call))
