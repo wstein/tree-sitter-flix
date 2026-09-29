@@ -9,7 +9,10 @@
 ; Comments
 (line_comment) @comment
 
-(block_comment) @comment
+[
+  (block_comment)
+  (unterminated_block_comment)
+] @comment
 
 (doc_comment) @comment.documentation
 

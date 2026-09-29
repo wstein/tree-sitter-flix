@@ -59,7 +59,7 @@ tree-sitter parse --quiet --stat --paths "$paths" || parse_status=$?
 # The grammar models some of the reference's own error markers as real nodes --
 # `unterminated_literal`, `trailing_dot`, `illegal_type_parameters` for an
 # effect operation's type parameters, and `malformed_package_separator` for a
-# spaced `use pkg :: Mod` -- because Parser2 builds them and keeps
+# spaced `use pkg :: Mod`, and `unterminated_block_comment` -- because Parser2 builds them and keeps
 # going rather than failing outright. That is deliberate (this grammar
 # follows the parser, not the weeder), but it means such a file contains no
 # ERROR node, so the tally above counts it as a clean parse.
@@ -72,7 +72,7 @@ tree-sitter parse --quiet --stat --paths "$paths" || parse_status=$?
 markers=$(mktemp)
 flagged=$(mktemp)
 trap 'rm -f "$paths" "$markers" "$flagged"' EXIT
-printf '[(unterminated_literal) (unterminated_string) (trailing_dot) (illegal_type_parameters) (malformed_package_separator)] @marker\n' > "$markers"
+printf '[(unterminated_literal) (unterminated_string) (trailing_dot) (illegal_type_parameters) (malformed_package_separator) (unterminated_block_comment) (reserved_keyword)] @marker\n' > "$markers"
 
 # `tree-sitter query` prints every file it visited, matched or not, with any
 # captures indented beneath. Only a file followed by a capture actually contains

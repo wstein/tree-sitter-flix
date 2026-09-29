@@ -304,3 +304,20 @@ def f(): Unit = 2.1e4.5
     (type_reference
       (name_upper))
     (float)))
+
+================================================================================
+An unterminated block comment is marked
+================================================================================
+
+def f(): Unit = 1 /* unterminated
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (integer))
+  (unterminated_block_comment))

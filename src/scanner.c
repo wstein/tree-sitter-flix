@@ -21,6 +21,7 @@ enum TokenType {
     UNTERMINATED_STRING,
     PACKAGE_SEPARATOR,
     PACKAGE_SEPARATOR_SPACED,
+    UNTERMINATED_BLOCK_COMMENT,
     ERROR_SENTINEL,
 };
 
@@ -56,7 +57,7 @@ static bool consume_escape(TSLexer *lexer) {
 
 // `/* ... */`, arbitrarily nested. Assumes the opening `/*` has not been
 // consumed yet.
-static bool scan_block_comment(TSLexer *lexer) {
+static bool scan_block_comment(TSLexer *lexer, const bool *valid_symbols) {
     if (lexer->lookahead != '/') return false;
     advance(lexer);
     if (lexer->lookahead != '*') return false;
@@ -87,8 +88,11 @@ static bool scan_block_comment(TSLexer *lexer) {
     // Unterminated. Emit the comment anyway rather than refusing the token:
     // refusing would make every later `/` rescan to end of file, which is
     // quadratic in exactly the buffer you get while typing `/*` near the top of
-    // a large file. Treating the tail as a comment also highlights better.
-    lexer->result_symbol = BLOCK_COMMENT;
+    // a large file. Treating the tail as a comment also highlights better. It is
+    // a token of its own, though: the reference lexer rejects an unterminated
+    // comment, so the tree has to say so.
+    lexer->result_symbol =
+        valid_symbols[UNTERMINATED_BLOCK_COMMENT] ? UNTERMINATED_BLOCK_COMMENT : BLOCK_COMMENT;
     return true;
 }
 
@@ -169,7 +173,7 @@ bool tree_sitter_flix_external_scanner_scan(void *payload, TSLexer *lexer,
     }
 
     if (valid_symbols[BLOCK_COMMENT] && lexer->lookahead == '/') {
-        return scan_block_comment(lexer);
+        return scan_block_comment(lexer, valid_symbols);
     }
 
     // `d"..."` is a debug interpolation. The reference lexer emits the `d` as a
