@@ -49,3 +49,12 @@ any divergence count changed. The old comparator let consumer normalization
 shrink the depth denominator. No grammar, mapping target, count baseline or depth
 floor was changed to make the pilot pass. HTML is emitted even on this failure.
 The baseline owner must review the 93→92 metric migration before release adoption.
+
+## Reviewed metric migration
+
+The floor is now explicitly re-recorded at **92%**, with runner version and report
+schema in `baseline.json`. Compared nodes remain 2002; the former denominator was
+2162 = 2183 − 18 elided − 3 flattened canonical nodes. Rounding 2002/2162 gives
+93%; rounding 2002/2183 gives 92%. No parser, mapping or count allowance changed.
+The adapter refuses a report schema different from the recorded metric definition.
+The original failing pilot result above is retained as migration evidence.

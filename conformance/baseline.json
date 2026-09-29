@@ -4,9 +4,12 @@
   "recoveryDivergences": 34,
   "diagnosticDivergences": 2,
   "depthFloor": 95,
-  "recoveryDepthFloor": 80,
+  "recoveryDepthFloor": 79,
   "measuredAt": {
-    "treeSitterFlix": "HEAD",
+    "treeSitterFlix": "f93b3b0",
+    "runnerVersion": "0.77.4",
+    "reportSchemaVersion": 9,
+    "depthMigration": "With the same grammar and 46 structural divergences, 2063 compared nodes over the old 2162-node denominator and the schema 9 2183-node reference denominator both round to 95%. With the same 34 recovery divergences, 271 compared nodes over 339 previously counted nodes rounded to 80%; over all 341 reference nodes under schema 9, it rounds to 79%. The recovery floor changes only with the metric definition.",
     "treeSitterCli": "0.27.0",
     "flixSpecPin": "v0.77.0",
     "flixSpecPinCommit": "4a5b60a31ac03bb762f68b554a0fc2b6f4d982b9",
@@ -24,8 +27,9 @@
       "divergenceCount": 46,
       "nodesCompared": 2063,
       "nodesUnmapped": 7,
+      "nodesExpected": 2183,
       "depthPercent": 95,
-      "comment": "Current, against flix-spec 0.77.2 (Flix v0.77.0, 147 fixtures): 46 divergences, 121/147 fixtures agree, depth 95%. What remains is mostly error-recovery shape on negative fixtures and a few type-operator details, plus the leaf difference on the negative law fixture, where tree-sitter's ERROR keeps `lawful` as a child and the reference's ErrorTree holds only a token. The 7 unmapped nodes are argument (3), literal_pattern (2), associated_type_definition and debug_interpolation. History: 61 at flix-spec 0.75.8 (138 fixtures). Moving to 0.77.1 measured 102 -- nine new fixtures and per-occurrence transparency, a different question rather than a regression -- and a map fix (java_qualified_name in ignored) took it to 101. Grammar work for Flix v0.77.0 (use package paths, effect type parameters, generic operations kept whole) lowered it to 85; removing the retired law syntax set it at 86. The two error markers added since are spliced out here and leave it unchanged. Reserving the reference lexer's keywords took it to 81: `static` and a keyword-named method in an anonymous class now match the reference's shape. Then 65: aliased_name mapped to UsesOrImports.Alias (depth, 17 -> 7 unmapped), the predicate arity numeral made anonymous as in PredicateAndArity, a malformed_number marker for the lexer's single-token number errors, and annotation_list/modifier_list for the two-or-more case in which AnnotationList and ModifierList survive normalisation. Then 55: a missing_match_body marker for `match`/`ematch` with no body, which Parser2 has kept since v0.76. Then 46: Datalog and schema shapes -- a `select (x, y)` term list flattened into FixpointSelect, the provenance query's select and `with` clauses as FixpointSelect and FixpointWith (whose elide entry went), a schema row tail as a bare name, `A[t]` as PredicateWithAlias, and the select default's `_` as a token."
+      "comment": "Current, against flix-spec 0.77.2 (Flix v0.77.0, 147 fixtures): 46 divergences, 121/147 fixtures agree, depth 95% under report schema 9 (see measuredAt.depthMigration). What remains is mostly error-recovery shape on negative fixtures and a few type-operator details, plus the leaf difference on the negative law fixture, where tree-sitter's ERROR keeps `lawful` as a child and the reference's ErrorTree holds only a token. The 7 unmapped nodes are argument (3), literal_pattern (2), associated_type_definition and debug_interpolation. History: 61 at flix-spec 0.75.8 (138 fixtures). Moving to 0.77.1 measured 102 -- nine new fixtures and per-occurrence transparency, a different question rather than a regression -- and a map fix (java_qualified_name in ignored) took it to 101. Grammar work for Flix v0.77.0 (use package paths, effect type parameters, generic operations kept whole) lowered it to 85; removing the retired law syntax set it at 86. The two error markers added since are spliced out here and leave it unchanged. Reserving the reference lexer's keywords took it to 81: `static` and a keyword-named method in an anonymous class now match the reference's shape. Then 65: aliased_name mapped to UsesOrImports.Alias (depth, 17 -> 7 unmapped), the predicate arity numeral made anonymous as in PredicateAndArity, a malformed_number marker for the lexer's single-token number errors, and annotation_list/modifier_list for the two-or-more case in which AnnotationList and ModifierList survive normalisation. Then 55: a missing_match_body marker for `match`/`ematch` with no body, which Parser2 has kept since v0.76. Then 46: Datalog and schema shapes -- a `select (x, y)` term list flattened into FixpointSelect, the provenance query's select and `with` clauses as FixpointSelect and FixpointWith (whose elide entry went), a schema row tail as a bare name, `A[t]` as PredicateWithAlias, and the select default's `_` as a token."
     },
     "recovery_conformance": {
       "verdict": "fail",
@@ -34,8 +38,9 @@
       "fixturesCompared": 28,
       "divergenceCount": 34,
       "nodesCompared": 271,
-      "depthPercent": 80,
-      "comment": "Current: 34 divergences over the 28 fixtures whose reference tree contains a recovery marker, 15/28 agree, depth 80%. The disagreement flix-spec's docs/CONFORMANCE.md diagnosed -- both parsers reject `1_`, but disagreed about where the error is -- is closed by malformed_number, which covers the whole run as the reference's single error token does. Where Parser2 builds a complete node around an error, the grammar carries a recovery marker mapped to ErrorTree, and each agrees: illegal_type_parameters (generic effect operation), malformed_package_separator (spaced `use pkg :: Mod`), reserved_keyword (`static`, or a keyword as an anonymous-class method name), reserved_operator (a fixed operator such as `<=>` as a definition name), unterminated_interpolation (end of input inside `\"${`), missing_match_body (`match x` with no body). unterminated_block_comment, like unterminated_string, marks a lexer error the reference has no node for. History: 47 over 22 fixtures at flix-spec 0.75.8; 56 over 28 at 0.77.1 (the 47 unchanged, 9 in new negative fixtures); 55 after the v0.77.0 grammar work; 56 after the law removal, which also lifted depth 63% -> 65%; 55 and 67% with illegal_type_parameters; 54 with malformed_package_separator; 51 with reserved keywords and unterminated_block_comment; 50 with reserved_operator and unterminated_interpolation.; 40 with malformed_number and the annotation/modifier lists.; 34 with missing_match_body."
+      "nodesExpected": 341,
+      "depthPercent": 79,
+      "comment": "Current: 34 divergences over the 28 fixtures whose reference tree contains a recovery marker, 15/28 agree, depth 79% under report schema 9 (see measuredAt.depthMigration). The disagreement flix-spec's docs/CONFORMANCE.md diagnosed -- both parsers reject `1_`, but disagreed about where the error is -- is closed by malformed_number, which covers the whole run as the reference's single error token does. Where Parser2 builds a complete node around an error, the grammar carries a recovery marker mapped to ErrorTree, and each agrees: illegal_type_parameters (generic effect operation), malformed_package_separator (spaced `use pkg :: Mod`), reserved_keyword (`static`, or a keyword as an anonymous-class method name), reserved_operator (a fixed operator such as `<=>` as a definition name), unterminated_interpolation (end of input inside `\"${`), missing_match_body (`match x` with no body). unterminated_block_comment, like unterminated_string, marks a lexer error the reference has no node for. History: 47 over 22 fixtures at flix-spec 0.75.8; 56 over 28 at 0.77.1 (the 47 unchanged, 9 in new negative fixtures); 55 after the v0.77.0 grammar work; 56 after the law removal, which also lifted depth 63% -> 65%; 55 and 67% with illegal_type_parameters; 54 with malformed_package_separator; 51 with reserved keywords and unterminated_block_comment; 50 with reserved_operator and unterminated_interpolation.; 40 with malformed_number and the annotation/modifier lists.; 34 with missing_match_body."
     },
     "diagnostic_conformance": {
       "verdict": "pass",
@@ -47,7 +52,7 @@
     "source_invariants": {
       "verdict": "pass",
       "checksEvaluated": 1,
-      "checksNotApplicable": 4,
+      "checksNotApplicable": 5,
       "comment": "document-shape passes. The two vocabulary checks stand down because a projection map is in play, and token-accounting and token-positions stand down because this adapter emits no token text -- tree-sitter's named-node view has no Flix tokenization behind it. A structural profile, stated rather than implied."
     }
   }

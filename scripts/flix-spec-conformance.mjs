@@ -194,6 +194,17 @@ export function inputMismatches(specDir, measuredAt, artifactVersion) {
 }
 
 /**
+ * Whether depth and divergence metrics use the baseline's recorded definition.
+ *
+ * @param {object} report - Runner report.
+ * @param {object} baseline - Recorded measurement.
+ * @returns {boolean} Whether the report schema matches.
+ */
+export function metricSchemaMatches(report, baseline) {
+  return Number.isInteger(report.schemaVersion) && report.schemaVersion === baseline.measuredAt?.reportSchemaVersion;
+}
+
+/**
  * Keywords this grammar still reserves although the reference has retired them.
  *
  * flix-spec's `ast/retired.json` records removed vocabulary. A retired `Keyword*` TokenKind that is
@@ -411,7 +422,12 @@ function main(argv) {
     return 2;
   }
   // flix-spec computes the fixture revision itself, so it can only be checked after the run.
-  const revision = JSON.parse(readFileSync(report, 'utf8')).provenance?.fixtureRevision;
+  const measured = JSON.parse(readFileSync(report, 'utf8'));
+  if (!metricSchemaMatches(measured, baseline)) {
+    console.error('error: report schema differs from the recorded metric definition; review and re-record the baseline');
+    return 2;
+  }
+  const revision = measured.provenance?.fixtureRevision;
   const recorded = baseline.measuredAt?.fixtureRevision;
   if (revision !== recorded) {
     const say = remeasure ? console.log : console.error;

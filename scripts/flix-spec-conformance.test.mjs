@@ -1,9 +1,18 @@
 import assert from 'node:assert/strict';
-import {mkdtempSync, writeFileSync, rmSync} from 'node:fs';
+import {mkdtempSync, writeFileSync, rmSync, readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {comparisonArgs, inputMismatches, parseSExpression} from './flix-spec-conformance.mjs';
+import {comparisonArgs, inputMismatches, metricSchemaMatches, parseSExpression} from './flix-spec-conformance.mjs';
+
+test('depth floor is tied to its metric schema and unchanged reference denominator', () => {
+  const baseline = JSON.parse(readFileSync(new URL('../conformance/baseline.json', import.meta.url), 'utf8'));
+  const lane = baseline.lanes.oracle_conformance;
+  assert.equal(baseline.depthFloor, Math.round(100 * lane.nodesCompared / lane.nodesExpected));
+  assert.ok(metricSchemaMatches({schemaVersion: baseline.measuredAt.reportSchemaVersion}, baseline));
+  assert.equal(metricSchemaMatches({schemaVersion: baseline.measuredAt.reportSchemaVersion - 1}, baseline), false);
+  assert.equal(metricSchemaMatches({}, {}), false);
+});
 
 test('standalone runner arguments retain paths and existing ratchets', () => {
   const args = comparisonArgs('/tmp/actual with spaces', '/tmp/map.json', '/tmp/report.json', {
