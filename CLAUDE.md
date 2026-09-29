@@ -36,23 +36,31 @@ The real measure of progress. `scripts/parse-corpus.sh` parses a tree of `.flix`
 reports a success percentage:
 
 ```bash
-export FLIX_SRC=/path/to/flix          # a checkout of github.com/flix/flix, on master --
-                                        # a stray local branch will not match the reference
-./scripts/parse-corpus.sh "$FLIX_SRC/examples"   # ~190 files
-./scripts/parse-corpus.sh                        # ~870 files incl. stdlib, drifts with upstream
+export FLIX_SRC=/path/to/flix          # a checkout of github.com/flix/flix at the tag that
+                                        # conformance/baseline.json pins (flixSpecPin) --
+                                        # master drifts, and a stray branch will not match
+./scripts/parse-corpus.sh "$FLIX_SRC/examples"   # ~180 files
+./scripts/parse-corpus.sh                        # ~890 files incl. stdlib and tests
 ```
 
-Two files are expected to fail, and neither is a grammar gap. Both are worth checking by name
-after a run, not just by count, since the corpus is not static: **`resiliency/ford-fulkerson-prefix.flix`**
-is truncated mid-expression to exercise the compiler's error recovery and must not parse.
-**`examples/apps/langcensus/src/Analyse.flix`** uses `foreach (...) yield expr`, which `foreach`
-does not support in the reference parser either -- `Parser2.scala`'s `foreachExpr()` has no
-`yield` production, unlike `forA`/`forM` -- so the example does not compile against the
-reference compiler regardless of what this grammar accepts. (An earlier negative test,
-`main/test/coverage/IfElseCoverage.flix`, no longer exists upstream; its disappearance from the
-failure list is not a fix here.) Two failures with these two names is a perfect score --
-every valid file parses. A different failing file, or a different count, needs investigating
-before assuming either grammar or corpus is at fault.
+One file is expected to fail, and it is not a grammar gap. Check it by name after a run, not
+just by count, since the corpus is not static: **`resiliency/ford-fulkerson-prefix.flix`** is
+truncated mid-expression to exercise the compiler's error recovery and must not parse. One
+failure with this name is a perfect score -- every valid file parses. (Up to Flix v0.76.x a
+second file failed too: `examples/apps/langcensus/src/Analyse.flix` used `foreach (...) yield`,
+which the reference parser rejects as well; upstream rewrote it to `forM` in v0.77.0. An earlier
+negative test, `main/test/coverage/IfElseCoverage.flix`, no longer exists upstream. Neither
+disappearance is a fix here.)
+
+Note that `ford-fulkerson-prefix.flix` is reported by the script's *second* pass, not by
+tree-sitter's own tally. It is truncated at `let g4 = FordFulkerson.`, and the grammar models a
+trailing dot as a `trailing_dot` node rather than a parse failure, because `Parser2` builds a
+`TreeKind.TrailingDot` there and keeps going. The file therefore contains no ERROR node. The script
+queries for `unterminated_literal` and `trailing_dot` separately and fails on either, so modelling
+one of the reference's error markers as a node cannot quietly turn a negative test green.
+
+A different failing file, or a different count, needs investigating before assuming either
+grammar or corpus is at fault.
 
 Corpus tests in `test/corpus/` pin exact tree shapes; the corpus script catches breadth gaps
 that hand-written tests miss. Both must pass before a change is considered done.
@@ -106,11 +114,13 @@ error recovery useful in editors.
     that matches a node, so the generic `(name_lower) @variable` fall-through sits at the *top*
     of the file. Moving it to the bottom silently erases every `@function`, `@variable.member`
     and `@variable.parameter` capture.
-- `src/scanner.c` is a stateless external scanner. It exists because four things cannot be
+- `src/scanner.c` is a stateless external scanner. It exists because five things cannot be
   written as regular expressions: nested block comments, the segmentation of interpolated
   strings (`"a${`, `}b${`, `}c"`), the whitespace-sensitive `->` split (`a->b` is struct field
-  access, `a -> b` is the function arrow), and the `.` trichotomy (qualified-name separator vs
-  Datalog constraint terminator vs the illegal space-before form). It also recognises the `d`
+  access, `a -> b` is the function arrow), the `.` trichotomy (qualified-name separator vs
+  Datalog constraint terminator vs the illegal space-before form), and the package separator
+  in `use pkg::Mod` (tight, or spaced and therefore `Malformed` -- offered only in that
+  position, so cons `::` never reaches the scanner). It also recognises the `d`
   of `d"..."`. Because it keeps no state, `serialize`/`deserialize` are no-ops — keep it that
   way; every decision is made from the character stream plus `valid_symbols`. Changing the file
   activates the `fuzz` CI job. It also declares `_error_sentinel` as its last external: in error
@@ -168,11 +178,53 @@ expected in. It lives here, not in `flix-spec`, because every entry is knowledge
 grammar's own shape (which nodes are transparent wrappers, which native kinds collapse to which
 canonical one) — flix-spec owns the canonical vocabulary, the fixtures, and the comparison
 algorithm (`flix.spec.Conformance`), not this map. See `docs/CONFORMANCE.md` in flix-spec for
-what the comparison covers, the `mappings`/`ignored`/`elide` semantics, and how to run
-`./gradlew :tools:project:conformance` with `--map conformance/projection-map.json` against a
-projected tree from this grammar. There is no comparison harness committed in this repository
-yet — projecting a tree-sitter parse into the `{"kind":...,"children":[...]}` shape the comparator
-expects is still a manual/scratch step.
+what the comparison covers and the `mappings`/`ignored`/`elide` semantics.
+
+Run it:
+
+```bash
+export FLIX_SPEC=/path/to/flix-spec     # a checkout of github.com/wstein/flix-spec
+npm run conformance                     # adapt every fixture, then compare
+node scripts/flix-spec-conformance.mjs --no-compare --out DIR   # adapt only
+node scripts/flix-spec-conformance.mjs --remeasure    # measure a flix-spec the baseline doesn't record
+```
+
+`scripts/flix-spec-conformance.mjs` projects a tree-sitter parse into the
+`{"kind":…,"children":[…]}` shape the comparator reads, then invokes flix-spec's Gradle task with
+`conformance/projection-map.json` and the ratchets in `conformance/baseline.json`: one divergence
+count per derived lane (structural, recovery, diagnostic) and a depth floor for the first two. It
+exits non-zero if any fixture cannot be adapted, if a lane exceeds its ratchet or falls below its
+floor, or if the flix-spec checkout is not the one the baseline was measured against -- artifact
+version, pin, both vocabulary digests and the fixture revision are compared with `measuredAt`
+(`--remeasure` reports instead of refusing, for the first run against a new release). It also
+fails if the grammar still reserves a keyword flix-spec's `ast/retired.json` lists: that is how
+`law` and `lawful` went stale here. Lower a ratchet or raise a floor as the grammar improves; never
+move either the other way without saying why.
+
+Four things about it are deliberate:
+
+- **It shells out to the CLI, not the Node binding.** `build/Release/*.node` is a native build that
+  goes stale the moment `src/parser.c` is regenerated, and a stale binding reports `ERROR` for input
+  this grammar handles fine — a very convincing wrong answer. The CLI compiles the committed parser.
+- **It reads s-expressions, not `--xml`.** Only named nodes appear there, which is exactly the
+  comparable part; flix-spec gates kind, child order and nesting and drops token leaves. The XML
+  form additionally appends a plain-text timing line after `</sources>` that breaks a strict parser
+  on precisely the negative fixtures. Balanced parentheses stop at the tree's end on their own.
+- **It emits no token text.** This adapter has no Flix tokenization behind it, so synthesising
+  `text` would make flix-spec's `token-accounting` invariant evaluate a fiction. Emitting none makes
+  that check report `not-applicable`, which is the truth: this grammar currently presents a
+  *structural* profile to the conformance report, not a lexical one.
+- **Its diagnostics are parse-phase only, one per rejected unit.** A unit containing an `ERROR`
+  node, a `MISSING` token or a recovery marker gets a single `tree-sitter.ParseError`. flix-spec's
+  canonical diagnostics are lexer and parser errors alone, so a validation-level check written into
+  this output would add a diagnostic the reference cannot have. The name is deliberately not the
+  reference's and nothing maps it, so the lane compares accept/reject only: an `ERROR` spans the
+  recovery region, not the reference's error token. Note that the CLI omits an anonymous `MISSING`
+  token from the tree dump and reports it only on the per-file summary line, which is why the
+  script scans the whole output.
+
+Not in CI, for the same reason `parse-corpus.sh` is not: it needs an external checkout, plus a JDK
+and the pinned oracle jar. Run it before a release and when the map changes.
 
 ## Releasing
 

@@ -64,9 +64,6 @@
 (operation_declaration
   name: (_) @function)
 
-(law_declaration
-  name: (_) @function)
-
 (local_def_expression
   name: (_) @function)
 
@@ -110,7 +107,14 @@
 (record_type_field
   name: (_) @variable.member)
 
-(record_operation
+; One node per record operation now, mirroring the reference's three TreeKinds.
+(record_op_extend
+  name: (_) @variable.member)
+
+(record_op_restrict
+  name: (_) @variable.member)
+
+(record_op_update
   name: (_) @variable.member)
 
 (record_pattern_field
@@ -197,6 +201,13 @@
   (name_upper) @module
   (name_lower))
 
+; `use flixball::Game.Board`: the package names a namespace, like a module path.
+(package
+  [
+    (name_lower)
+    (name_upper)
+  ] @module)
+
 ; Operators
 (generic_operator) @operator
 
@@ -227,6 +238,17 @@
   "/"
 ] @operator
 
+; `lazy`, `force`, `discard` and `instanceof` are spelled as keywords but occupy an operator
+; position, and the reference compiler wraps each in a TreeKind.Operator, so the grammar emits them
+; as `operator` nodes rather than anonymous tokens. They are matched by text here to keep the
+; keyword highlighting they had before. These sit after the generic operator captures above on
+; purpose: tree-sitter takes the last pattern that matches, so keyword wins over operator.
+((operator) @keyword.function
+  (#any-of? @keyword.function "lazy" "force"))
+
+((operator) @keyword
+  (#any-of? @keyword "discard" "instanceof"))
+
 ; Keywords
 [
   "mod"
@@ -237,9 +259,6 @@
 [
   "def"
   "redef"
-  "law"
-  "lazy"
-  "force"
 ] @keyword.function
 
 [
@@ -252,7 +271,6 @@
   "type"
   "alias"
   "restrictable"
-  "forall"
   "where"
   "with"
 ] @keyword
@@ -265,9 +283,7 @@
   "open_variant_as"
   "new"
   "super"
-  "discard"
   "unsafe"
-  "instanceof"
   "as"
   "checked_cast"
   "checked_ecast"
@@ -324,16 +340,14 @@
   "fix"
 ] @keyword
 
-[
-  "and"
-  "or"
-  "not"
-  "xor"
-  "rvadd"
-  "rvsub"
-  "rvand"
-  "rvnot"
-] @keyword.operator
+; `not` is still an anonymous token in Datalog body atoms, so it keeps a literal pattern. The rest
+; occur only in type and expression operator position, where the grammar now emits `operator` nodes
+; to mirror TreeKind.Operator, so they are matched by text instead. Placed after the generic
+; operator captures above: tree-sitter takes the last matching pattern, so keyword.operator wins.
+"not" @keyword.operator
+
+((operator) @keyword.operator
+  (#any-of? @keyword.operator "and" "or" "not" "xor" "rvadd" "rvsub" "rvand" "rvnot"))
 
 ; Punctuation
 [
@@ -357,3 +371,8 @@
 ; `->` is scanned externally as a hidden token, so it has no queryable node
 ; type; only `=>` can be matched here.
 "=>" @punctuation.special
+
+; In a package path `::` separates; everywhere else it is cons. Later patterns win, so this
+; overrides the operator capture above.
+(package
+  "::" @punctuation.delimiter)

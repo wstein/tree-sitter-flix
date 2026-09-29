@@ -11,13 +11,10 @@ def f(): a -> b -> c = ???
     (name_lower)
     (parameter_list)
     (binary_type
-      (type_variable
-        (name_lower))
+      (type_variable)
       (binary_type
-        (type_variable
-          (name_lower))
-        (type_variable
-          (name_lower))))
+        (type_variable)
+        (type_variable)))
     (hole_anonymous)))
 
 ================================================================================
@@ -33,13 +30,10 @@ def f(): a -> b \ ef = ???
     (name_lower)
     (parameter_list)
     (binary_type
-      (type_variable
-        (name_lower))
-      (type_variable
-        (name_lower))
+      (type_variable)
+      (type_variable)
       (effect_annotation
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (hole_anonymous)))
 
 ================================================================================
@@ -81,15 +75,14 @@ def f(): Unit \ ef1 + ef2 - ef3 & ef4 = ???
     (effect_annotation
       (binary_type
         (binary_type
-          (type_variable
-            (name_lower))
-          (type_variable
-            (name_lower)))
+          (type_variable)
+          (operator)
+          (type_variable))
+        (operator)
         (binary_type
-          (type_variable
-            (name_lower))
-          (type_variable
-            (name_lower)))))
+          (type_variable)
+          (operator)
+          (type_variable))))
     (hole_anonymous)))
 
 ================================================================================
@@ -150,8 +143,7 @@ def f(): {x = Int32, y = Int32 | r} = ???
         (name_lower)
         (type_reference
           (name_upper)))
-      (type_variable
-        (name_lower)))
+      (type_variable))
     (hole_anonymous)))
 
 ================================================================================
@@ -244,8 +236,7 @@ def f(): ((x = Int32 | r)) = ???
           (name_lower)
           (type_reference
             (name_upper)))
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (hole_anonymous)))
 
 ================================================================================
@@ -306,8 +297,8 @@ def f(): Unit \ not ef = ???
       (name_upper))
     (effect_annotation
       (unary_type
-        (type_variable
-          (name_lower))))
+        (operator)
+        (type_variable)))
     (hole_anonymous)))
 
 ================================================================================

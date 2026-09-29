@@ -68,7 +68,7 @@ import java.util.{Map, List => JList}
     (java_qualified_name
       (name_lower)
       (name_lower))
-    (use_many
+    (import_many
       (aliased_name
         (name_upper))
       (aliased_name
@@ -91,41 +91,33 @@ pub def map(f: a -> b \ ef, t: Tree[a]): Tree[b] \ ef with Eq[a], Order[a] = ???
       (parameter
         (name_lower)
         (binary_type
-          (type_variable
-            (name_lower))
-          (type_variable
-            (name_lower))
+          (type_variable)
+          (type_variable)
           (effect_annotation
-            (type_variable
-              (name_lower)))))
+            (type_variable))))
       (parameter
         (name_lower)
         (type_application
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))))
+            (type_variable)))))
     (type_application
       (type_reference
         (name_upper))
       (type_argument_list
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (effect_annotation
-      (type_variable
-        (name_lower)))
+      (type_variable))
     (trait_constraints
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower)))
+        (type_variable))
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (hole_anonymous)))
 
 ================================================================================
@@ -140,25 +132,21 @@ def f(): b where Elm[t] ~ b, Foo[x] ~ Bar = ???
   (function_declaration
     (name_lower)
     (parameter_list)
-    (type_variable
-      (name_lower))
+    (type_variable)
     (equality_constraints
       (equality_constraint
         (type_application
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))
-        (type_variable
-          (name_lower)))
+            (type_variable)))
+        (type_variable))
       (equality_constraint
         (type_application
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (type_reference
           (name_upper))))
     (hole_anonymous)))
@@ -182,6 +170,7 @@ pub def testAdd(): Bool = 1 == 1
       (name_upper))
     (binary_expression
       (integer)
+      (operator)
       (integer))))
 
 ================================================================================
@@ -288,7 +277,7 @@ restrictable enum Expr[s][a] {
 --------------------------------------------------------------------------------
 
 (source_file
-  (enum_declaration
+  (restrictable_enum_declaration
     (name_upper)
     (restriction_parameter
       (name_lower))
@@ -299,8 +288,7 @@ restrictable enum Expr[s][a] {
       (enum_case
         (name_upper)
         (case_body
-          (type_variable
-            (name_lower))))
+          (type_variable)))
       (enum_case
         (name_upper)
         (case_body
@@ -329,27 +317,23 @@ struct Node[t, r] {
     (struct_field
       (modifier)
       (name_lower)
-      (type_variable
-        (name_lower)))
+      (type_variable))
     (struct_field
       (name_lower)
       (type_application
         (type_reference
           (name_upper))
         (type_argument_list
-          (type_variable
-            (name_lower))
-          (type_variable
-            (name_lower)))))))
+          (type_variable)
+          (type_variable))))))
 
 ================================================================================
-Trait with law, signature and associated type
+Trait with signature and associated type
 ================================================================================
 
-pub lawful trait Order[a] with Eq[a] {
+pub sealed trait Order[a] with Eq[a] {
     type Elm: Type
     pub def compare(x: a, y: a): Comparison
-    law reflexive: forall(x: a) Order.compare(x, x) == Comparison.EqualTo
 }
 
 --------------------------------------------------------------------------------
@@ -366,8 +350,7 @@ pub lawful trait Order[a] with Eq[a] {
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (trait_body
       (associated_type_signature
         (name_upper)
@@ -379,36 +362,12 @@ pub lawful trait Order[a] with Eq[a] {
         (parameter_list
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower)))
+            (type_variable))
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (type_reference
-          (name_upper)))
-      (law_declaration
-        (name_lower)
-        (parameter_list
-          (parameter
-            (name_lower)
-            (type_variable
-              (name_lower))))
-        (binary_expression
-          (apply_expression
-            (qualified_name
-              (name_upper)
-              (name_lower))
-            (argument_list
-              (argument
-                (qualified_name
-                  (name_lower)))
-              (argument
-                (qualified_name
-                  (name_lower)))))
-          (qualified_name
-            (name_upper)
-            (name_upper)))))))
+          (name_upper))))))
 
 ================================================================================
 Instance with redef and associated type definition
@@ -430,14 +389,12 @@ instance Order[Option[a]] with Order[a] {
       (type_reference
         (name_upper))
       (type_argument_list
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (trait_constraints
       (trait_constraint
         (qualified_name
           (name_upper))
-        (type_variable
-          (name_lower))))
+        (type_variable)))
     (instance_body
       (associated_type_definition
         (name_upper)
@@ -446,10 +403,8 @@ instance Order[Option[a]] with Order[a] {
             (type_reference
               (name_upper))
             (type_argument_list
-              (type_variable
-                (name_lower)))))
-        (type_variable
-          (name_lower)))
+              (type_variable))))
+        (type_variable))
       (function_declaration
         (modifier)
         (name_lower)
@@ -460,16 +415,14 @@ instance Order[Option[a]] with Order[a] {
               (type_reference
                 (name_upper))
               (type_argument_list
-                (type_variable
-                  (name_lower)))))
+                (type_variable))))
           (parameter
             (name_lower)
             (type_application
               (type_reference
                 (name_upper))
               (type_argument_list
-                (type_variable
-                  (name_lower))))))
+                (type_variable)))))
         (type_reference
           (name_upper))
         (hole_anonymous))
@@ -480,8 +433,7 @@ instance Order[Option[a]] with Order[a] {
           (type_reference
             (name_upper))
           (type_argument_list
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (qualified_name
           (name_upper))))))
 
@@ -530,10 +482,8 @@ type alias Pair[a] = (a, a)
       (type_parameter
         (name_lower)))
     (tuple_type
-      (type_variable
-        (name_lower))
-      (type_variable
-        (name_lower)))))
+      (type_variable)
+      (type_variable))))
 
 ================================================================================
 Definitions may be named by a user-defined operator
@@ -552,14 +502,11 @@ def _>==>(): Int32 = 1
     (parameter_list
       (parameter
         (name_lower)
-        (type_variable
-          (name_lower)))
+        (type_variable))
       (parameter
         (name_lower)
-        (type_variable
-          (name_lower))))
-    (type_variable
-      (name_lower))
+        (type_variable)))
+    (type_variable)
     (hole_anonymous))
   (function_declaration
     (generic_operator)
@@ -578,8 +525,10 @@ def _>==>(): Int32 = 1
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (qualified_name
           (name_lower)))
+      (operator)
       (integer)))
   (function_declaration
     (generic_operator)
@@ -633,12 +582,10 @@ instance T[Int32] {
         (parameter_list
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower)))
+            (type_variable))
           (parameter
             (name_lower)
-            (type_variable
-              (name_lower))))
+            (type_variable)))
         (type_reference
           (name_upper)))))
   (instance_declaration
@@ -662,3 +609,219 @@ instance T[Int32] {
         (type_reference
           (name_upper))
         (boolean)))))
+
+================================================================================
+Use with a package path
+================================================================================
+
+use flixball::Game.Board
+use flixball::{Game, Board}
+use Pkg::Game.{a, b => c}
+use flixball :: Game
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    (package
+      (name_lower))
+    (qualified_name
+      (name_upper)
+      (name_upper)))
+  (use_declaration
+    (package
+      (name_lower))
+    (use_many
+      (aliased_name
+        (name_upper))
+      (aliased_name
+        (name_upper))))
+  (use_declaration
+    (package
+      (name_upper))
+    (qualified_name
+      (name_upper))
+    (use_many
+      (aliased_name
+        (name_lower))
+      (aliased_name
+        (name_lower)
+        (name_lower))))
+  (use_declaration
+    (package
+      (name_lower)
+      (malformed_package_separator))
+    (qualified_name
+      (name_upper))))
+
+================================================================================
+Use with a package path inside an expression
+================================================================================
+
+def f(): Unit = {
+    use flixball::Game.Board;
+    ()
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (block
+      (use_expression
+        (use_declaration
+          (package
+            (name_lower))
+          (qualified_name
+            (name_upper)
+            (name_upper)))
+        (unit_expression)))))
+
+================================================================================
+Effect with type parameters
+================================================================================
+
+eff State[s: Type] {
+    def get(): s
+    def put(value: s): Unit
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (effect_declaration
+    (name_upper)
+    (type_parameter_list
+      (type_parameter
+        (name_lower)
+        (kind
+          (name_upper))))
+    (effect_body
+      (operation_declaration
+        (name_lower)
+        (parameter_list)
+        (type_variable))
+      (operation_declaration
+        (name_lower)
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable)))
+        (type_reference
+          (name_upper))))))
+
+================================================================================
+Generic effect operations keep their shape behind an error marker
+================================================================================
+
+eff Console {
+    def print[a: Type](value: a): Unit
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (effect_declaration
+    (name_upper)
+    (effect_body
+      (operation_declaration
+        (name_lower)
+        (illegal_type_parameters
+          (type_parameter_list
+            (type_parameter
+              (name_lower)
+              (kind
+                (name_upper)))))
+        (parameter_list
+          (parameter
+            (name_lower)
+            (type_variable)))
+        (type_reference
+          (name_upper))))))
+
+================================================================================
+law and lawful are ordinary names since Flix v0.75.2
+================================================================================
+
+def law(lawful: Int32): Int32 = lawful
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (type_reference
+          (name_upper))))
+    (type_reference
+      (name_upper))
+    (qualified_name
+      (name_lower))))
+
+================================================================================
+A law declaration is no longer parsed
+:error
+================================================================================
+
+trait Order[a] {
+    law reflexive: forall(x: a) x == x
+}
+
+--------------------------------------------------------------------------------
+
+(source_file)
+
+================================================================================
+A package separator with whitespace on either side is malformed
+================================================================================
+
+use flixball ::Game
+use flixball:: Game
+use flixball :: {Game, Board}
+def f(): List[Int32] = x ::xs
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    (package
+      (name_lower)
+      (malformed_package_separator))
+    (qualified_name
+      (name_upper)))
+  (use_declaration
+    (package
+      (name_lower)
+      (malformed_package_separator))
+    (qualified_name
+      (name_upper)))
+  (use_declaration
+    (package
+      (name_lower)
+      (malformed_package_separator))
+    (use_many
+      (aliased_name
+        (name_upper))
+      (aliased_name
+        (name_upper))))
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_reference
+          (name_upper))))
+    (binary_expression
+      (qualified_name
+        (name_lower))
+      (operator)
+      (qualified_name
+        (name_lower)))))

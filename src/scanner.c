@@ -18,6 +18,9 @@ enum TokenType {
     ARROW_SPACED,
     DOT,
     DOT_SPACED,
+    UNTERMINATED_STRING,
+    PACKAGE_SEPARATOR,
+    PACKAGE_SEPARATOR_SPACED,
     ERROR_SENTINEL,
 };
 
@@ -107,7 +110,7 @@ static bool scan_string_body(TSLexer *lexer, const bool *valid, enum TokenType o
 
         // A raw line break terminates a string with an error in the reference
         // lexer; stopping here keeps the damage to a single line.
-        if (lexer->lookahead == '\n' || lexer->lookahead == '\r') return false;
+        if (lexer->lookahead == '\n' || lexer->lookahead == '\r') break;
 
         if (lexer->lookahead == '$') {
             advance(lexer);
@@ -120,6 +123,15 @@ static bool scan_string_body(TSLexer *lexer, const bool *valid, enum TokenType o
         }
 
         advance(lexer);
+    }
+
+    // Ran to a line break or to end of input without a closing quote. The reference's Lexer reports
+    // the error and hands Parser2 a token anyway, so the enclosing declaration survives with an
+    // ErrorTree in it. Returning false instead would leave tree-sitter to recover on its own, and
+    // its recovery discards the whole declaration -- a much larger disagreement than the error.
+    if (valid[UNTERMINATED_STRING]) {
+        lexer->result_symbol = UNTERMINATED_STRING;
+        return true;
     }
 
     return false;
@@ -190,6 +202,22 @@ bool tree_sitter_flix_external_scanner_scan(void *payload, TSLexer *lexer,
         // reference lexer's `outOfBounds = true`.
         bool tight = !space_before && !is_space(lexer->lookahead) && !lexer->eof(lexer);
         lexer->result_symbol = tight ? ARROW_TIGHT : ARROW_SPACED;
+        return valid_symbols[lexer->result_symbol];
+    }
+
+    // The `::` after a package name in a `use`. The reference lexer makes `::` ColonColonTight only
+    // with no whitespace on either side (end of file counts as whitespace), and Parser2 reports the
+    // spaced form as Malformed while still building the package. Only offered in that position, so
+    // cons -- tight or spaced -- never reaches this branch and stays with the internal lexer.
+    if (!recovering && (valid_symbols[PACKAGE_SEPARATOR] || valid_symbols[PACKAGE_SEPARATOR_SPACED]) &&
+        lexer->lookahead == ':') {
+        advance(lexer);
+        if (lexer->lookahead != ':') return false;
+        advance(lexer);
+        // `:::` and `::=`-style runs are other operators; leave them to the internal lexer.
+        if (lexer->lookahead == ':' || is_user_op(lexer->lookahead)) return false;
+        bool tight = !space_before && !is_space(lexer->lookahead) && !lexer->eof(lexer);
+        lexer->result_symbol = tight ? PACKAGE_SEPARATOR : PACKAGE_SEPARATOR_SPACED;
         return valid_symbols[lexer->result_symbol];
     }
 

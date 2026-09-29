@@ -71,6 +71,27 @@ function commaSep1(rule) {
  *
  * @param {GrammarSymbols<string>} $
  */
+/**
+ * The shared tail of `enum` and `restrictable enum`.
+ *
+ * @param {GrammarSymbols<string>} $ - the grammar's rule set.
+ * @returns {RuleOrLiteral[]} the members both forms accept.
+ */
+function enumTail($) {
+  return [
+    optional($.type_parameter_list),
+    optional($.case_body),
+    optional($.derivations),
+    optional($.enum_body),
+  ];
+}
+
+/**
+ * The declaration prologue: annotations then modifiers.
+ *
+ * @param {GrammarSymbols<string>} $ - the grammar's rule set.
+ * @returns {RuleOrLiteral[]} the prologue members, spread into each declaration.
+ */
 function prologue($) {
   return [repeat($.annotation), repeat($.modifier)];
 }
@@ -87,7 +108,7 @@ function variableName($) {
 }
 
 /**
- * NAME_FUNCTION — `def`, `redef`, `law` and effect-operation names. Flix lets a
+ * NAME_FUNCTION — `def`, `redef` and effect-operation names. Flix lets a
  * definition be named by a user-defined operator, which is how the standard
  * library declares `>>`, `=<<` and friends.
  *
@@ -126,6 +147,13 @@ export default grammar({
     $._arrow_spaced,
     $._dot,
     $._dot_spaced,
+    // A string with no closing quote. Modelled rather than left to tree-sitter's recovery for the
+    // same reason as `unterminated_literal`: the reference keeps the enclosing declaration.
+    $.unterminated_string,
+    // The `::` after a package name in a `use`: tight, or with whitespace on either side, which the
+    // reference reports as Malformed. See `package`.
+    $._package_separator,
+    $.malformed_package_separator,
     // Referenced by no rule, so it is only ever valid in tree-sitter's error
     // recovery state, where every external is marked valid. The scanner uses it
     // to tell recovery from a real parse and stand down. Must stay last.
@@ -137,7 +165,11 @@ export default grammar({
   conflicts: $ => [
     // --- conflicts added while converging the parser tables ---
     [$.qualified_name, $.record_pattern_field],
-    [$.qualified_name, $.record_operation],
+    // A record restriction begins with a name-like token and collides with a bare qualified name
+    // until the enclosing `}` disambiguates: `{ -x }` is a restriction, `-x` a negation. (The
+    // update form `{ x = e }` needs no entry: the `=` is already in the lookahead when the name is
+    // reduced.)
+    [$.qualified_name, $.record_op_restrict],
     [$._qualified_segment, $.parameter, $.variable_pattern],
     [$.qualified_name, $.parameter, $.variable_pattern],
     [$._qualified_segment, $.variable_pattern],
@@ -155,8 +187,6 @@ export default grammar({
     [$.parameter, $.variable_pattern],
     [$.variable_pattern, $._expression],
     [$.paren_expression, $.argument],
-    // `(a, b)` is a tuple until a `->` turns it into a lambda parameter list.
-    [$.unit_expression, $.parameter_list],
     // `x` alone can be a variable reference or a one-parameter lambda head.
     [$._expression, $.parameter],
     // `use A.B` vs `use A.{b, c}` — the `.` needs two tokens of lookahead.
@@ -215,6 +245,20 @@ export default grammar({
 
     annotation: _ => /@[a-zA-Z]+/,
     intrinsic: _ => /%%[A-Z0-9_]*%%/,
+
+    // A literal opened and never closed. The reference's Lexer emits an error token for these and
+    // Parser2 keeps the enclosing declaration, putting an ErrorTree where the expression should be
+    // -- it does not throw the declaration away. Without a production for the unterminated form,
+    // tree-sitter's own recovery collapses the whole declaration into an ERROR node and that
+    // structure is lost, so the two disagree about far more than the error itself.
+    //
+    // Negative precedence, deliberately: a well-formed literal is both longer and higher
+    // precedence, so it always wins where both could match. The apostrophe, `regex"` and `%%` have
+    // no other use in the grammar, so nothing else can be captured by accident.
+    unterminated_literal: _ =>
+      token(
+        prec(-1, choice(/'(\\.|[^'\\\n])*/, /regex"(\\.|[^"\\\n])*/, /%%[A-Z0-9_]*/)),
+      ),
 
     hole_anonymous: _ => '???',
     hole_named: _ => /\?[a-zA-Z][a-zA-Z0-9_!$]*/,
@@ -293,10 +337,16 @@ export default grammar({
     // `Foo.Bar.baz` is a single name, but `sb.append` is just `sb`, leaving
     // `.append` to the postfix rules that build a field access or a method
     // invocation.
+    // `Foo.` closes a TrailingDot node in the reference (Parser2.nameAllowQualified) rather than
+    // failing, so the dot belongs inside the qualified name here too.
     qualified_name: $ =>
       seq(
         repeat(seq($._qualified_segment, $._dot)),
         choice($._qualified_segment, $.name_lower),
+        // Either dot: the scanner classifies `Foo.` at end of line as DOT_SPACED, because what
+        // follows the dot is whitespace. The reference does not care -- nameAllowQualified closes a
+        // TrailingDot for a dot with no name after it either way.
+        optional(alias(choice($._dot, $._dot_spaced), $.trailing_dot)),
       ),
     _qualified_segment: $ => choice($.name_upper, $.name_math),
 
@@ -312,9 +362,30 @@ export default grammar({
 
     _use_or_import: $ => seq(choice($.use_declaration, $.import_declaration), optional(';')),
 
-    use_declaration: $ => seq('use', $.qualified_name, optional(seq($._dot, $.use_many))),
+    // `use flixball::Game.Board`, `use flixball::{Game, Board}`: Parser2.use() opens
+    // UsesOrImports.Package over a leading NAME_PACKAGE and its `::`, and a use-many may then follow
+    // the package directly, with no `.` before the brace. Only in a use: everywhere else `::` is
+    // cons, tight or spaced.
+    use_declaration: $ =>
+      seq(
+        'use',
+        choice(
+          seq(optional($.package), $.qualified_name, optional(seq($._dot, $.use_many))),
+          seq($.package, $.use_many),
+        ),
+      ),
+    // The reference lexes `::` with whitespace on either side as ColonColon rather than
+    // ColonColonTight, and here reports it as Malformed -- but still builds the same Package node,
+    // with the spaced separator inside an ErrorTree. So both spellings parse, and the spaced one is
+    // a `malformed_package_separator`: a recovery marker, like trailing_dot. The tight separator is
+    // aliased to an anonymous `::` so queries can still name it.
+    package: $ =>
+      seq(
+        choice($.name_lower, $.name_upper),
+        choice(alias($._package_separator, '::'), $.malformed_package_separator),
+      ),
     import_declaration: $ =>
-      seq('import', $.java_qualified_name, optional(seq($._dot, $.use_many))),
+      seq('import', $.java_qualified_name, optional(seq($._dot, alias($.use_many, $.import_many)))),
     use_many: $ => seq('{', commaSep($.aliased_name), '}'),
     aliased_name: $ => seq(definitionName($), optional(seq('=>', definitionName($)))),
 
@@ -322,13 +393,14 @@ export default grammar({
     // Declarations
     // ---------------------------------------------------------------------
 
-    modifier: _ => choice('pub', 'sealed', 'lawful', 'mut'),
+    modifier: _ => choice('pub', 'sealed', 'mut'),
 
     _declaration: $ =>
       choice(
         $.module_declaration,
         $.function_declaration,
         $.enum_declaration,
+        $.restrictable_enum_declaration,
         $.struct_declaration,
         $.trait_declaration,
         $.instance_declaration,
@@ -377,34 +449,28 @@ export default grammar({
         optional(seq('=', field('body', $._statement))),
       ),
 
-    law_declaration: $ =>
-      seq(
-        ...prologue($),
-        'law',
-        field('name', functionName($)),
-        ':',
-        'forall',
-        optional($.type_parameter_list),
-        optional($.parameter_list),
-        optional($.trait_constraints),
-        optional($.equality_constraints),
-        field('body', $._expression),
-      ),
-
     // A restrictable enum takes a mandatory bare `[s]` restriction parameter
     // before its ordinary type parameters, so it is a separate branch: the two
     // bracket lists are otherwise indistinguishable.
     enum_declaration: $ =>
       seq(
         ...prologue($),
-        choice(
-          seq('enum', field('name', $._type_name)),
-          seq('restrictable', 'enum', field('name', $._type_name), $.restriction_parameter),
-        ),
-        optional($.type_parameter_list),
-        optional($.case_body),
-        optional($.derivations),
-        optional($.enum_body),
+        'enum',
+        field('name', $._type_name),
+        ...enumTail($),
+      ),
+
+    // A separate rule, not a branch of enum_declaration: the reference gives it its own
+    // TreeKind (Decl.RestrictableEnum), and a projection map keyed on node name cannot split
+    // one node into two canonical kinds.
+    restrictable_enum_declaration: $ =>
+      seq(
+        ...prologue($),
+        'restrictable',
+        'enum',
+        field('name', $._type_name),
+        $.restriction_parameter,
+        ...enumTail($),
       ),
     restriction_parameter: $ => seq('[', variableName($), ']'),
     enum_body: $ => seq('{', repeat($.enum_case), '}'),
@@ -437,7 +503,9 @@ export default grammar({
     trait_body: $ =>
       seq(
         '{',
-        repeat(choice($.law_declaration, $.signature_declaration, $.associated_type_signature)),
+        // Flix v0.75.2 removed law declarations and the `lawful` modifier (flix-spec
+        // ast/retired.json: Decl.Law, KeywordLaw, KeywordLawful); `law` is an ordinary name again.
+        repeat(choice($.signature_declaration, $.associated_type_signature)),
         '}',
       ),
     associated_type_signature: $ =>
@@ -474,14 +542,28 @@ export default grammar({
       ),
 
     effect_declaration: $ =>
-      seq(...prologue($), 'eff', field('name', $.name_upper), optional($.effect_body)),
+      seq(
+        ...prologue($),
+        'eff',
+        field('name', $.name_upper),
+        // Since v0.76.0 `effectDecl` takes type parameters. Operations still may not.
+        optional($.type_parameter_list),
+        optional($.effect_body),
+      ),
     effect_body: $ => seq('{', repeat($.operation_declaration), '}'),
+    // `def op[a](...)` inside an effect: IllegalOperationTypeParams (see operation_declaration).
+    illegal_type_parameters: $ => seq($.type_parameter_list),
     // Effect operations take no `\ eff` and no body.
     operation_declaration: $ =>
       seq(
         ...prologue($),
         'def',
         field('name', functionName($)),
+        // Illegal, but parsed: `operationDecl` consumes the type parameters and wraps them in an
+        // ErrorTree carrying IllegalOperationTypeParams, so the operation keeps its shape. The
+        // wrapper is the counterpart of that ErrorTree -- a recovery marker, like trailing_dot --
+        // so the operation parses whole and is still visibly rejected.
+        optional($.illegal_type_parameters),
         optional($.parameter_list),
         ':',
         $._type,
@@ -496,8 +578,13 @@ export default grammar({
         field('name', $._type_name),
         optional($.type_parameter_list),
         '=',
-        $._type,
+        choice($._type, $.type_ascription),
       ),
+
+    // `a : Type`. Confined to the type-alias body rather than added to `_type` generally, because
+    // `:` already separates a name from its type in every parameter position and widening it there
+    // would be ambiguous.
+    type_ascription: $ => seq($._type, ':', $.kind),
 
     // ---------------------------------------------------------------------
     // Parameters, constraints, kinds
@@ -541,7 +628,11 @@ export default grammar({
     _type: $ =>
       choice(
         $.type_reference,
-        $.type_variable,
+        // A leaf, like the reference's Type.Variable, which holds the name as a token rather than
+        // as a child node. Aliasing the three name rules here rather than wrapping them in a
+        // `type_variable` rule is what keeps it a leaf: a wrapper would give the node one named
+        // child where the reference has none, and every type variable would diverge on arity.
+        alias(choice($.name_lower, $.name_math, $.wildcard), $.type_variable),
         $.type_constant,
         $.tuple_type,
         $.record_row_type,
@@ -556,13 +647,18 @@ export default grammar({
         $.binary_type,
       ),
 
-    type_variable: $ => choice($.name_lower, $.name_math, $.wildcard),
     type_constant: _ => choice('Univ', 'true', 'false'),
 
     type_application: $ => prec.left(TPREC.apply, seq($._type, $.type_argument_list)),
 
+    // Type-level operators are nodes for the same reason expression-level ones are: the reference
+    // wraps them in TreeKind.Operator, so Type.Binary and Type.Unary each carry one more child than
+    // an anonymous token would give.
     unary_type: $ =>
-      prec.right(TPREC.unary, seq(field('operator', choice('not', '~', 'rvnot')), $._type)),
+      prec.right(
+        TPREC.unary,
+        seq(field('operator', alias(choice('not', '~', 'rvnot'), $.operator)), $._type),
+      ),
 
     binary_type: $ =>
       choice(
@@ -578,7 +674,7 @@ export default grammar({
         ].map(([p, op]) =>
           prec.left(
             /** @type {number} */ (p),
-            seq($._type, field('operator', /** @type {RuleOrLiteral} */ (op)), $._type),
+            seq($._type, field('operator', alias(/** @type {RuleOrLiteral} */ (op), $.operator)), $._type),
           ),
         ),
       ),
@@ -637,7 +733,7 @@ export default grammar({
     record_pattern: $ =>
       seq('{', commaSep($.record_pattern_field), optional(seq('|', $._pattern)), '}'),
     record_pattern_field: $ => seq(field('name', $.name_lower), optional(seq('=', $._pattern))),
-    unary_pattern: $ => seq('-', $._literal),
+    unary_pattern: $ => seq(alias('-', $.operator), $._literal),
     cons_pattern: $ => prec.right(seq($._pattern, '::', $._pattern)),
 
     // ---------------------------------------------------------------------
@@ -675,8 +771,10 @@ export default grammar({
         $.ext_match_expression,
         $.ext_match_lambda,
         $.restrictable_choose,
+        $.restrictable_choose_star,
         $.ext_tag_expression,
-        $.open_variant_expression,
+        $.open_variant,
+        $.open_variant_as,
         $.foreach_expression,
         $.for_monadic_expression,
         $.for_applicative_expression,
@@ -685,7 +783,8 @@ export default grammar({
         $.list_literal,
         $.set_literal,
         $.map_literal,
-        $.checked_cast,
+        $.checked_type_cast,
+        $.checked_effect_cast,
         $.unchecked_cast,
         $.unsafe_expression,
         $.run_expression,
@@ -694,7 +793,8 @@ export default grammar({
         $.throw_expression,
         $.new_expression,
         $.invoke_constructor,
-        $.super_expression,
+        $.invoke_super_constructor,
+        $.invoke_super_method,
         $.spawn_expression,
         $.par_yield_expression,
         $.select_expression,
@@ -702,6 +802,8 @@ export default grammar({
         $.fixpoint_constraint_set,
         $.fixpoint_solve,
         $.fixpoint_psolve,
+        $.unterminated_literal,
+        $.unterminated_string,
         $.fixpoint_inject,
         $.fixpoint_query,
         $.fixpoint_query_with_provenance,
@@ -739,13 +841,13 @@ export default grammar({
     block: $ => seq('{', $._statement, '}'),
 
     record_expression: $ =>
-      seq('{', commaSep($.record_operation), optional(seq('|', $._expression)), '}'),
-    record_operation: $ =>
-      choice(
-        seq('+', field('name', $.name_lower), '=', $._expression),
-        seq('-', field('name', $.name_lower)),
-        seq(field('name', $.name_lower), '=', $._expression),
-      ),
+      seq('{', commaSep($._record_operation), optional(seq('|', $._expression)), '}'),
+    // Three separate nodes, because the reference gives each form its own TreeKind and a
+    // projection map keyed on node name cannot split one node three ways.
+    _record_operation: $ => choice($.record_op_extend, $.record_op_restrict, $.record_op_update),
+    record_op_extend: $ => seq('+', field('name', $.name_lower), '=', $._expression),
+    record_op_restrict: $ => seq('-', field('name', $.name_lower)),
+    record_op_update: $ => seq(field('name', $.name_lower), '=', $._expression),
 
     let_expression: $ =>
       prec.right(
@@ -790,14 +892,12 @@ export default grammar({
     ext_match_rule: $ => seq('case', $._pattern, '=>', $._statement),
     ext_match_lambda: $ => prec.right(seq('ematch', $._pattern, $._arrow_spaced, $._expression)),
 
-    restrictable_choose: $ => seq(choice('choose', 'choose*'), $._expression, $.match_body),
+    restrictable_choose: $ => seq('choose', $._expression, $.match_body),
+    restrictable_choose_star: $ => seq('choose*', $._expression, $.match_body),
 
     ext_tag_expression: $ => prec.right(seq('xvar', $.name_upper, optional($.argument_list))),
-    open_variant_expression: $ =>
-      choice(
-        seq('open_variant', $.qualified_name),
-        seq('open_variant_as', $.qualified_name, $._expression),
-      ),
+    open_variant: $ => seq('open_variant', $.qualified_name),
+    open_variant_as: $ => seq('open_variant_as', $.qualified_name, $._expression),
 
     for_fragments: $ => seq('(', seq($._for_fragment, repeat(seq(';', $._for_fragment))), ')'),
     _for_fragment: $ => choice($.for_guard, $.for_generator, $.for_let),
@@ -818,7 +918,8 @@ export default grammar({
     map_entry: $ => seq($._expression, '=>', $._expression),
     region_name: $ => seq('@', $._expression),
 
-    checked_cast: $ => seq(choice('checked_cast', 'checked_ecast'), '(', $._expression, ')'),
+    checked_type_cast: $ => seq('checked_cast', '(', $._expression, ')'),
+    checked_effect_cast: $ => seq('checked_ecast', '(', $._expression, ')'),
     unchecked_cast: $ =>
       seq('unchecked_cast', '(', $._expression, optional(seq('as', $._type_and_effect)), ')'),
 
@@ -855,20 +956,19 @@ export default grammar({
     jvm_constructor: $ => seq('def', 'new', '(', ')', ':', $._type_and_effect, '=', $._statement),
     invoke_constructor: $ => seq('new', $._type, $.argument_list),
 
-    super_expression: $ =>
-      choice(seq('super', $.argument_list), seq('super', $._dot, $._name, $.argument_list)),
+    invoke_super_constructor: $ => seq('super', $.argument_list),
+    invoke_super_method: $ => seq('super', $._dot, $._name, $.argument_list),
 
     spawn_expression: $ => prec.right(seq('spawn', $._expression, $.region_name)),
     par_yield_expression: $ => seq('par', optional($.par_fragments), 'yield', $._expression),
     par_fragments: $ => seq('(', seq($.par_fragment, repeat(seq(';', $.par_fragment))), ')'),
     par_fragment: $ => seq($._pattern, '<-', $._expression),
 
-    select_expression: $ => seq('select', '{', repeat($.select_rule), '}'),
+    select_expression: $ => seq('select', '{', repeat($._select_rule), '}'),
+    _select_rule: $ => choice($.select_rule, $.select_rule_default),
     select_rule: $ =>
-      choice(
-        seq('case', variableName($), '<-', $.qualified_name, '(', $._expression, ')', '=>', $._statement),
-        seq('case', $.wildcard, '=>', $._statement),
-      ),
+      seq('case', variableName($), '<-', $.qualified_name, '(', $._expression, ')', '=>', $._statement),
+    select_rule_default: $ => seq('case', $.wildcard, '=>', $._statement),
 
     use_expression: $ =>
       prec.right(seq(choice($.use_declaration, $.import_declaration), ';', $._statement)),
@@ -981,20 +1081,34 @@ export default grammar({
         ].map(([p, op]) =>
           prec.right(
             /** @type {number} */ (p),
-            seq(field('operator', /** @type {RuleOrLiteral} */ (op)), $._expression),
+            seq(field('operator', alias(/** @type {RuleOrLiteral} */ (op), $.operator)), $._expression),
           ),
         ),
       ),
+
+    // Every operator spelling is `alias`ed to a named `operator` node rather than left as an
+    // anonymous token. `SyntaxTree.TreeKind` has an `Operator` node and the reference emits one in
+    // this position, so `Expr.Binary` has three children where an anonymous token gives us two --
+    // CLAUDE.md's rule is that node names mirror TreeKind, and this position did not.
+    //
+    // It is an alias and not a rule because the node has to be *positional*. `x +++ y` is an
+    // operator, but `def +++` is a definition name and the reference calls that one `Ident`; a rule
+    // used directly, or a projection map entry for `generic_operator`, cannot tell the two apart --
+    // mapping `generic_operator` to `Operator` wholesale measurably makes conformance worse.
+    // Aliasing per position is what carries the distinction into the tree.
+    infix_operator: $ => seq('`', $.qualified_name, '`'),
 
     binary_expression: $ =>
       choice(
         prec.right(
           PREC.cons,
-          seq($._expression, field('operator', choice('::', ':::')), $._expression),
+          seq($._expression, field('operator', alias(choice('::', ':::'), $.operator)), $._expression),
         ),
         prec.left(
           PREC.infix_function,
-          seq($._expression, '`', $.qualified_name, '`', $._expression),
+          // The reference wraps the whole `` `add` `` -- backticks and name -- in a
+          // TreeKind.Operator, so this is an operator node containing the name, not a bare name.
+          seq($._expression, alias($.infix_operator, $.operator), $._expression),
         ),
         ...[
           [PREC.instanceof, 'instanceof'],
@@ -1009,7 +1123,11 @@ export default grammar({
         ].map(([p, op]) =>
           prec.left(
             /** @type {number} */ (p),
-            seq($._expression, field('operator', /** @type {RuleOrLiteral} */ (op)), $._expression),
+            seq(
+              $._expression,
+              field('operator', alias(/** @type {RuleOrLiteral} */ (op), $.operator)),
+              $._expression,
+            ),
           ),
         ),
       ),

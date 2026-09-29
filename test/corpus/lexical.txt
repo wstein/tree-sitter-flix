@@ -197,16 +197,16 @@ def f(): Unit = a |> b ||> c <*> d >>> e
           (binary_expression
             (qualified_name
               (name_lower))
-            (generic_operator)
+            (operator)
             (qualified_name
               (name_lower)))
-          (generic_operator)
+          (operator)
           (qualified_name
             (name_lower)))
-        (generic_operator)
+        (operator)
         (qualified_name
           (name_lower)))
-      (generic_operator)
+      (operator)
       (qualified_name
         (name_lower)))))
 
@@ -271,21 +271,21 @@ def f(): Unit = (a ->> b, a ->= b, a --> b)
         (binary_expression
           (qualified_name
             (name_lower))
-          (generic_operator)
+          (operator)
           (qualified_name
             (name_lower))))
       (argument
         (binary_expression
           (qualified_name
             (name_lower))
-          (generic_operator)
+          (operator)
           (qualified_name
             (name_lower))))
       (argument
         (binary_expression
           (qualified_name
             (name_lower))
-          (generic_operator)
+          (operator)
           (qualified_name
             (name_lower)))))))
 

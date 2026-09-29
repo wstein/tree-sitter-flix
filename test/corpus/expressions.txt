@@ -15,25 +15,33 @@ def f(): Unit = not a and b or c == d < e :: g + h * i
     (binary_expression
       (binary_expression
         (unary_expression
+          (operator)
           (qualified_name
             (name_lower)))
+        (operator)
         (qualified_name
           (name_lower)))
+      (operator)
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (binary_expression
           (qualified_name
             (name_lower))
+          (operator)
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (binary_expression
               (qualified_name
                 (name_lower))
+              (operator)
               (binary_expression
                 (qualified_name
                   (name_lower))
+                (operator)
                 (qualified_name
                   (name_lower))))))))))
 
@@ -54,9 +62,11 @@ def f(): Unit = a :: b :: c
     (binary_expression
       (qualified_name
         (name_lower))
+      (operator)
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (qualified_name
           (name_lower))))))
 
@@ -77,8 +87,9 @@ def f(): Unit = a `add` b
     (binary_expression
       (qualified_name
         (name_lower))
-      (qualified_name
-        (name_lower))
+      (operator
+        (qualified_name
+          (name_lower)))
       (qualified_name
         (name_lower)))))
 
@@ -131,6 +142,7 @@ def f(): Unit = (x -> x + 1, (a, b) -> a, () -> 1, (x: Int32) -> x)
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (integer))))
       (argument
         (lambda
@@ -192,6 +204,7 @@ def f(): Unit =
                   (binary_expression
                     (qualified_name
                       (name_lower))
+                    (operator)
                     (qualified_name
                       (name_lower))))))))))))
 
@@ -224,6 +237,7 @@ def f(): Unit =
         (binary_expression
           (qualified_name
             (name_lower))
+          (operator)
           (integer))
         (apply_expression
           (qualified_name
@@ -283,6 +297,7 @@ def f(): Int32 = match x {
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (integer))
           (qualified_name
             (name_lower)))
@@ -309,7 +324,7 @@ def f(): Unit = xs |> List.map(match (a, b) -> a + b)
     (binary_expression
       (qualified_name
         (name_lower))
-      (generic_operator)
+      (operator)
       (apply_expression
         (qualified_name
           (name_upper)
@@ -325,6 +340,7 @@ def f(): Unit = xs |> List.map(match (a, b) -> a + b)
               (binary_expression
                 (qualified_name
                   (name_lower))
+                (operator)
                 (qualified_name
                   (name_lower))))))))))
 
@@ -345,28 +361,28 @@ def f(): Unit = ({x = 1, y = 2}, {+z = 3 | r}, {-z | r}, {x = 9 | r}, r#x)
     (tuple_expression
       (argument
         (record_expression
-          (record_operation
+          (record_op_update
             (name_lower)
             (integer))
-          (record_operation
+          (record_op_update
             (name_lower)
             (integer))))
       (argument
         (record_expression
-          (record_operation
+          (record_op_extend
             (name_lower)
             (integer))
           (qualified_name
             (name_lower))))
       (argument
         (record_expression
-          (record_operation
+          (record_op_restrict
             (name_lower))
           (qualified_name
             (name_lower))))
       (argument
         (record_expression
-          (record_operation
+          (record_op_update
             (name_lower)
             (integer))
           (qualified_name
@@ -523,6 +539,7 @@ def f(): Unit = foreach (x <- xs; if x > 1) println(x)
           (binary_expression
             (qualified_name
               (name_lower))
+            (operator)
             (integer))))
       (apply_expression
         (qualified_name
@@ -560,6 +577,7 @@ def f(): Unit = forM (x <- xs; y = 1) yield x + y
       (binary_expression
         (qualified_name
           (name_lower))
+        (operator)
         (qualified_name
           (name_lower))))))
 
@@ -668,7 +686,7 @@ def f(): Unit = (checked_cast(x), unchecked_cast(y as Int32 \ IO))
       (name_upper))
     (tuple_expression
       (argument
-        (checked_cast
+        (checked_type_cast
           (qualified_name
             (name_lower))))
       (argument
@@ -749,7 +767,7 @@ def f(): Unit = select {
           (name_lower))
         (qualified_name
           (name_lower)))
-      (select_rule
+      (select_rule_default
         (wildcard)
         (integer)))))
 
@@ -934,6 +952,7 @@ def f(): Int32 = match xs {
         (match_rule
           (cons_pattern
             (unary_pattern
+              (operator)
               (integer))
             (variable_pattern
               (name_lower)))
@@ -999,8 +1018,7 @@ def f(): Unit = {
         (unsafe_expression
           (type_reference
             (name_upper))
-          (type_variable
-            (name_lower))
+          (type_variable)
           (block
             (apply_expression
               (qualified_name
@@ -1070,9 +1088,9 @@ def f(): Unit = {
       (name_upper))
     (block
       (sequence_expression
-        (super_expression
+        (invoke_super_constructor
           (argument_list))
-        (super_expression
+        (invoke_super_method
           (name_lower)
           (argument_list))))))
 
@@ -1128,12 +1146,12 @@ def f(): Unit = (xvar Cons(1), open_variant Seq.Nil, open_variant_as Seq g)
             (argument
               (integer)))))
       (argument
-        (open_variant_expression
+        (open_variant
           (qualified_name
             (name_upper)
             (name_upper))))
       (argument
-        (open_variant_expression
+        (open_variant_as
           (qualified_name
             (name_upper))
           (qualified_name
@@ -1286,7 +1304,7 @@ def f(): Bool = a ⊆ b
     (binary_expression
       (qualified_name
         (name_lower))
-      (name_math)
+      (operator)
       (qualified_name
         (name_lower)))))
 
@@ -1319,3 +1337,61 @@ def f(): Unit = region rc { new Counter @ rc { count = 0, step = 1 } }
           (struct_field_init
             (name_lower)
             (integer)))))))
+
+================================================================================
+Tight cons in expressions and patterns
+================================================================================
+
+def f(): List[Int32] = 42::Nil
+
+def g(l: List[Int32]): Int32 = match l {
+    case x::xs => x
+    case _ => 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_application
+      (type_reference
+        (name_upper))
+      (type_argument_list
+        (type_reference
+          (name_upper))))
+    (binary_expression
+      (integer)
+      (operator)
+      (qualified_name
+        (name_upper))))
+  (function_declaration
+    (name_lower)
+    (parameter_list
+      (parameter
+        (name_lower)
+        (type_application
+          (type_reference
+            (name_upper))
+          (type_argument_list
+            (type_reference
+              (name_upper))))))
+    (type_reference
+      (name_upper))
+    (match_expression
+      (qualified_name
+        (name_lower))
+      (match_body
+        (match_rule
+          (cons_pattern
+            (variable_pattern
+              (name_lower))
+            (variable_pattern
+              (name_lower)))
+          (qualified_name
+            (name_lower)))
+        (match_rule
+          (variable_pattern
+            (wildcard))
+          (integer))))))
