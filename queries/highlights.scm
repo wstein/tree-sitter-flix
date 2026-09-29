@@ -184,9 +184,14 @@
 (predicate_arity
   "arity" @number)
 
-(schema_term
-  (qualified_name
-    (name_upper) @function.call))
+[
+  (schema_term
+    (qualified_name
+      (name_upper) @function.call))
+  (schema_alias_term
+    (qualified_name
+      (name_upper) @function.call))
+]
 
 ; Calls and constructors
 (invoke_method

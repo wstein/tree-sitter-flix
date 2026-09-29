@@ -768,7 +768,6 @@ def f(): Unit = select {
         (qualified_name
           (name_lower)))
       (select_rule_default
-        (wildcard)
         (integer)))))
 
 ================================================================================

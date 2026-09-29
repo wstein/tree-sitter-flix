@@ -790,16 +790,21 @@ export default grammar({
 
     effect_set_type: $ => seq('{', commaSep($._type), '}'),
 
-    schema_type: $ => seq('#{', commaSep($.schema_term), optional(seq('|', $._type)), '}'),
-    schema_row_type: $ => seq('#(', commaSep($.schema_term), optional(seq('|', $._type)), ')'),
-    extensible_type: $ => seq('#|', commaSep($.schema_term), optional(seq('|', $._type)), '|#'),
+    // The tail after `|` is a bare name -- Parser2 reads it with nameUnqualified(NAME_VARIABLE),
+    // an Ident, not a type.
+    schema_type: $ => seq('#{', commaSep($._schema_term), optional(seq('|', $.name_lower)), '}'),
+    schema_row_type: $ =>
+      seq('#(', commaSep($._schema_term), optional(seq('|', $.name_lower)), ')'),
+    extensible_type: $ =>
+      seq('#|', commaSep($._schema_term), optional(seq('|', $.name_lower)), '|#'),
+    // `schemaTerm` closes PredicateWithAlias for `A[t]` and PredicateWithTypes otherwise.
+    _schema_term: $ => choice($.schema_term, $.schema_alias_term),
     schema_term: $ =>
       seq(
         $.qualified_name,
-        optional(
-          choice($.type_argument_list, seq('(', commaSep($._type), optional(seq(';', $._type)), ')')),
-        ),
+        optional(seq('(', commaSep($._type), optional(seq(';', $._type)), ')')),
       ),
+    schema_alias_term: $ => seq($.qualified_name, $.type_argument_list),
 
     case_set_type: $ => seq('<', commaSep($.qualified_name), '>'),
 
@@ -1070,7 +1075,8 @@ export default grammar({
     _select_rule: $ => choice($.select_rule, $.select_rule_default),
     select_rule: $ =>
       seq('case', variableName($), '<-', $.qualified_name, '(', $._expression, ')', '=>', $._statement),
-    select_rule_default: $ => seq('case', $.wildcard, '=>', $._statement),
+    // The `_` is a token, not a node: SelectRuleDefaultFragment holds only the statement.
+    select_rule_default: $ => seq('case', '_', '=>', $._statement),
 
     use_expression: $ =>
       prec.right(seq(choice($.use_declaration, $.import_declaration), ';', $._statement)),
@@ -1133,20 +1139,23 @@ export default grammar({
     // parenthesised term list, or a bare expression. A plain expression already
     // covers all three (`()` is the unit expression, `(x, y)` a tuple), and
     // spelling the list form out separately only adds an ambiguity with tuples.
-    fixpoint_select: $ => prec.right(seq('select', $._expression)),
+    // `select (x, y)` is Parser2's term list: FixpointSelect holds the terms, not a tuple. A term
+    // list of two or more takes precedence over the tuple it is indistinguishable from; `()` and
+    // a single parenthesised term stay ordinary expressions, as in the reference.
+    fixpoint_select: $ => prec.right(seq('select', choice($._expression, $.select_terms))),
+    select_terms: $ =>
+      prec(1, seq('(', $._expression, repeat1(seq(',', $._expression)), ')')),
     fixpoint_from: $ => prec.right(seq('from', commaSep1($.predicate_atom))),
     fixpoint_where: $ => prec.right(seq('where', $._expression)),
     fixpoint_query_with_provenance: $ =>
       seq(
         'pquery',
         $._fixpoint_expressions,
-        'select',
-        $.predicate_head,
-        'with',
-        '{',
-        commaSep($.name_upper),
-        '}',
+        alias($._provenance_select, $.fixpoint_select),
+        $.fixpoint_with,
       ),
+    _provenance_select: $ => seq('select', $.predicate_head),
+    fixpoint_with: $ => seq('with', '{', commaSep($.name_upper), '}'),
 
     fixpoint_lambda: $ =>
       seq('#(', commaSep($.predicate_param), ')', $._arrow_spaced, $._expression),
