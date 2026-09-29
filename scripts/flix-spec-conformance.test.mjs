@@ -16,13 +16,13 @@ test('depth floor is tied to its metric schema and unchanged reference denominat
 
 test('standalone runner arguments retain paths and existing ratchets', () => {
   const args = comparisonArgs('/tmp/actual with spaces', '/tmp/map.json', '/tmp/report.json', {
-    divergences: 86, recoveryDivergences: 54, diagnosticDivergences: 7, depthFloor: 93, recoveryDepthFloor: 67,
+    divergences: 46, recoveryDivergences: 34, diagnosticDivergences: 2, depthFloor: 95, recoveryDepthFloor: 79,
   });
   const options = Object.fromEntries(Array.from({length: args.length / 2}, (_, i) => [args[2 * i], args[2 * i + 1]]));
   assert.equal(options['--actual'], '/tmp/actual with spaces');
-  assert.equal(options['--baseline'], '86');
-  assert.equal(options['--depth-floor'], '93');
-  assert.equal(options['--recovery-depth-floor'], '67');
+  assert.equal(options['--baseline'], '46');
+  assert.equal(options['--depth-floor'], '95');
+  assert.equal(options['--recovery-depth-floor'], '79');
 });
 
 test('extracted bundles need no Gradle files and still enforce pin identity', () => {

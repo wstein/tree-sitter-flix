@@ -71,9 +71,15 @@ That prompted the explicit 93→92 metric review below.
 
 ## Reviewed metric migration
 
-The floor is now explicitly re-recorded at **92%**, with runner version and report
-schema in `baseline.json`. Compared nodes remain 2002; the former denominator was
-2162 = 2183 − 18 elided − 3 flattened canonical nodes. Rounding 2002/2162 gives
-93%; rounding 2002/2183 gives 92%. No parser, mapping or count allowance changed.
-The adapter refuses a report schema different from the recorded metric definition.
-The original failing pilot result above is retained as migration evidence.
+For the original pilot grammar, the floor was re-recorded at **92%**. Compared nodes
+remained 2002; the former denominator was 2162 = 2183 − 18 elided − 3 flattened
+canonical nodes. Rounding 2002/2162 gives 93%; rounding 2002/2183 gives 92%.
+No parser, mapping or count allowance changed in that measurement. The original
+failing pilot result above is retained as migration evidence.
+
+After rebasing the runner onto the newer grammar, the same schema 9 comparison
+measures 46 structural, 34 recovery and 2 diagnostic divergences. Structural
+depth is 2063/2183, still 95% when rounded. Recovery depth is 271/341, now
+79% rather than the old metric's 271/339 = 80%. The baseline records these
+counts and floors, and the adapter refuses a report schema different from its
+recorded metric definition.
