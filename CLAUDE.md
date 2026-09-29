@@ -183,14 +183,16 @@ what the comparison covers and the `mappings`/`ignored`/`elide` semantics.
 Run it:
 
 ```bash
-export FLIX_SPEC=/path/to/flix-spec     # a checkout of github.com/wstein/flix-spec
+export FLIX_SPEC=/path/to/flix-spec     # checkout or extracted pinned data bundle
+export FLIX_SPEC_RUNNER=/path/to/flix-spec-runner.jar # Java 21 executable, built separately
+# For an extracted bundle, also set FLIX_SPEC_VERSION to its Maven version.
 npm run conformance                     # adapt every fixture, then compare
 node scripts/flix-spec-conformance.mjs --no-compare --out DIR   # adapt only
 node scripts/flix-spec-conformance.mjs --remeasure    # measure a flix-spec the baseline doesn't record
 ```
 
 `scripts/flix-spec-conformance.mjs` projects a tree-sitter parse into the
-`{"kind":…,"children":[…]}` shape the comparator reads, then invokes flix-spec's Gradle task with
+`{"kind":…,"children":[…]}` shape the comparator reads, then invokes the standalone runner with
 `conformance/projection-map.json` and the ratchets in `conformance/baseline.json`: one divergence
 count per derived lane (structural, recovery, diagnostic) and a depth floor for the first two. It
 exits non-zero if any fixture cannot be adapted, if a lane exceeds its ratchet or falls below its
@@ -223,8 +225,9 @@ Four things about it are deliberate:
   token from the tree dump and reports it only on the per-file summary line, which is why the
   script scans the whole output.
 
-Not in CI, for the same reason `parse-corpus.sh` is not: it needs an external checkout, plus a JDK
-and the pinned oracle jar. Run it before a release and when the map changes.
+The standalone path needs a pinned data bundle and runner plus Java 21; neither Gradle nor the
+oracle jar is required. The pre-release pilot is documented in `conformance/RUNNER-PILOT.md`.
+Run it before a release and when the map changes; publication must precede enabling it in CI.
 
 ## Releasing
 

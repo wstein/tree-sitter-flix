@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "consumer": "tree-sitter-flix",
+  "capabilities": ["structure", "recovery", "diagnostics"],
   "description": "Maps tree-sitter-flix's snake_case node vocabulary onto canonical TreeKind names. Partial by design: it covers the node types the fixture suite actually exercises. Anything neither mapped nor ignored is reported as unmapped, which is a gap rather than a decision, so the report distinguishes 'not mapped yet' from 'disagrees with the reference'.",
   "mappings": {
     "ERROR": "ErrorTree",

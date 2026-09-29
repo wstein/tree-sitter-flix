@@ -58,6 +58,7 @@
     "fmt": "eslint --fix grammar.js eslint.config.js scripts/*.mjs",
     "test": "tree-sitter test",
     "conformance": "node scripts/flix-spec-conformance.mjs",
+    "test:conformance": "node --test scripts/flix-spec-conformance.test.mjs",
     "test:bindings": "node --test bindings/node/*_test.js"
   }
 }

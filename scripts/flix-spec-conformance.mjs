@@ -47,7 +47,7 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
  * @param {string} text - `tree-sitter parse` output for one file.
  * @returns {{kind: string, children: object[]}|null} the root node, or null if there is none.
  */
-function parseSExpression(text) {
+export function parseSExpression(text) {
   let i = 0;
 
   const skipSpace = () => {
@@ -173,12 +173,14 @@ function diagnosticsOf(text, markers) {
  *
  * @param {string} specDir - the flix-spec checkout.
  * @param {object} measuredAt - `baseline.measuredAt`.
+ * @param {string} [artifactVersion] - Maven version of an extracted bundle.
  * @returns {string[]} one line per mismatch; empty when the inputs agree.
  */
-function inputMismatches(specDir, measuredAt) {
+export function inputMismatches(specDir, measuredAt, artifactVersion) {
   const pin = JSON.parse(readFileSync(join(specDir, 'pin.json'), 'utf8'));
-  const props = readFileSync(join(specDir, 'gradle.properties'), 'utf8');
-  const version = /^version=(.+)$/m.exec(props)?.[1]?.trim();
+  const propsPath = join(specDir, 'gradle.properties');
+  const version = artifactVersion ?? (existsSync(propsPath) ?
+    /^version=(.+)$/m.exec(readFileSync(propsPath, 'utf8'))?.[1]?.trim() : undefined);
   const expected = [
     ['flixSpecArtifact', version],
     ['flixSpecPin', pin.upstream?.tag],
@@ -257,9 +259,13 @@ function main(argv) {
   let outDir = '';
   let compare = true;
   let remeasure = false;
+  let runner = process.env.FLIX_SPEC_RUNNER ?? '';
+  let artifactVersion = process.env.FLIX_SPEC_VERSION;
 
   for (let n = 0; n < args.length; n += 1) {
     if (args[n] === '--out') outDir = args[n + 1], n += 1;
+    else if (args[n] === '--runner') runner = args[n + 1], n += 1;
+    else if (args[n] === '--spec-version') artifactVersion = args[n + 1], n += 1;
     else if (args[n] === '--no-compare') compare = false;
     // Measuring a flix-spec release the baseline does not record yet -- the first step of every
     // migration. The input checks still run, but report instead of refusing.
@@ -272,6 +278,11 @@ function main(argv) {
     return 2;
   }
   specDir = resolve(specDir);
+  if (compare && (!runner || !existsSync(runner))) {
+    console.error('error: provide the executable runner jar with --runner or FLIX_SPEC_RUNNER');
+    return 2;
+  }
+  if (runner) runner = resolve(runner);
   const fixturesDir = join(specDir, 'fixtures');
   if (!existsSync(fixturesDir)) {
     console.error(`error: no fixtures/ under ${specDir} — is that a flix-spec checkout?`);
@@ -287,7 +298,7 @@ function main(argv) {
 
   // The numbers in baseline.json answer a question about one flix-spec release; measured against
   // another they answer a different one. Refuse rather than compare the two.
-  const mismatches = inputMismatches(specDir, baseline.measuredAt ?? {});
+  const mismatches = inputMismatches(specDir, baseline.measuredAt ?? {}, artifactVersion);
   if (mismatches.length > 0) {
     const say = remeasure ? console.log : console.error;
     say(`${remeasure ? 'note' : 'error'}: ${specDir} is not the flix-spec checkout ` +
@@ -358,38 +369,46 @@ function main(argv) {
   if (!compare) return 0;
 
   const report = join(out, '..', 'flix-spec-report.json');
+  const html = join(out, '..', 'flix-spec-report.html');
+  rmSync(report, {force: true});
+  rmSync(html, {force: true});
 
   console.log('');
+  let status = 0;
   try {
     execFileSync(
-      './gradlew',
+      'java',
       [
-        '-q',
-        ':tools:project:conformance',
+        '-jar', runner,
+        '--spec-root', specDir, '--source-root', specDir,
         // Two ratchets, because there are two derived lanes and they measure different things.
         // Structure is closed one mapping at a time; error-recovery shape is a separate question a
         // grammar may never fully answer, and a single number would have let either hide the other.
         // Each lane also has a depth floor: divergences can fall simply because less of the tree is
         // compared, and the floor is what stops that from reading as progress.
-        `--args=--actual ${out} --map ${map} --report ${report}` +
-          ` --baseline ${baseline.divergences}` +
-          ` --recovery-baseline ${baseline.recoveryDivergences ?? 0}` +
-          ` --diagnostic-baseline ${baseline.diagnosticDivergences ?? 0}` +
-          ` --depth-floor ${baseline.depthFloor ?? 0}` +
-          ` --recovery-depth-floor ${baseline.recoveryDepthFloor ?? 0}`,
+        ...comparisonArgs(out, map, report, baseline),
       ],
-      {cwd: specDir, encoding: 'utf8', stdio: 'inherit'},
+      {cwd: REPO, encoding: 'utf8', stdio: 'inherit'},
     );
-  } catch {
+  } catch (error) {
+    status = error.status === 1 ? 1 : 2;
     console.error('');
-    console.error('error: conformance regressed against conformance/baseline.json');
+    console.error(status === 1 ? 'error: conformance regressed against conformance/baseline.json' :
+      'error: runner input/execution failure (not a parser regression)');
     console.error(
       `  baselines allow ${baseline.divergences} structural and ` +
       `${baseline.recoveryDivergences ?? 0} recovery and ` +
       `${baseline.diagnosticDivergences ?? 0} diagnostic divergences, at depth floors of ` +
       `${baseline.depthFloor ?? 0}% and ${baseline.recoveryDepthFloor ?? 0}%; see ${report}`,
     );
-    return 1;
+  }
+  if (!existsSync(report)) return status || 2;
+  try {
+    execFileSync('java', ['-jar', runner, 'render', '--report', report, '--html', html],
+      {cwd: REPO, stdio: 'inherit'});
+  } catch {
+    console.error('error: HTML rendering failed; JSON report is preserved');
+    return 2;
   }
   // flix-spec computes the fixture revision itself, so it can only be checked after the run.
   const revision = JSON.parse(readFileSync(report, 'utf8')).provenance?.fixtureRevision;
@@ -401,7 +420,26 @@ function main(argv) {
   }
   console.log('');
   console.log(`report: ${report}`);
-  return 0;
+  console.log(`HTML: ${html}`);
+  return status;
 }
 
-process.exit(main(process.argv));
+/**
+ * Keeps paths as individual arguments: no Gradle --args string or shell quoting involved.
+ *
+ * @param {string} out - Adapter output directory.
+ * @param {string} map - Consumer map path.
+ * @param {string} report - JSON report path.
+ * @param {object} baseline - Consumer-owned ratchets.
+ * @returns {string[]} Runner comparison arguments.
+ */
+export function comparisonArgs(out, map, report, baseline) {
+  return ['--actual', out, '--map', map, '--report', report,
+    '--baseline', String(baseline.divergences ?? 0),
+    '--recovery-baseline', String(baseline.recoveryDivergences ?? 0),
+    '--diagnostic-baseline', String(baseline.diagnosticDivergences ?? 0),
+    '--depth-floor', String(baseline.depthFloor ?? 0),
+    '--recovery-depth-floor', String(baseline.recoveryDepthFloor ?? 0)];
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exit(main(process.argv));
