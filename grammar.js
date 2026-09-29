@@ -214,6 +214,9 @@ export default grammar({
     $.unterminated_block_comment,
     // End of input inside an interpolated string: Parser2 closes it with an ErrorTree.
     $.unterminated_interpolation,
+    // `match x` with no body, before a declaration or at end of input: Parser2 closes the match
+    // with an empty ErrorTree. Zero-width.
+    $.missing_match_body,
     // Referenced by no rule, so it is only ever valid in tree-sitter's error
     // recovery state, where every external is marked valid. The scanner uses it
     // to tell recovery from a real parse and stand down. Must stay last.
@@ -973,13 +976,18 @@ export default grammar({
         ),
       ),
 
-    match_expression: $ => seq('match', $._expression, $.match_body),
+    // The missing-body marker loses to any other complete parse: `match x -> x` is a match
+    // lambda, not a bodiless match over the lambda `x -> x`, which Parser2's detectMatchLambda
+    // decides by lookahead. Only when nothing else parses does the marker stand.
+    match_expression: $ =>
+      seq('match', $._expression, choice($.match_body, prec.dynamic(-1, $.missing_match_body))),
     match_body: $ => seq('{', repeat(seq($.match_rule, optional(','))), '}'),
     match_rule: $ => seq('case', $._pattern, optional(seq('if', $._expression)), '=>', $._statement),
 
     match_lambda: $ => prec.right(seq('match', $._pattern, $._arrow_spaced, $._expression)),
 
-    ext_match_expression: $ => seq('ematch', $._expression, $.ext_match_body),
+    ext_match_expression: $ =>
+      seq('ematch', $._expression, choice($.ext_match_body, prec.dynamic(-1, $.missing_match_body))),
     ext_match_body: $ => seq('{', repeat(seq($.ext_match_rule, optional(','))), '}'),
     ext_match_rule: $ => seq('case', $._pattern, '=>', $._statement),
     ext_match_lambda: $ => prec.right(seq('ematch', $._pattern, $._arrow_spaced, $._expression)),

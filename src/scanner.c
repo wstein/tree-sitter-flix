@@ -1,5 +1,7 @@
 #include "tree_sitter/parser.h"
 
+#include <string.h>
+
 // External tokens for the parts of Flix's lexical grammar that cannot be
 // expressed as regular expressions. Each corresponds to a decision the
 // reference lexer (Lexer.scala) makes with lookahead or a counter.
@@ -23,6 +25,7 @@ enum TokenType {
     PACKAGE_SEPARATOR_SPACED,
     UNTERMINATED_BLOCK_COMMENT,
     UNTERMINATED_INTERPOLATION,
+    MISSING_MATCH_BODY,
     ERROR_SENTINEL,
 };
 
@@ -44,6 +47,12 @@ static inline bool is_space(int32_t c) {
 }
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
+
+// A character that can continue a name, so `define` is not the keyword `def`.
+static inline bool is_ident_continue(int32_t c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' ||
+           c == '!' || c == '$';
+}
 static inline void skip(TSLexer *lexer) { lexer->advance(lexer, true); }
 
 // Consumes a `\` escape the way `Lexer.consumeSingleEscapes` does: a backslash
@@ -154,9 +163,51 @@ bool tree_sitter_flix_external_scanner_scan(void *payload, TSLexer *lexer,
     // ArrowThinRWhitespace, and Dot from the illegal space-before form, so
     // record it while skipping.
     bool space_before = false;
+    bool newline_before = false;
     while (is_space(lexer->lookahead)) {
         space_before = true;
+        if (lexer->lookahead == '\n' || lexer->lookahead == '\r') newline_before = true;
         skip(lexer);
+    }
+
+    // `match x` or `ematch x` with no `{ ... }`: since v0.76 Parser2 keeps the
+    // match and its scrutinee and closes it with an empty ErrorTree. Zero-width,
+    // and only where the body certainly is not coming: at end of input, or when a
+    // line break is followed by a declaration keyword -- which no scrutinee can
+    // continue with. Anything else is left to the parser, so `match x + 1 {`
+    // and a scrutinee spanning lines still parse.
+    if (!recovering && valid_symbols[MISSING_MATCH_BODY]) {
+        // Nothing consumed on these two paths, so the token is zero-width
+        // without a mark_end -- and no mark_end may be left behind for the
+        // branches below if this one declines.
+        if (lexer->eof(lexer) || (newline_before && lexer->lookahead == '@')) {
+            lexer->result_symbol = MISSING_MATCH_BODY;
+            return true;
+        }
+        if (newline_before && lexer->lookahead >= 'a' && lexer->lookahead <= 'z') {
+            // Peeking at the word consumes it: pin the token's end here first.
+            lexer->mark_end(lexer);
+            lexer->result_symbol = MISSING_MATCH_BODY;
+            char word[16];
+            unsigned len = 0;
+            while (len < sizeof(word) - 1 && lexer->lookahead >= 'a' && lexer->lookahead <= 'z') {
+                word[len++] = (char)lexer->lookahead;
+                advance(lexer);
+            }
+            word[len] = '\0';
+            static const char *const declaration_keywords[] = {
+                "def", "enum", "trait", "instance", "mod", "eff", "type", "struct",
+                "pub", "sealed", "restrictable", "redef", "import", "use",
+            };
+            for (unsigned i = 0; i < sizeof(declaration_keywords) / sizeof(*declaration_keywords); i++) {
+                if (strcmp(word, declaration_keywords[i]) == 0 && !is_ident_continue(lexer->lookahead)) {
+                    return true;
+                }
+            }
+            // Consumed part of a word: the other branches below cannot resume
+            // from here, so decline and let the internal lexer rescan.
+            return false;
+        }
     }
 
     // A string continuation resumes at the `}` that closed the interpolated

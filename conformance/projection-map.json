@@ -94,6 +94,7 @@
     "match_expression": "Expr.Match",
     "match_lambda": "Expr.LambdaMatch",
     "match_rule": "Expr.MatchRuleFragment",
+    "missing_match_body": "ErrorTree",
     "modifier_list": "ModifierList",
     "module_declaration": "Decl.Module",
     "name_lower": "Ident",
@@ -234,6 +235,7 @@
     "illegal_type_parameters": "A recovery marker, mapped to ErrorTree: Parser2's operationDecl wraps an operation's type parameters in an ErrorTree carrying IllegalOperationTypeParams and keeps the operation whole. The structural lane splices both out, leaving the TypeParameterList in place; the recovery lane compares the wrapper; the diagnostic lane counts the unit as rejected.",
     "malformed_number": "A recovery marker, mapped to ErrorTree: a numeric run the reference lexer rejects as a single error token (`1_`, `0xZ`, `1i99`, `1.5i32`, `0x1g`, `1x`), which Parser2 wraps in an ErrorTree.",
     "malformed_package_separator": "A recovery marker, mapped to ErrorTree: for `use pkg :: Mod` Parser2 lexes the spaced separator as ColonColon, reports Malformed and wraps that token in an ErrorTree inside an otherwise complete UsesOrImports.Package. The structural lane splices both out; the recovery lane compares the wrapper; the diagnostic lane counts the unit as rejected.",
+    "missing_match_body": "A recovery marker, mapped to ErrorTree: since Flix v0.76 Parser2 keeps a `match`/`ematch` with no body, and its scrutinee, and closes it with an empty ErrorTree. Zero-width, emitted by the scanner only at end of input or before a declaration keyword on a new line.",
     "modifier_list": "Wraps two or more modifiers, like annotation_list, for ModifierList.",
     "name_lower": "Both name_lower and name_upper collapse to Ident: the reference does not distinguish case in the tree, only in the lexer.",
     "reserved_keyword": "A recovery marker, mapped to ErrorTree: `static` and `forall` are hard keywords in the reference lexer that no Parser2 rule uses, so in expression position Parser2 reports UnexpectedToken and wraps the token in an ErrorTree.",
@@ -272,6 +274,7 @@
     "reserved_keyword",
     "unterminated_interpolation",
     "reserved_operator",
-    "malformed_number"
+    "malformed_number",
+    "missing_match_body"
   ]
 }

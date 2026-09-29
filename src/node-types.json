@@ -1220,6 +1220,10 @@
         {
           "type": "ext_match_body",
           "named": true
+        },
+        {
+          "type": "missing_match_body",
+          "named": true
         }
       ]
     }
@@ -2507,6 +2511,10 @@
         },
         {
           "type": "match_body",
+          "named": true
+        },
+        {
+          "type": "missing_match_body",
           "named": true
         }
       ]
@@ -4981,6 +4989,10 @@
   {
     "type": "match",
     "named": false
+  },
+  {
+    "type": "missing_match_body",
+    "named": true
   },
   {
     "type": "mod",
