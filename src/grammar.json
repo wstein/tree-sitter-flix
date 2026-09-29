@@ -117,6 +117,312 @@
         }
       }
     },
+    "reserved_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "static"
+        },
+        {
+          "type": "STRING",
+          "value": "forall"
+        }
+      ]
+    },
+    "_method_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "and"
+        },
+        {
+          "type": "STRING",
+          "value": "as"
+        },
+        {
+          "type": "STRING",
+          "value": "case"
+        },
+        {
+          "type": "STRING",
+          "value": "catch"
+        },
+        {
+          "type": "STRING",
+          "value": "checked_cast"
+        },
+        {
+          "type": "STRING",
+          "value": "checked_ecast"
+        },
+        {
+          "type": "STRING",
+          "value": "choose"
+        },
+        {
+          "type": "STRING",
+          "value": "def"
+        },
+        {
+          "type": "STRING",
+          "value": "discard"
+        },
+        {
+          "type": "STRING",
+          "value": "eff"
+        },
+        {
+          "type": "STRING",
+          "value": "else"
+        },
+        {
+          "type": "STRING",
+          "value": "ematch"
+        },
+        {
+          "type": "STRING",
+          "value": "enum"
+        },
+        {
+          "type": "STRING",
+          "value": "false"
+        },
+        {
+          "type": "STRING",
+          "value": "fix"
+        },
+        {
+          "type": "STRING",
+          "value": "forA"
+        },
+        {
+          "type": "STRING",
+          "value": "forM"
+        },
+        {
+          "type": "STRING",
+          "value": "forall"
+        },
+        {
+          "type": "STRING",
+          "value": "force"
+        },
+        {
+          "type": "STRING",
+          "value": "foreach"
+        },
+        {
+          "type": "STRING",
+          "value": "from"
+        },
+        {
+          "type": "STRING",
+          "value": "handler"
+        },
+        {
+          "type": "STRING",
+          "value": "if"
+        },
+        {
+          "type": "STRING",
+          "value": "import"
+        },
+        {
+          "type": "STRING",
+          "value": "inject"
+        },
+        {
+          "type": "STRING",
+          "value": "instance"
+        },
+        {
+          "type": "STRING",
+          "value": "instanceof"
+        },
+        {
+          "type": "STRING",
+          "value": "into"
+        },
+        {
+          "type": "STRING",
+          "value": "lazy"
+        },
+        {
+          "type": "STRING",
+          "value": "let"
+        },
+        {
+          "type": "STRING",
+          "value": "match"
+        },
+        {
+          "type": "STRING",
+          "value": "mod"
+        },
+        {
+          "type": "STRING",
+          "value": "mut"
+        },
+        {
+          "type": "STRING",
+          "value": "not"
+        },
+        {
+          "type": "STRING",
+          "value": "null"
+        },
+        {
+          "type": "STRING",
+          "value": "open_variant"
+        },
+        {
+          "type": "STRING",
+          "value": "open_variant_as"
+        },
+        {
+          "type": "STRING",
+          "value": "or"
+        },
+        {
+          "type": "STRING",
+          "value": "par"
+        },
+        {
+          "type": "STRING",
+          "value": "pquery"
+        },
+        {
+          "type": "STRING",
+          "value": "project"
+        },
+        {
+          "type": "STRING",
+          "value": "psolve"
+        },
+        {
+          "type": "STRING",
+          "value": "pub"
+        },
+        {
+          "type": "STRING",
+          "value": "query"
+        },
+        {
+          "type": "STRING",
+          "value": "redef"
+        },
+        {
+          "type": "STRING",
+          "value": "region"
+        },
+        {
+          "type": "STRING",
+          "value": "restrictable"
+        },
+        {
+          "type": "STRING",
+          "value": "run"
+        },
+        {
+          "type": "STRING",
+          "value": "rvadd"
+        },
+        {
+          "type": "STRING",
+          "value": "rvand"
+        },
+        {
+          "type": "STRING",
+          "value": "rvnot"
+        },
+        {
+          "type": "STRING",
+          "value": "rvsub"
+        },
+        {
+          "type": "STRING",
+          "value": "sealed"
+        },
+        {
+          "type": "STRING",
+          "value": "select"
+        },
+        {
+          "type": "STRING",
+          "value": "solve"
+        },
+        {
+          "type": "STRING",
+          "value": "spawn"
+        },
+        {
+          "type": "STRING",
+          "value": "static"
+        },
+        {
+          "type": "STRING",
+          "value": "struct"
+        },
+        {
+          "type": "STRING",
+          "value": "super"
+        },
+        {
+          "type": "STRING",
+          "value": "throw"
+        },
+        {
+          "type": "STRING",
+          "value": "trait"
+        },
+        {
+          "type": "STRING",
+          "value": "true"
+        },
+        {
+          "type": "STRING",
+          "value": "try"
+        },
+        {
+          "type": "STRING",
+          "value": "type"
+        },
+        {
+          "type": "STRING",
+          "value": "unchecked_cast"
+        },
+        {
+          "type": "STRING",
+          "value": "unsafe"
+        },
+        {
+          "type": "STRING",
+          "value": "use"
+        },
+        {
+          "type": "STRING",
+          "value": "where"
+        },
+        {
+          "type": "STRING",
+          "value": "with"
+        },
+        {
+          "type": "STRING",
+          "value": "xor"
+        },
+        {
+          "type": "STRING",
+          "value": "xvar"
+        },
+        {
+          "type": "STRING",
+          "value": "yield"
+        }
+      ]
+    },
     "hole_anonymous": {
       "type": "STRING",
       "value": "???"
@@ -4234,6 +4540,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "reserved_keyword"
+        },
+        {
+          "type": "SYMBOL",
           "name": "fixpoint_inject"
         },
         {
@@ -6156,12 +6466,26 @@
           "value": "def"
         },
         {
-          "type": "FIELD",
-          "name": "name",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_name"
-          }
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_name"
+              }
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_method_keyword"
+              },
+              "named": true,
+              "value": "reserved_keyword"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -8271,6 +8595,10 @@
     {
       "type": "SYMBOL",
       "name": "block_comment"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "unterminated_block_comment"
     }
   ],
   "conflicts": [
@@ -8423,6 +8751,10 @@
     },
     {
       "type": "SYMBOL",
+      "name": "unterminated_block_comment"
+    },
+    {
+      "type": "SYMBOL",
       "name": "_error_sentinel"
     }
   ],
@@ -8433,5 +8765,300 @@
     "_type",
     "_pattern"
   ],
-  "reserved": {}
+  "reserved": {
+    "global": [
+      {
+        "type": "STRING",
+        "value": "and"
+      },
+      {
+        "type": "STRING",
+        "value": "as"
+      },
+      {
+        "type": "STRING",
+        "value": "case"
+      },
+      {
+        "type": "STRING",
+        "value": "catch"
+      },
+      {
+        "type": "STRING",
+        "value": "checked_cast"
+      },
+      {
+        "type": "STRING",
+        "value": "checked_ecast"
+      },
+      {
+        "type": "STRING",
+        "value": "choose"
+      },
+      {
+        "type": "STRING",
+        "value": "def"
+      },
+      {
+        "type": "STRING",
+        "value": "discard"
+      },
+      {
+        "type": "STRING",
+        "value": "eff"
+      },
+      {
+        "type": "STRING",
+        "value": "else"
+      },
+      {
+        "type": "STRING",
+        "value": "ematch"
+      },
+      {
+        "type": "STRING",
+        "value": "enum"
+      },
+      {
+        "type": "STRING",
+        "value": "false"
+      },
+      {
+        "type": "STRING",
+        "value": "fix"
+      },
+      {
+        "type": "STRING",
+        "value": "forA"
+      },
+      {
+        "type": "STRING",
+        "value": "forM"
+      },
+      {
+        "type": "STRING",
+        "value": "forall"
+      },
+      {
+        "type": "STRING",
+        "value": "force"
+      },
+      {
+        "type": "STRING",
+        "value": "foreach"
+      },
+      {
+        "type": "STRING",
+        "value": "from"
+      },
+      {
+        "type": "STRING",
+        "value": "handler"
+      },
+      {
+        "type": "STRING",
+        "value": "if"
+      },
+      {
+        "type": "STRING",
+        "value": "import"
+      },
+      {
+        "type": "STRING",
+        "value": "inject"
+      },
+      {
+        "type": "STRING",
+        "value": "instance"
+      },
+      {
+        "type": "STRING",
+        "value": "instanceof"
+      },
+      {
+        "type": "STRING",
+        "value": "into"
+      },
+      {
+        "type": "STRING",
+        "value": "lazy"
+      },
+      {
+        "type": "STRING",
+        "value": "let"
+      },
+      {
+        "type": "STRING",
+        "value": "match"
+      },
+      {
+        "type": "STRING",
+        "value": "mod"
+      },
+      {
+        "type": "STRING",
+        "value": "mut"
+      },
+      {
+        "type": "STRING",
+        "value": "new"
+      },
+      {
+        "type": "STRING",
+        "value": "not"
+      },
+      {
+        "type": "STRING",
+        "value": "null"
+      },
+      {
+        "type": "STRING",
+        "value": "open_variant"
+      },
+      {
+        "type": "STRING",
+        "value": "open_variant_as"
+      },
+      {
+        "type": "STRING",
+        "value": "or"
+      },
+      {
+        "type": "STRING",
+        "value": "par"
+      },
+      {
+        "type": "STRING",
+        "value": "pquery"
+      },
+      {
+        "type": "STRING",
+        "value": "project"
+      },
+      {
+        "type": "STRING",
+        "value": "psolve"
+      },
+      {
+        "type": "STRING",
+        "value": "pub"
+      },
+      {
+        "type": "STRING",
+        "value": "query"
+      },
+      {
+        "type": "STRING",
+        "value": "redef"
+      },
+      {
+        "type": "STRING",
+        "value": "region"
+      },
+      {
+        "type": "STRING",
+        "value": "restrictable"
+      },
+      {
+        "type": "STRING",
+        "value": "run"
+      },
+      {
+        "type": "STRING",
+        "value": "rvadd"
+      },
+      {
+        "type": "STRING",
+        "value": "rvand"
+      },
+      {
+        "type": "STRING",
+        "value": "rvnot"
+      },
+      {
+        "type": "STRING",
+        "value": "rvsub"
+      },
+      {
+        "type": "STRING",
+        "value": "sealed"
+      },
+      {
+        "type": "STRING",
+        "value": "select"
+      },
+      {
+        "type": "STRING",
+        "value": "solve"
+      },
+      {
+        "type": "STRING",
+        "value": "spawn"
+      },
+      {
+        "type": "STRING",
+        "value": "static"
+      },
+      {
+        "type": "STRING",
+        "value": "struct"
+      },
+      {
+        "type": "STRING",
+        "value": "super"
+      },
+      {
+        "type": "STRING",
+        "value": "throw"
+      },
+      {
+        "type": "STRING",
+        "value": "trait"
+      },
+      {
+        "type": "STRING",
+        "value": "true"
+      },
+      {
+        "type": "STRING",
+        "value": "try"
+      },
+      {
+        "type": "STRING",
+        "value": "type"
+      },
+      {
+        "type": "STRING",
+        "value": "unchecked_cast"
+      },
+      {
+        "type": "STRING",
+        "value": "unsafe"
+      },
+      {
+        "type": "STRING",
+        "value": "use"
+      },
+      {
+        "type": "STRING",
+        "value": "where"
+      },
+      {
+        "type": "STRING",
+        "value": "with"
+      },
+      {
+        "type": "STRING",
+        "value": "xor"
+      },
+      {
+        "type": "STRING",
+        "value": "xvar"
+      },
+      {
+        "type": "STRING",
+        "value": "yield"
+      }
+    ]
+  }
 }

@@ -134,7 +134,26 @@ export default grammar({
 
   word: $ => $.name_lower,
 
-  extras: $ => [/\s/, $.line_comment, $.doc_comment, $.block_comment],
+  // Lexer.scala's keyword table. Each is a hard keyword there -- the lexer emits a Keyword* token
+  // and no parser position accepts it as a name -- whereas tree-sitter's keyword extraction lets a
+  // keyword through as `name_lower` wherever the keyword itself is not expected. So `static` (used
+  // by no rule) or `def run()` in an anonymous class parsed clean. Reserving the table restores the
+  // reference's behaviour; the only keyword Parser2 accepts in a name position, `new` in
+  // `def new()`, is a literal in jvm_constructor and unaffected.
+  reserved: {
+    global: _ => [
+      'and', 'as', 'case', 'catch', 'checked_cast', 'checked_ecast', 'choose', 'def', 'discard',
+      'eff', 'else', 'ematch', 'enum', 'false', 'fix', 'forA', 'forM', 'forall', 'force',
+      'foreach', 'from', 'handler', 'if', 'import', 'inject', 'instance', 'instanceof', 'into',
+      'lazy', 'let', 'match', 'mod', 'mut', 'new', 'not', 'null', 'open_variant',
+      'open_variant_as', 'or', 'par', 'pquery', 'project', 'psolve', 'pub', 'query', 'redef',
+      'region', 'restrictable', 'run', 'rvadd', 'rvand', 'rvnot', 'rvsub', 'sealed', 'select',
+      'solve', 'spawn', 'static', 'struct', 'super', 'throw', 'trait', 'true', 'try', 'type',
+      'unchecked_cast', 'unsafe', 'use', 'where', 'with', 'xor', 'xvar', 'yield',
+    ],
+  },
+
+  extras: $ => [/\s/, $.line_comment, $.doc_comment, $.block_comment, $.unterminated_block_comment],
 
   externals: $ => [
     $.block_comment,
@@ -154,6 +173,9 @@ export default grammar({
     // reference reports as Malformed. See `package`.
     $._package_separator,
     $.malformed_package_separator,
+    // A `/*` with no closing `*/`. Still consumed to end of file, for the reason given in the
+    // scanner, but as a token of its own: a recovery marker, so the file reads as rejected.
+    $.unterminated_block_comment,
     // Referenced by no rule, so it is only ever valid in tree-sitter's error
     // recovery state, where every external is marked valid. The scanner uses it
     // to tell recovery from a real parse and stand down. Must stay last.
@@ -260,6 +282,25 @@ export default grammar({
         prec(-1, choice(/'(\\.|[^'\\\n])*/, /regex"(\\.|[^"\\\n])*/, /%%[A-Z0-9_]*/)),
       ),
 
+    // Keywords the reference lexer reserves but no Parser2 rule uses (`static`; `forall` since law
+    // declarations went). Parser2 meets one as an UnexpectedToken in expression position and wraps
+    // it in an ErrorTree; this node is that marker. It also makes both words tokens, which the
+    // `reserved` table requires.
+    reserved_keyword: _ => choice('static', 'forall'),
+    // Every reserved keyword except `new`, for the one name position where Parser2 recovers from a
+    // keyword in place: a JVM method in an anonymous class.
+    _method_keyword: _ =>
+      choice(
+        'and', 'as', 'case', 'catch', 'checked_cast', 'checked_ecast', 'choose', 'def', 'discard',
+        'eff', 'else', 'ematch', 'enum', 'false', 'fix', 'forA', 'forM', 'forall', 'force',
+        'foreach', 'from', 'handler', 'if', 'import', 'inject', 'instance', 'instanceof', 'into',
+        'lazy', 'let', 'match', 'mod', 'mut', 'not', 'null', 'open_variant', 'open_variant_as',
+        'or', 'par', 'pquery', 'project', 'psolve', 'pub', 'query', 'redef', 'region',
+        'restrictable', 'run', 'rvadd', 'rvand', 'rvnot', 'rvsub', 'sealed', 'select', 'solve',
+        'spawn', 'static', 'struct', 'super', 'throw', 'trait', 'true', 'try', 'type',
+        'unchecked_cast', 'unsafe', 'use', 'where', 'with', 'xor', 'xvar', 'yield',
+      ),
+
     hole_anonymous: _ => '???',
     hole_named: _ => /\?[a-zA-Z][a-zA-Z0-9_!$]*/,
     hole_variable: _ => /_?[a-zA-Z][a-zA-Z0-9_!$]*\?/,
@@ -363,8 +404,8 @@ export default grammar({
     _use_or_import: $ => seq(choice($.use_declaration, $.import_declaration), optional(';')),
 
     // `use flixball::Game.Board`, `use flixball::{Game, Board}`: Parser2.use() opens
-    // UsesOrImports.Package over a leading NAME_PACKAGE and its `::`, and a use-many may then follow
-    // the package directly, with no `.` before the brace. Only in a use: everywhere else `::` is
+    // UsesOrImports.Package over a leading NAME_PACKAGE and its `::`, and a use-many may then
+    // follow the package directly, with no `.` before the brace. Only in a use: everywhere else `::` is
     // cons, tight or spaced.
     use_declaration: $ =>
       seq(
@@ -804,6 +845,7 @@ export default grammar({
         $.fixpoint_psolve,
         $.unterminated_literal,
         $.unterminated_string,
+        $.reserved_keyword,
         $.fixpoint_inject,
         $.fixpoint_query,
         $.fixpoint_query_with_provenance,
@@ -946,7 +988,9 @@ export default grammar({
       seq(
         repeat($.annotation),
         'def',
-        field('name', $._name),
+        // A keyword here is Parser2's ErrorTree inside an otherwise complete JvmMethod (`def run()`),
+        // so the method keeps its shape. `new` is excluded: `def new(` is jvm_constructor.
+        choice(field('name', $._name), alias($._method_keyword, $.reserved_keyword)),
         $.parameter_list,
         ':',
         $._type_and_effect,

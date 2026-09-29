@@ -1034,9 +1034,9 @@ def f(): Unit = {
 Anonymous class with methods and a constructor
 ================================================================================
 
-def f(): Unit = new Runnable {
-    def new(): Runnable = ???
-    def run(): Unit \ IO = println("x")
+def f(): Unit = new Callable {
+    def new(): Callable = ???
+    def call(): Unit \ IO = println("x")
 }
 
 --------------------------------------------------------------------------------
@@ -1395,3 +1395,45 @@ def g(l: List[Int32]): Int32 = match l {
           (variable_pattern
             (wildcard))
           (integer))))))
+
+================================================================================
+A keyword as an anonymous-class method name is marked, the method kept
+================================================================================
+
+def f(): Unit = new Runnable {
+    def run(): Unit = ()
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (new_expression
+      (type_reference
+        (name_upper))
+      (jvm_method
+        (reserved_keyword)
+        (parameter_list)
+        (type_reference
+          (name_upper))
+        (unit_expression)))))
+
+================================================================================
+A keyword no rule uses is marked in expression position
+================================================================================
+
+def f(): Unit = static
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list)
+    (type_reference
+      (name_upper))
+    (reserved_keyword)))

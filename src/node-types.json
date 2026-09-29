@@ -274,6 +274,10 @@
         "named": true
       },
       {
+        "type": "reserved_keyword",
+        "named": true
+      },
+      {
         "type": "restrictable_choose",
         "named": true
       },
@@ -2083,7 +2087,7 @@
     "fields": {
       "name": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "name_lower",
@@ -2540,6 +2544,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "null",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "open_variant",
@@ -3221,6 +3230,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "reserved_keyword",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "restrictable_choose",
@@ -4600,6 +4614,10 @@
     "named": false
   },
   {
+    "type": "and",
+    "named": false
+  },
+  {
     "type": "annotation",
     "named": true
   },
@@ -4649,6 +4667,10 @@
     "named": false
   },
   {
+    "type": "discard",
+    "named": false
+  },
+  {
     "type": "doc_comment",
     "named": true,
     "extra": true
@@ -4687,6 +4709,14 @@
   },
   {
     "type": "forM",
+    "named": false
+  },
+  {
+    "type": "forall",
+    "named": false
+  },
+  {
+    "type": "force",
     "named": false
   },
   {
@@ -4734,6 +4764,10 @@
     "named": false
   },
   {
+    "type": "instanceof",
+    "named": false
+  },
+  {
     "type": "integer",
     "named": true
   },
@@ -4744,6 +4778,10 @@
   {
     "type": "intrinsic",
     "named": true
+  },
+  {
+    "type": "lazy",
+    "named": false
   },
   {
     "type": "let",
@@ -4792,7 +4830,7 @@
   },
   {
     "type": "null",
-    "named": true
+    "named": false
   },
   {
     "type": "open_variant",
@@ -4800,6 +4838,10 @@
   },
   {
     "type": "open_variant_as",
+    "named": false
+  },
+  {
+    "type": "or",
     "named": false
   },
   {
@@ -4847,6 +4889,22 @@
     "named": false
   },
   {
+    "type": "rvadd",
+    "named": false
+  },
+  {
+    "type": "rvand",
+    "named": false
+  },
+  {
+    "type": "rvnot",
+    "named": false
+  },
+  {
+    "type": "rvsub",
+    "named": false
+  },
+  {
     "type": "sealed",
     "named": false
   },
@@ -4860,6 +4918,10 @@
   },
   {
     "type": "spawn",
+    "named": false
+  },
+  {
+    "type": "static",
     "named": false
   },
   {
@@ -4911,6 +4973,11 @@
     "named": false
   },
   {
+    "type": "unterminated_block_comment",
+    "named": true,
+    "extra": true
+  },
+  {
     "type": "unterminated_literal",
     "named": true
   },
@@ -4932,6 +4999,10 @@
   },
   {
     "type": "with",
+    "named": false
+  },
+  {
+    "type": "xor",
     "named": false
   },
   {
