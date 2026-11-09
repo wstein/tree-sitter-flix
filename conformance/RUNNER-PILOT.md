@@ -43,6 +43,21 @@ positions and lexical correctness remain unmeasured: this is a named-node adapte
 The upstream 0.79 corpus contains 894 files: 893 clean, plus the expected truncated
 `resiliency/ford-fulkerson-prefix.flix` detected by the error-marker pass.
 
+### Unpublished 166-fixture candidate qualification
+
+The exact source-check candidate at flix-spec source revision
+`1463cdaafd8dd5b67c5cdd3b9948923c1e98b1b9` also passes with this consumer code.
+Data SHA-256: `f58c987974501e22f6671511a4454458fb669511c140788d27a560ac09b03922`;
+runner SHA-256: `9e8c4388c3feed99d3918b58b9c1b5ecd6aff2f265662778573a57efb0ed0b2c`.
+Its fixture revision is
+`7e017bc8d4850fd293c6c97ddb3e4e5c4cb8cee0ed691d2750d461eccc236dd2`.
+All 166 fixtures project: structure 40 differences, 142 agreeing, depth 95%;
+recovery 30 differences, 18/30 agreeing, depth 81%; diagnostics one difference,
+165 agreeing. Each remaining fixture/path/reason identity is unchanged from the
+published 163-fixture qualification. The candidate was tested in an isolated copy
+with its digest and fixture revision supplied explicitly; it does not replace the
+normal published artifact pin, and no standalone candidate build was run here.
+
 The following older pilot records are historical.
 
 ## Current status (2026-09-29)
