@@ -1,6 +1,6 @@
 {
   "consumer": "tree-sitter-flix",
-  "fixtureRevision": "aa16763bda3466465bc0735b4c2b14dcf2e072fc64893b49991f74cefeeb312f",
+  "fixtureRevision": "7e017bc8d4850fd293c6c97ddb3e4e5c4cb8cee0ed691d2750d461eccc236dd2",
   "review": "Exact remaining identities for the pinned Flix 0.79 bundle; counts and depth floors are independently ratcheted. Changes require review.",
   "lanes": {
     "oracle_conformance": [
