@@ -1,5 +1,50 @@
 # Standalone runner pilot
 
+## Flix 0.79 qualification (2026-11-09)
+
+The consumer now uses full types in all three schema/extensible row tails. The
+adapter retains native comment positions and reconstructs comment runs: trailing
+comments stay plain; leading documentation belongs to the next documentable
+native node. Misplaced documentation emits a parse-phase diagnostic. No expected
+tree is read by the producer. Concrete PlainComment/DocComment nodes remain visible.
+
+The qualified published artifacts are the exact timestamped snapshot
+`0.79.0-20261108.013727-1`, not a stable 0.79 release. Download from
+`https://wstein.github.io/flix-spec/maven/io/github/wstein/`:
+
+- Data: `flix-spec/0.79.0-SNAPSHOT/flix-spec-0.79.0-20261108.013727-1.jar`
+  SHA-256 `6092ac9a0f09b801f6b02ab7304af46247c90c9ac33a7aebc2642209031242e0`.
+- Runner: `flix-spec-runner/0.79.0-SNAPSHOT/flix-spec-runner-0.79.0-20261108.013727-1.jar`
+  SHA-256 `ea02ead1dbe3c5d9d22f6bfffec7f8207715f04ebc0d33a694e9f75aebc1fec2`.
+
+Verify these digests before extracting the data jar into a separate directory.
+The adapter additionally enforces the runner digest, data pin, vocabulary digests,
+and fixture revision. No floating snapshot alias is used to select artifact bytes.
+
+```sh
+node scripts/flix-spec-conformance.mjs /absolute/extracted-data \
+  --spec-version 0.79.0-20261108.013727-1 \
+  --runner /absolute/flix-spec-runner-0.79.0-20261108.013727-1.jar
+npm run test:conformance
+npm run lint
+tree-sitter test
+```
+
+Java 21, Node 22 and tree-sitter CLI 0.27.1: 163/163 fixtures projected;
+structure 40 differences, 139 agreeing, depth 95%; recovery 30 differences,
+18/30 agreeing, depth 81%; diagnostics one accept/reject difference, 162 agreeing.
+Ratchets tighten from 46/34/2 to 40/30/1; recovery depth tightens 79% to 81%.
+`accepted.json` also binds each remaining fixture/path/reason identity to this
+fixture revision, so a smaller total cannot conceal a new recovery difference.
+
+Diagnostics remain accept/reject only; kinds and lines are not mapped. The
+remaining diagnostic disagreement is `operator-error.flix`. Token accounting,
+positions and lexical correctness remain unmeasured: this is a named-node adapter.
+The upstream 0.79 corpus contains 894 files: 893 clean, plus the expected truncated
+`resiliency/ford-fulkerson-prefix.flix` detected by the error-marker pass.
+
+The following older pilot records are historical.
+
 ## Current status (2026-09-29)
 
 Implemented in `ad132be`: the local standalone gate passes with data **0.77.2**,

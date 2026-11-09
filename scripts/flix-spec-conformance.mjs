@@ -26,6 +26,7 @@
 // choice for the same reason.
 
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 import {basename, dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -45,9 +46,10 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
  * of the tree on their own, so the same trailing line is simply never read.
  *
  * @param {string} text - `tree-sitter parse` output for one file.
+ * @param {boolean} positions
  * @returns {{kind: string, children: object[]}|null} the root node, or null if there is none.
  */
-export function parseSExpression(text) {
+export function parseSExpression(text, positions = false) {
   let i = 0;
 
   const skipSpace = () => {
@@ -95,6 +97,7 @@ export function parseSExpression(text) {
       return inner;
     }
 
+    const coordinates = /^\s+\[(\d+), (\d+)\]/.exec(text.slice(i));
     const children = [];
     for (;;) {
       skipNoise();
@@ -117,10 +120,95 @@ export function parseSExpression(text) {
       if (label === '') i += 1; // unrecognised character; never spin
     }
     if (text[i] === ')') i += 1;
-    return {kind: name, children};
+    const node = {kind: name, children};
+    if (positions && coordinates) node.position = {row: Number(coordinates[1]), col: Number(coordinates[2])};
+    return node;
   };
 
   return parseNode();
+}
+
+/**
+ * Reinsert native comment extras using their source positions. This is adapter-owned structure:
+ * trailing runs remain plain; a leading run from its first doc belongs to the next documentable
+ * declaration. No reference fixtures or expected trees are consulted (Parser2.scala:166-390).
+ * Misplaced documentation is a parse-phase error, not a weeder validation.
+ *
+ * @param {object} tree native named-node tree, with CLI positions
+ * @param {string} source original source
+ * @returns {object[]} native parse diagnostics
+ */
+export function attachComments(tree, source) {
+  const lines = source.split('\n');
+  const diagnostics = [];
+  const comments = new Set(['line_comment', 'block_comment', 'doc_comment']);
+  const documentable = new Set(['associated_type_definition', 'associated_type_signature',
+    'function_declaration', 'effect_declaration', 'enum_declaration', 'instance_declaration',
+    'module_declaration', 'operation_declaration', 'restrictable_enum_declaration',
+    'signature_declaration', 'struct_declaration', 'trait_declaration', 'type_alias_declaration',
+    'enum_case', 'struct_field', 'local_function_declaration']);
+  /**
+   *
+   * @param {object[]} run
+   * @param {string} kind
+   */
+  function group(run, kind) {
+    return {kind, children: [], position: run[0].position};
+  }
+  /**
+   *
+   * @param {object[]} run
+   */
+  function misplaced(run) {
+    const docs = run.filter(n => n.kind === 'doc_comment');
+    if (docs.length) {
+      diagnostics.push({kind: 'tree-sitter.MisplacedDocComments',
+        line: docs[0].position.row + 1, col: docs[0].position.col + 1,
+        message: 'Documentation does not precede a documentable declaration'});
+    }
+  }
+  /**
+   *
+   * @param {object} node
+   */
+  function visit(node) {
+    const input = node.children;
+    for (const child of input) if (!comments.has(child.kind)) visit(child);
+    const output = [];
+    for (let i = 0; i < input.length;) {
+      if (!comments.has(input[i].kind)) {
+        output.push(input[i++]); continue;
+      }
+      const run = [];
+      while (i < input.length && comments.has(input[i].kind)) run.push(input[i++]);
+      const first = run[0].position;
+      const trailingLine = (lines[first.row] ?? '').slice(0, first.col).trim() ? first.row : -1;
+      const split = run.findIndex(n => n.position.row !== trailingLine);
+      const trailing = split === -1 ? run : run.slice(0, split);
+      const leading = split === -1 ? [] : run.slice(split);
+      const target = input[i];
+      const docStart = target && documentable.has(target.kind) ?
+        leading.findIndex(n => n.kind === 'doc_comment') : -1;
+      const plain = docStart < 0 ? leading : leading.slice(0, docStart);
+      for (const part of [trailing, plain]) {
+        if (part.length) {
+          misplaced(part); output.push(group(part, 'plain_comment'));
+        }
+      }
+      if (docStart >= 0) target.children.unshift(group(leading.slice(docStart), 'doc_comment'));
+    }
+    node.children = output;
+  }
+  visit(tree);
+  /**
+   *
+   * @param {object} node
+   */
+  function strip(node) {
+    delete node.position; node.children.forEach(strip);
+  }
+  strip(tree);
+  return diagnostics;
 }
 
 /**
@@ -253,7 +341,7 @@ function parseFixture(file) {
     out = e.stdout ?? '';
     if (!out) return {error: `tree-sitter parse produced no output: ${String(e.message).slice(0, 200)}`};
   }
-  const tree = parseSExpression(out);
+  const tree = parseSExpression(out, true);
   if (!tree || !tree.kind) return {error: 'no root node in parse output'};
   return {tree, raw: out};
 }
@@ -304,6 +392,11 @@ function main(argv) {
   const baseline = existsSync(baselinePath) ?
     JSON.parse(readFileSync(baselinePath, 'utf8')) :
     {divergences: 0, recoveryDivergences: 0, measuredAt: {}};
+  if (runner && baseline.measuredAt?.runnerSha256 &&
+    createHash('sha256').update(readFileSync(runner)).digest('hex') !== baseline.measuredAt.runnerSha256) {
+    console.error('error: runner SHA-256 differs from the pinned, qualified artifact');
+    return 2;
+  }
   const map = join(REPO, 'conformance', 'projection-map.json');
   const markers = [...JSON.parse(readFileSync(map, 'utf8')).recoveryMarkers ?? ['ERROR'], 'MISSING'];
 
@@ -359,11 +452,12 @@ function main(argv) {
     // applies conformance/projection-map.json's transparency rules itself, and it needs both lanes'
     // worth of information -- the structural lane splices our recovery markers out, the recovery
     // lane keeps them. Emitting anything pre-normalized would throw the second lane away.
+    const commentDiagnostics = attachComments(tree, readFileSync(file, 'utf8'));
     const doc = {
       schemaVersion: 2,
       generatedBy: 'tree-sitter-flix scripts/flix-spec-conformance.mjs',
       form: 'raw',
-      units: [{source: rel, diagnostics: diagnosticsOf(raw, markers), tree}],
+      units: [{source: rel, diagnostics: [...diagnosticsOf(raw, markers), ...commentDiagnostics], tree}],
     };
     writeFileSync(join(out, `${basename(file, '.flix')}.json`), `${JSON.stringify(doc, null, 1)}\n`);
   }
@@ -398,6 +492,7 @@ function main(argv) {
         // Each lane also has a depth floor: divergences can fall simply because less of the tree is
         // compared, and the floor is what stops that from reading as progress.
         ...comparisonArgs(out, map, report, baseline),
+        '--accepted', join(REPO, 'conformance', 'accepted.json'),
       ],
       {cwd: REPO, encoding: 'utf8', stdio: 'inherit'},
     );

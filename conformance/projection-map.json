@@ -122,6 +122,7 @@
     "parameter": "Parameter",
     "parameter_list": "ParameterList",
     "paren_expression": "Expr.Paren",
+    "plain_comment": "PlainComment",
     "predicate_arity": "PredicateAndArity",
     "predicate_atom": "Predicate.Atom",
     "predicate_functional": "Predicate.Functional",
