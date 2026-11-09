@@ -47,3 +47,17 @@ test('adapter still emits its native named-node structure', () => {
     kind: 'source_file', children: [{kind: 'name_lower', children: []}],
   });
 });
+
+// Canonical 0.79 comments are concrete syntax nodes, never transparency wrappers.
+test('Flix 0.79 comment mappings retain both comment kinds', () => {
+  const map = JSON.parse(readFileSync(new URL('../conformance/projection-map.json', import.meta.url), 'utf8'));
+  for (const native of ['line_comment', 'block_comment']) {
+    assert.equal(map.mappings[native], 'PlainComment');
+    assert.ok(!map.ignored.includes(native));
+  }
+  assert.equal(map.mappings.doc_comment, 'DocComment');
+  assert.ok(!map.ignored.includes('doc_comment'));
+  for (const key of ['elide', 'flattenCanonical']) {
+    assert.ok(!map[key].some(kind => ['CommentList', 'Doc', 'PlainComment', 'DocComment'].includes(kind)));
+  }
+});
