@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
 import {mkdtempSync, writeFileSync, rmSync, readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -87,5 +88,25 @@ test('trailing docs cannot document a following declaration, including CRLF', ()
     assert.equal(diagnostics.length, 1);
     assert.equal(tree.children[0].kind, 'plain_comment');
     assert.deepEqual(tree.children[1].children, []);
+  }
+});
+
+test('documentation of a real local definition attaches without a misplaced diagnostic', () => {
+  const source = 'def outer(): Int32 = {\n  /// local documentation\n  def inner(): Int32 = 1;\n  inner()\n}\n';
+  const dir = mkdtempSync(join(tmpdir(), 'flix-local-doc-'));
+  try {
+    const file = join(dir, 'local.flix');
+    writeFileSync(file, source);
+    const raw = execFileSync('tree-sitter', ['parse', file], {
+      cwd: new URL('..', import.meta.url), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const tree = parseSExpression(raw, true);
+    assert.deepEqual(attachComments(tree, source), []);
+    const nodes = node => [node, ...node.children.flatMap(nodes)];
+    const local = nodes(tree).find(node => node.kind === 'local_def_expression');
+    assert.ok(local, 'the real parser must retain its native local-definition node');
+    assert.equal(local.children[0].kind, 'doc_comment');
+  } finally {
+    rmSync(dir, {recursive: true});
   }
 });

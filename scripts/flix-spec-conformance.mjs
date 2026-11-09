@@ -146,7 +146,7 @@ export function attachComments(tree, source) {
     'function_declaration', 'effect_declaration', 'enum_declaration', 'instance_declaration',
     'module_declaration', 'operation_declaration', 'restrictable_enum_declaration',
     'signature_declaration', 'struct_declaration', 'trait_declaration', 'type_alias_declaration',
-    'enum_case', 'struct_field', 'local_function_declaration']);
+    'enum_case', 'struct_field', 'local_def_expression']);
   /**
    *
    * @param {object[]} run
