@@ -1,7 +1,11 @@
 {
   "schemaVersion": 1,
   "consumer": "tree-sitter-flix",
-  "capabilities": ["structure", "recovery", "diagnostics"],
+  "capabilities": [
+    "structure",
+    "recovery",
+    "diagnostics"
+  ],
   "description": "Maps tree-sitter-flix's snake_case node vocabulary onto canonical TreeKind names. Partial by design: it covers the node types the fixture suite actually exercises. Anything neither mapped nor ignored is reported as unmapped, which is a gap rather than a decision, so the report distinguishes 'not mapped yet' from 'disagrees with the reference'.",
   "mappings": {
     "ERROR": "ErrorTree",
@@ -15,6 +19,7 @@
     "binary_expression": "Expr.Binary",
     "binary_type": "Type.Binary",
     "block": "Expr.Block",
+    "block_comment": "PlainComment",
     "block_expression": "Expr.Block",
     "body_term_list": "Predicate.PatternList",
     "boolean": "Expr.Literal",
@@ -28,6 +33,7 @@
     "cons_pattern": "Pattern.FCons",
     "debug_prefix": "Expr.StringInterpolation",
     "derivations": "Type.DerivationList",
+    "doc_comment": "DocComment",
     "effect_declaration": "Decl.Effect",
     "effect_set_type": "Type.EffectSet",
     "enum_case": "Case",
@@ -87,6 +93,7 @@
     "lambda": "Expr.Lambda",
     "lambda_expression": "Expr.Lambda",
     "let_expression": "Expr.LetMatch",
+    "line_comment": "PlainComment",
     "list_literal": "Expr.LiteralList",
     "local_def_expression": "Expr.LocalDef",
     "malformed_number": "ErrorTree",
@@ -115,6 +122,7 @@
     "parameter": "Parameter",
     "parameter_list": "ParameterList",
     "paren_expression": "Expr.Paren",
+    "plain_comment": "PlainComment",
     "predicate_arity": "PredicateAndArity",
     "predicate_atom": "Predicate.Atom",
     "predicate_functional": "Predicate.Functional",
@@ -202,16 +210,13 @@
     "aliased_name",
     "annotation",
     "argument",
-    "block_comment",
     "comment",
     "debug_interpolation",
     "derivations",
-    "doc_comment",
     "effect_annotation",
     "enum_body",
     "hole_variable",
     "java_qualified_name",
-    "line_comment",
     "modifier",
     "qualified_name",
     "type_argument",
@@ -220,7 +225,6 @@
   ],
   "elide": [
     "AnnotationList",
-    "CommentList",
     "Expr.RunWithBodyExpr",
     "Expr.Statement",
     "ModifierList",
@@ -251,7 +255,8 @@
     "unterminated_block_comment": "A recovery marker, like unterminated_string: the reference lexer rejects a `/*` with no closing `*/` and has no node for it. Consumed to end of file for editor performance, so it is compared in the recovery lane and makes the unit read as rejected in the diagnostic lane.",
     "unterminated_interpolation": "A recovery marker, mapped to ErrorTree: at end of input inside `\"${ ... }\"` the reference lexer reports UnterminatedStringInterpolation and Parser2 closes Expr.StringInterpolation with an empty ErrorTree. Zero-width, emitted by the scanner only at end of input.",
     "unterminated_literal": "A recovery marker. The reference has no node here at all -- its lexer emits an Err token and the enclosing production keeps it -- so this is a genuine modelling difference, and the recovery lane is where it is measured rather than absorbed.",
-    "unterminated_string": "A recovery marker. The reference has no node here at all -- its lexer emits an Err token and the enclosing production keeps it -- so this is a genuine modelling difference, and the recovery lane is where it is measured rather than absorbed."
+    "unterminated_string": "A recovery marker. The reference has no node here at all -- its lexer emits an Err token and the enclosing production keeps it -- so this is a genuine modelling difference, and the recovery lane is where it is measured rather than absorbed.",
+    "comments": "Flix 0.79 reinserts PlainComment and DocComment as concrete nodes. Native comment extras map to those kinds and are retained; attachment differences remain visible to the comparator."
   },
   "flatten": [
     "effect_body",

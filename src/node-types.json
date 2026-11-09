@@ -1298,7 +1298,7 @@
       "required": false,
       "types": [
         {
-          "type": "name_lower",
+          "type": "_type",
           "named": true
         },
         {
@@ -3555,7 +3555,7 @@
       "required": false,
       "types": [
         {
-          "type": "name_lower",
+          "type": "_type",
           "named": true
         },
         {
@@ -3597,7 +3597,7 @@
       "required": false,
       "types": [
         {
-          "type": "name_lower",
+          "type": "_type",
           "named": true
         },
         {

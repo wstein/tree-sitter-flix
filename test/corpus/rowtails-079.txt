@@ -1,0 +1,47 @@
+================================================================================
+Flix 0.79 schema tail accepts a type application
+================================================================================
+
+type alias T[r] = #{ A(Int32) | List[r] }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (type_alias_declaration
+    (name_upper)
+    (type_parameter_list (type_parameter (name_lower)))
+    (schema_type
+      (schema_term (qualified_name (name_upper)) (type_reference (name_upper)))
+      (type_application (type_reference (name_upper)) (type_argument_list (type_variable))))))
+
+================================================================================
+Flix 0.79 schema row tail accepts a type application
+================================================================================
+
+type alias T[r] = #( A(Int32) | List[r] )
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (type_alias_declaration
+    (name_upper)
+    (type_parameter_list (type_parameter (name_lower)))
+    (schema_row_type
+      (schema_term (qualified_name (name_upper)) (type_reference (name_upper)))
+      (type_application (type_reference (name_upper)) (type_argument_list (type_variable))))))
+
+================================================================================
+Flix 0.79 extensible tail accepts a type application
+================================================================================
+
+type alias T[r] = #| A(Int32) | List[r] |#
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (type_alias_declaration
+    (name_upper)
+    (type_parameter_list (type_parameter (name_lower)))
+    (extensible_type
+      (schema_term (qualified_name (name_upper)) (type_reference (name_upper)))
+      (type_application (type_reference (name_upper)) (type_argument_list (type_variable))))))

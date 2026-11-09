@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
 import {mkdtempSync, writeFileSync, rmSync, readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {comparisonArgs, inputMismatches, metricSchemaMatches, parseSExpression} from './flix-spec-conformance.mjs';
+import {attachComments, comparisonArgs, inputMismatches, metricSchemaMatches, parseSExpression} from './flix-spec-conformance.mjs';
 
 test('depth floor is tied to its metric schema and unchanged reference denominator', () => {
   const baseline = JSON.parse(readFileSync(new URL('../conformance/baseline.json', import.meta.url), 'utf8'));
@@ -46,4 +47,66 @@ test('adapter still emits its native named-node structure', () => {
   assert.deepEqual(parseSExpression('(source_file [0, 0] - [0, 1] (name_lower [0, 0] - [0, 1]))'), {
     kind: 'source_file', children: [{kind: 'name_lower', children: []}],
   });
+});
+
+// Canonical 0.79 comments are concrete syntax nodes, never transparency wrappers.
+test('Flix 0.79 comment mappings retain both comment kinds', () => {
+  const map = JSON.parse(readFileSync(new URL('../conformance/projection-map.json', import.meta.url), 'utf8'));
+  for (const native of ['line_comment', 'block_comment']) {
+    assert.equal(map.mappings[native], 'PlainComment');
+    assert.ok(!map.ignored.includes(native));
+  }
+  assert.equal(map.mappings.doc_comment, 'DocComment');
+  assert.ok(!map.ignored.includes('doc_comment'));
+  for (const key of ['elide', 'flattenCanonical']) {
+    assert.ok(!map[key].some(kind => ['CommentList', 'Doc', 'PlainComment', 'DocComment'].includes(kind)));
+  }
+});
+
+test('comments attach only from leading documentation runs and misplaced docs reject', () => {
+  const node = (kind, row, col = 0) => ({kind, children: [], position: {row, col}});
+  const declaration = node('function_declaration', 3);
+  declaration.children.push(node('name_lower', 3, 4));
+  const tree = {kind: 'source_file', children: [node('line_comment', 0),
+    node('doc_comment', 1), node('line_comment', 2), declaration]};
+  const diagnostics = attachComments(tree, '// plain\n/// docs\n//// also docs\ndef f(): Int32 = 1\n');
+  assert.equal(diagnostics.length, 0);
+  assert.deepEqual(tree.children.map(n => n.kind), ['plain_comment', 'function_declaration']);
+  assert.deepEqual(declaration.children.map(n => n.kind), ['doc_comment', 'name_lower']);
+  for (const [source, row, col] of [['def f(): Int32 = 1 /// bad', 0, 19],
+    ['def f(): Int32 = 1\n/// orphan', 1, 0]]) {
+    const orphan = {kind: 'source_file', children: [node('doc_comment', row, col)]};
+    assert.equal(attachComments(orphan, source).length, 1);
+    assert.equal(orphan.children[0].kind, 'plain_comment');
+  }
+});
+
+test('trailing docs cannot document a following declaration, including CRLF', () => {
+  for (const newline of ['\n', '\r\n']) {
+    const tree = parseSExpression('(source_file [0, 0] - [2, 0] (doc_comment [0, 19] - [0, 26]) (function_declaration [1, 0] - [1, 18]))', true);
+    const diagnostics = attachComments(tree, `def f(): Int32 = 1 /// bad${newline}def g(): Int32 = 2`);
+    assert.equal(diagnostics.length, 1);
+    assert.equal(tree.children[0].kind, 'plain_comment');
+    assert.deepEqual(tree.children[1].children, []);
+  }
+});
+
+test('documentation of a real local definition attaches without a misplaced diagnostic', () => {
+  const source = 'def outer(): Int32 = {\n  /// local documentation\n  def inner(): Int32 = 1;\n  inner()\n}\n';
+  const dir = mkdtempSync(join(tmpdir(), 'flix-local-doc-'));
+  try {
+    const file = join(dir, 'local.flix');
+    writeFileSync(file, source);
+    const raw = execFileSync('tree-sitter', ['parse', file], {
+      cwd: new URL('..', import.meta.url), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const tree = parseSExpression(raw, true);
+    assert.deepEqual(attachComments(tree, source), []);
+    const nodes = node => [node, ...node.children.flatMap(nodes)];
+    const local = nodes(tree).find(node => node.kind === 'local_def_expression');
+    assert.ok(local, 'the real parser must retain its native local-definition node');
+    assert.equal(local.children[0].kind, 'doc_comment');
+  } finally {
+    rmSync(dir, {recursive: true});
+  }
 });
