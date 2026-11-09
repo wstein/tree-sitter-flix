@@ -790,13 +790,12 @@ export default grammar({
 
     effect_set_type: $ => seq('{', commaSep($._type), '}'),
 
-    // The tail after `|` is a bare name -- Parser2 reads it with nameUnqualified(NAME_VARIABLE),
-    // an Ident, not a type.
-    schema_type: $ => seq('#{', commaSep($._schema_term), optional(seq('|', $.name_lower)), '}'),
+    // Since Flix 0.78, each schema/extensible tail is a full type (Parser2.Type).
+    schema_type: $ => seq('#{', commaSep($._schema_term), optional(seq('|', $._type)), '}'),
     schema_row_type: $ =>
-      seq('#(', commaSep($._schema_term), optional(seq('|', $.name_lower)), ')'),
+      seq('#(', commaSep($._schema_term), optional(seq('|', $._type)), ')'),
     extensible_type: $ =>
-      seq('#|', commaSep($._schema_term), optional(seq('|', $.name_lower)), '|#'),
+      seq('#|', commaSep($._schema_term), optional(seq('|', $._type)), '|#'),
     // `schemaTerm` closes PredicateWithAlias for `A[t]` and PredicateWithTypes otherwise.
     _schema_term: $ => choice($.schema_term, $.schema_alias_term),
     schema_term: $ =>

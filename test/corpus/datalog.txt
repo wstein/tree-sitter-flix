@@ -463,7 +463,7 @@ def f(): #{ Edge(Int32, Int32) | r } = ???
           (name_upper))
         (type_reference
           (name_upper)))
-      (name_lower))
+      (type_variable))
     (hole_anonymous)))
 
 ================================================================================

@@ -391,7 +391,7 @@ def f(r: #{ A[t], B(Int32) | r }): Int32 = 1
               (name_upper))
             (type_reference
               (name_upper)))
-          (name_lower))))
+          (type_variable))))
     (type_reference
       (name_upper))
     (integer)))

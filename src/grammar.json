@@ -4348,7 +4348,7 @@
                 },
                 {
                   "type": "SYMBOL",
-                  "name": "name_lower"
+                  "name": "_type"
                 }
               ]
             },
@@ -4415,7 +4415,7 @@
                 },
                 {
                   "type": "SYMBOL",
-                  "name": "name_lower"
+                  "name": "_type"
                 }
               ]
             },
@@ -4482,7 +4482,7 @@
                 },
                 {
                   "type": "SYMBOL",
-                  "name": "name_lower"
+                  "name": "_type"
                 }
               ]
             },
