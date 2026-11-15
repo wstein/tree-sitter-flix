@@ -1,0 +1,49 @@
+================================================================================
+Module value declaration
+================================================================================
+
+mod M {
+    pub val field: Int32 = 42
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (module_declaration
+    (qualified_name (name_upper))
+    (value_declaration
+      (modifier)
+      (name_lower)
+      (type_reference (name_upper))
+      (integer))))
+
+================================================================================
+Keyword prefix remains an identifier
+================================================================================
+
+def f(valve: Int32): Int32 = valve
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (name_lower)
+    (parameter_list
+      (parameter (name_lower) (type_reference (name_upper))))
+    (type_reference (name_upper))
+    (qualified_name (name_lower))))
+
+================================================================================
+Val is reserved in parameter position
+================================================================================
+
+def f(val: Int32): Int32 = val
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (ERROR
+    (name_lower)
+    (parameter_list
+      (ERROR (name_upper)))
+    (type_reference (name_upper))))

@@ -1,5 +1,9 @@
 # Standalone runner pilot
 
+These pilot instructions and artifact references are historical. The current
+Flix 0.80 conformance gate and its published artifacts are documented in
+[FLIX-080.md](FLIX-080.md).
+
 ## Flix 0.79 qualification (2026-11-09)
 
 The consumer now uses full types in all three schema/extensible row tails. The

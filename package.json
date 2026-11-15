@@ -56,9 +56,9 @@
     "generate": "tree-sitter generate",
     "lint": "eslint grammar.js eslint.config.js scripts/*.mjs",
     "fmt": "eslint --fix grammar.js eslint.config.js scripts/*.mjs",
-    "test": "tree-sitter test",
+    "test": "tree-sitter test --rebuild",
     "conformance": "node scripts/flix-spec-conformance.mjs",
-    "test:conformance": "node --test scripts/flix-spec-conformance.test.mjs",
+    "test:conformance": "node --test scripts/flix-spec-conformance.test.mjs scripts/flix-spec-080-gate.test.mjs",
     "test:bindings": "node --test bindings/node/*_test.js"
   }
 }

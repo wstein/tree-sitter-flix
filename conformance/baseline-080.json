@@ -1,0 +1,719 @@
+{
+  "note": "Flix 0.80 complete fixture comparison plus historic fixture subset: the historic recovery floor remains 81%. Full set recovery depth is 78%; only the owner-approved reserved-val recovery shapes are added.",
+  "divergences": 42,
+  "recoveryDivergences": 32,
+  "diagnosticDivergences": 1,
+  "depthFloor": 95,
+  "recoveryDepthFloor": 81,
+  "measuredAt": {
+    "treeSitterFlix": "Flix 0.80 val grammar and projection",
+    "runnerVersion": "0.80.0-20261115.222714-1",
+    "reportSchemaVersion": 9,
+    "depthMigration": "The full 0.80 recovery lane is 288/368 (78%); the 167-fixture historical subset remains 286/351 (81%). The exact approved reserved-val differences are checked separately.",
+    "treeSitterCli": "0.27.2",
+    "flixSpecPin": "v0.80.0",
+    "flixSpecPinCommit": "0c641c73c4635dee992d01c4364f224ea56d9a46",
+    "fixtureRevision": "5d990939d513c1ef9add5285ec928ad8b222d42de6c198ec426a67992a237f51",
+    "fixtures": 168,
+    "flixSpecArtifact": "0.80.0-20261115.222714-1",
+    "treeKindDigest": "d4ca310e5cdb474d3395cafa176e9e260bd51b4e50e8af99b47767554ce8eee3",
+    "tokenKindDigest": "b93d590501656a01874a2a1761a7d0b0cee9d993859c87099e9256adaa72be69",
+    "runnerSha256": "467c7cf746799366dce795890b52dbb8f7423f98d800b1756fe8efcb3df4fa8a",
+    "flixSpecSha256": "27419d170de4af8a4a817ad48a04aa214808e8933ea23f040635357103f7c2b3"
+  },
+  "lanes": {
+    "oracle_conformance": {
+      "verdict": "pass",
+      "claim": "agrees with the normalized canonical trees the pinned reference compiler produces, modulo error recovery",
+      "authority": "derived",
+      "caveat": "inherits the reference's defects by construction; agreeing with a compiler bug scores as agreement. See defects/ledger.json. Error-recovery shape is deliberately not measured here \u2014 see recovery_conformance.",
+      "baseline": 42,
+      "fixturesExpected": 168,
+      "fixturesCompared": 168,
+      "fixturesMissing": [],
+      "fixturesAgreeing": 143,
+      "nodesCompared": 2310,
+      "nodesExpected": 2434,
+      "depthPercent": 95,
+      "nodesMapped": 2310,
+      "nodesIgnored": 646,
+      "nodesDroppedEmpty": 0,
+      "nodesElided": 17,
+      "nodesFlattened": 72,
+      "nodesFlattenedCanonical": 3,
+      "nodesUnmapped": 7,
+      "unmapped": [
+        {
+          "name": "argument",
+          "count": 3
+        },
+        {
+          "name": "literal_pattern",
+          "count": 2
+        },
+        {
+          "name": "associated_type_definition",
+          "count": 1
+        },
+        {
+          "name": "debug_interpolation",
+          "count": 1
+        }
+      ],
+      "divergenceCount": 42,
+      "divergencesListed": 42,
+      "divergences": [
+        {
+          "fixture": "comments__inside-type-and-arguments.json",
+          "path": "fixtures/positive/comments__inside-type-and-arguments.flix.Root[0].Decl.Def[1].ParameterList[0]",
+          "expected": "4 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "comments__inside-type-and-arguments.json",
+          "path": "fixtures/positive/comments__inside-type-and-arguments.flix.Root[0].Decl.Def[1].ParameterList[0].Parameter[2]",
+          "expected": "PlainComment",
+          "actual": "Type.Apply",
+          "reason": "kind"
+        },
+        {
+          "fixture": "declarations__function-with-type-parameters-and-constraints.json",
+          "path": "fixtures/positive/declarations__function-with-type-parameters-and-constraints.flix.Root[0].Decl.Def[1].ParameterList[0].Parameter[1]",
+          "expected": "4 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__function-with-type-parameters-and-constraints.json",
+          "path": "fixtures/positive/declarations__function-with-type-parameters-and-constraints.flix.Root[0].Decl.Def[1].ParameterList[0].Parameter[1].Type.Binary[1]",
+          "expected": "Operator",
+          "actual": "Type.Variable",
+          "reason": "kind"
+        },
+        {
+          "fixture": "declarations__instance-with-redef-and-associated-type-definiti.json",
+          "path": "fixtures/positive/declarations__instance-with-redef-and-associated-type-definiti.flix.Root[0].Decl.Instance[5]",
+          "expected": "Decl.Redef",
+          "actual": "Decl.Def",
+          "reason": "kind"
+        },
+        {
+          "fixture": "declarations__law-declarations-and-lawful-modifier-are-rejected.json",
+          "path": "fixtures/negative/declarations__law-declarations-and-lawful-modifier-are-rejected.flix",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__law-declarations-and-lawful-modifier-are-rejected.json",
+          "path": "fixtures/negative/declarations__law-declarations-and-lawful-modifier-are-rejected.flix.Root[0]",
+          "expected": "Decl.Trait",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0]",
+          "expected": "4 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0].Decl.Trait[2].Decl.Signature[0]",
+          "expected": "Ident",
+          "actual": "ParameterList",
+          "reason": "kind"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0].Decl.Trait[2].Decl.Signature[1]",
+          "expected": "ParameterList",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__cons-and-literal-patterns.json",
+          "path": "fixtures/positive/expressions__cons-and-literal-patterns.flix.Root[0].Decl.Def[3].Expr.Match[2].Expr.MatchRuleFragment[0].Pattern.FCons[0]",
+          "expected": "Pattern.Pattern",
+          "actual": "Pattern.Unary",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__effect-handling-with-run.json",
+          "path": "fixtures/positive/expressions__effect-handling-with-run.flix.Root[0].Decl.Def[3].Expr.Run[1]",
+          "expected": "Expr.RunWithBodyExpr",
+          "actual": "QName",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__lambdas.json",
+          "path": "fixtures/positive/expressions__lambdas.flix.Root[0].Decl.Def[3].Expr.Tuple[0].Expr.Lambda[0]",
+          "expected": "ParameterList",
+          "actual": "Parameter",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__malformed-tuple-reaches-enclosing-brace.json",
+          "path": "fixtures/negative/expressions__malformed-tuple-reaches-enclosing-brace.flix.Root[0].Decl.Def[3].Expr.Block[0]",
+          "expected": "Expr.Binary",
+          "actual": "Expr.Tuple",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__match-rule-wrong-arrow.json",
+          "path": "fixtures/negative/expressions__match-rule-wrong-arrow.flix.Root[0].Decl.Def[3]",
+          "expected": "3 children",
+          "actual": "6 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "expressions__match-rule-wrong-arrow.json",
+          "path": "fixtures/negative/expressions__match-rule-wrong-arrow.flix.Root[0].Decl.Def[3].Expr.Match[1]",
+          "expected": "Expr.MatchRuleFragment",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__missing-semicolon-before-let.json",
+          "path": "fixtures/negative/expressions__missing-semicolon-before-let.flix.Root[0].Decl.Def[3]",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "expressions__missing-semicolon-before-let.json",
+          "path": "fixtures/negative/expressions__missing-semicolon-before-let.flix.Root[0].Decl.Def[3].Expr.Block[0]",
+          "expected": "Expr.Statement",
+          "actual": "Expr.Literal",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__operator-as-lambda.json",
+          "path": "fixtures/positive/expressions__operator-as-lambda.flix.Root[0].Decl.Def[3].Expr.Apply[1].ArgumentList[0]",
+          "expected": "1 children",
+          "actual": "0 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "expressions__struct-literal-with-field-initialisers.json",
+          "path": "fixtures/positive/expressions__struct-literal-with-field-initialisers.flix.Root[0].Decl.Def[3].Expr.Region[1].Expr.Block[0].Expr.AmbiguousNew[1]",
+          "expected": "Ident",
+          "actual": "Expr.RegionName",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__throw-and-unsafe.json",
+          "path": "fixtures/positive/expressions__throw-and-unsafe.flix.Root[0].Decl.Def[3].Expr.Block[0].Expr.Statement[0].Expr.Unsafe[2]",
+          "expected": "Expr.Apply",
+          "actual": "Expr.Block",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__trailing-separator-in-argument-list.json",
+          "path": "fixtures/negative/expressions__trailing-separator-in-argument-list.flix.Root[0].Decl.Def[3].Expr.Apply[1]",
+          "expected": "2 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "identifier__reserved-val.json",
+          "path": "fixtures/negative/identifier__reserved-val.flix.Root[0]",
+          "expected": "Decl.Def",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "identifier__reserved-val.json",
+          "path": "fixtures/negative/identifier__reserved-val.flix.Root[1]",
+          "expected": "Decl.Val",
+          "actual": "Expr.Literal",
+          "reason": "kind"
+        },
+        {
+          "fixture": "lexical__bang-caret-dollar-have-no-standalone-meaning.json",
+          "path": "fixtures/negative/lexical__bang-caret-dollar-have-no-standalone-meaning.flix",
+          "expected": "Root",
+          "actual": "ErrorTree",
+          "reason": "kind"
+        },
+        {
+          "fixture": "lexical__free-dot-and-unexpected-char.json",
+          "path": "fixtures/negative/lexical__free-dot-and-unexpected-char.flix",
+          "expected": "2 children",
+          "actual": "4 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "lexical__free-dot-and-unexpected-char.json",
+          "path": "fixtures/negative/lexical__free-dot-and-unexpected-char.flix.Root[0]",
+          "expected": "4 children",
+          "actual": "5 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "lexical__free-dot-and-unexpected-char.json",
+          "path": "fixtures/negative/lexical__free-dot-and-unexpected-char.flix.Root[1]",
+          "expected": "Decl.Def",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "lexical__holes.json",
+          "path": "fixtures/positive/lexical__holes.flix.Root[0].Decl.Def[3]",
+          "expected": "3 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "lexical__holes.json",
+          "path": "fixtures/positive/lexical__holes.flix.Root[0].Decl.Def[3].Expr.Tuple[1]",
+          "expected": "1 children",
+          "actual": "0 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "operator-error.json",
+          "path": "fixtures/negative/operator-error.flix.Root[0].Decl.Def[3]",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "operator-error.json",
+          "path": "fixtures/negative/operator-error.flix.Root[0].Decl.Def[3].Expr.Block[0]",
+          "expected": "Expr.Binary",
+          "actual": "Expr.Literal",
+          "reason": "kind"
+        },
+        {
+          "fixture": "restrictable-choose-star.json",
+          "path": "fixtures/positive/restrictable-choose-star.flix.Root[0].Decl.Def[1].ParameterList[0].Parameter[1]",
+          "expected": "3 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "restrictable-choose-star.json",
+          "path": "fixtures/positive/restrictable-choose-star.flix.Root[0].Decl.Def[1].ParameterList[0].Parameter[1].Type.Binary[1]",
+          "expected": "Operator",
+          "actual": "Type.Variable",
+          "reason": "kind"
+        },
+        {
+          "fixture": "trailing-dot.json",
+          "path": "fixtures/negative/trailing-dot.flix.Root[0].Decl.Def[3]",
+          "expected": "QName",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "types__arrow-types-are-right-associative.json",
+          "path": "fixtures/positive/types__arrow-types-are-right-associative.flix.Root[0].Decl.Def[2]",
+          "expected": "3 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "types__arrow-types-are-right-associative.json",
+          "path": "fixtures/positive/types__arrow-types-are-right-associative.flix.Root[0].Decl.Def[2].Type.Binary[1]",
+          "expected": "Operator",
+          "actual": "Type.Binary",
+          "reason": "kind"
+        },
+        {
+          "fixture": "types__effect-annotation-binds-to-the-arrow-result.json",
+          "path": "fixtures/positive/types__effect-annotation-binds-to-the-arrow-result.flix.Root[0].Decl.Def[2]",
+          "expected": "4 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "types__effect-annotation-binds-to-the-arrow-result.json",
+          "path": "fixtures/positive/types__effect-annotation-binds-to-the-arrow-result.flix.Root[0].Decl.Def[2].Type.Binary[1]",
+          "expected": "Operator",
+          "actual": "Type.Variable",
+          "reason": "kind"
+        },
+        {
+          "fixture": "types__higher-order-kind.json",
+          "path": "fixtures/positive/types__higher-order-kind.flix.Root[0].Decl.Def[1].TypeParameterList[0].Parameter[1]",
+          "expected": "2 children",
+          "actual": "1 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "types__higher-order-kind.json",
+          "path": "fixtures/positive/types__higher-order-kind.flix.Root[0].Decl.Def[1].TypeParameterList[0].Parameter[1].Kind[0]",
+          "expected": "0 children",
+          "actual": "2 children",
+          "reason": "arity"
+        }
+      ]
+    },
+    "recovery_conformance": {
+      "verdict": "pass",
+      "claim": "reproduces the reference's error-recovery shape on the fixtures that recover from something",
+      "authority": "derived",
+      "caveat": "error recovery is implementation-specific by nature: two parsers can agree completely about valid programs and share nothing about how they resurface from a malformed one. A divergence here is weaker evidence than one in oracle_conformance, which is why the two are never summed.",
+      "baseline": 32,
+      "fixturesExpected": 31,
+      "fixturesCompared": 31,
+      "fixturesMissing": [],
+      "fixturesAgreeing": 18,
+      "nodesCompared": 288,
+      "nodesExpected": 368,
+      "depthPercent": 78,
+      "nodesMapped": 288,
+      "nodesIgnored": 76,
+      "nodesDroppedEmpty": 0,
+      "nodesElided": 2,
+      "nodesFlattened": 5,
+      "nodesFlattenedCanonical": 0,
+      "nodesUnmapped": 0,
+      "unmapped": [],
+      "divergenceCount": 32,
+      "divergencesListed": 32,
+      "divergences": [
+        {
+          "fixture": "declarations__law-declarations-and-lawful-modifier-are-rejected.json",
+          "path": "fixtures/negative/declarations__law-declarations-and-lawful-modifier-are-rejected.flix.Root[0]",
+          "expected": "0 children",
+          "actual": "1 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__law-declarations-and-lawful-modifier-are-rejected.json",
+          "path": "fixtures/negative/declarations__law-declarations-and-lawful-modifier-are-rejected.flix.Root[1]",
+          "expected": "4 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__law-declarations-and-lawful-modifier-are-rejected.json",
+          "path": "fixtures/negative/declarations__law-declarations-and-lawful-modifier-are-rejected.flix.Root[1].Decl.Trait[2]",
+          "expected": "0 children",
+          "actual": "4 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0]",
+          "expected": "8 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0].Decl.Trait[2]",
+          "expected": "4 children",
+          "actual": "3 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0].Decl.Trait[2].Decl.Signature[0]",
+          "expected": "Ident",
+          "actual": "ErrorTree",
+          "reason": "kind"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0].Decl.Trait[2].Decl.Signature[1]",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0].Decl.Trait[2].Decl.Signature[1].ParameterList[0]",
+          "expected": "ErrorTree",
+          "actual": "Parameter",
+          "reason": "kind"
+        },
+        {
+          "fixture": "declarations__trait-and-instance-with-an-operator-signature.json",
+          "path": "fixtures/negative/declarations__trait-and-instance-with-an-operator-signature.flix.Root[0].Decl.Trait[2].Decl.Signature[2]",
+          "expected": "ErrorTree",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__malformed-tuple-reaches-enclosing-brace.json",
+          "path": "fixtures/negative/expressions__malformed-tuple-reaches-enclosing-brace.flix",
+          "expected": "2 children",
+          "actual": "1 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "expressions__malformed-tuple-reaches-enclosing-brace.json",
+          "path": "fixtures/negative/expressions__malformed-tuple-reaches-enclosing-brace.flix.Root[0].Decl.Def[3]",
+          "expected": "2 children",
+          "actual": "1 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "expressions__malformed-tuple-reaches-enclosing-brace.json",
+          "path": "fixtures/negative/expressions__malformed-tuple-reaches-enclosing-brace.flix.Root[0].Decl.Def[3].Expr.Block[0]",
+          "expected": "Expr.Binary",
+          "actual": "Expr.Tuple",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__match-rule-wrong-arrow.json",
+          "path": "fixtures/negative/expressions__match-rule-wrong-arrow.flix.Root[0].Decl.Def[3]",
+          "expected": "3 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "expressions__match-rule-wrong-arrow.json",
+          "path": "fixtures/negative/expressions__match-rule-wrong-arrow.flix.Root[0].Decl.Def[3].Expr.Match[1]",
+          "expected": "Expr.MatchRuleFragment",
+          "actual": "ErrorTree",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__missing-semicolon-before-let.json",
+          "path": "fixtures/negative/expressions__missing-semicolon-before-let.flix.Root[0].Decl.Def[3]",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "expressions__missing-semicolon-before-let.json",
+          "path": "fixtures/negative/expressions__missing-semicolon-before-let.flix.Root[0].Decl.Def[3].Expr.Block[0]",
+          "expected": "Expr.Statement",
+          "actual": "ErrorTree",
+          "reason": "kind"
+        },
+        {
+          "fixture": "expressions__trailing-separator-in-argument-list.json",
+          "path": "fixtures/negative/expressions__trailing-separator-in-argument-list.flix.Root[0].Decl.Def[3].Expr.Apply[1].ArgumentList[2]",
+          "expected": "ErrorTree",
+          "actual": "Ident",
+          "reason": "kind"
+        },
+        {
+          "fixture": "identifier__reserved-val.json",
+          "path": "fixtures/negative/identifier__reserved-val.flix",
+          "expected": "2 children",
+          "actual": "1 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "identifier__reserved-val.json",
+          "path": "fixtures/negative/identifier__reserved-val.flix.Root[0]",
+          "expected": "Decl.Def",
+          "actual": "ErrorTree",
+          "reason": "kind"
+        },
+        {
+          "fixture": "lexical__bang-caret-dollar-have-no-standalone-meaning.json",
+          "path": "fixtures/negative/lexical__bang-caret-dollar-have-no-standalone-meaning.flix",
+          "expected": "Root",
+          "actual": "ErrorTree",
+          "reason": "kind"
+        },
+        {
+          "fixture": "lexical__free-dot-and-unexpected-char.json",
+          "path": "fixtures/negative/lexical__free-dot-and-unexpected-char.flix",
+          "expected": "3 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "lexical__free-dot-and-unexpected-char.json",
+          "path": "fixtures/negative/lexical__free-dot-and-unexpected-char.flix.Root[0]",
+          "expected": "4 children",
+          "actual": "5 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "lexical__free-dot-and-unexpected-char.json",
+          "path": "fixtures/negative/lexical__free-dot-and-unexpected-char.flix.Root[0].Decl.Def[3]",
+          "expected": "Ident",
+          "actual": "ErrorTree",
+          "reason": "kind"
+        },
+        {
+          "fixture": "lexical__free-dot-and-unexpected-char.json",
+          "path": "fixtures/negative/lexical__free-dot-and-unexpected-char.flix.Root[1]",
+          "expected": "0 children",
+          "actual": "4 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "lexical__unterminated-string-interpolation.json",
+          "path": "fixtures/negative/lexical__unterminated-string-interpolation.flix",
+          "expected": "2 children",
+          "actual": "1 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "operator-error.json",
+          "path": "fixtures/negative/operator-error.flix.Root[0].Decl.Def[3]",
+          "expected": "1 children",
+          "actual": "2 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "operator-error.json",
+          "path": "fixtures/negative/operator-error.flix.Root[0].Decl.Def[3].Expr.Block[0]",
+          "expected": "Expr.Binary",
+          "actual": "Expr.Literal",
+          "reason": "kind"
+        },
+        {
+          "fixture": "types__effect-annotation-wrong-slash.json",
+          "path": "fixtures/negative/types__effect-annotation-wrong-slash.flix.Root[0]",
+          "expected": "6 children",
+          "actual": "5 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "types__effect-annotation-wrong-slash.json",
+          "path": "fixtures/negative/types__effect-annotation-wrong-slash.flix.Root[0].Decl.Def[3]",
+          "expected": "0 children",
+          "actual": "1 children",
+          "reason": "arity"
+        },
+        {
+          "fixture": "types__effect-annotation-wrong-slash.json",
+          "path": "fixtures/negative/types__effect-annotation-wrong-slash.flix.Root[0].Decl.Def[4]",
+          "expected": "Ident",
+          "actual": "Expr.Hole",
+          "reason": "kind"
+        },
+        {
+          "fixture": "unclosed-paren.json",
+          "path": "fixtures/negative/unclosed-paren.flix.Root[0].Decl.Def[4].Expr.Apply[1]",
+          "expected": "1 children",
+          "actual": "0 children",
+          "reason": "arity"
+        }
+      ]
+    },
+    "diagnostic_conformance": {
+      "verdict": "pass",
+      "claim": "the consumer reports the same diagnostics as the reference: the same units are rejected, and each carries the same gated kind and line",
+      "authority": "derived",
+      "caveat": "Derived from the reference, so agreement with a reference diagnostic that is itself wrong scores as agreement; defects/ledger.json is where those are recorded. `col` and `message` are advisory and are never compared -- both are recovery-dependent. Everything compared here is an error: Flix has no warning level -- Severity is Error, Info and Hint, and the latter two are produced by CodeHinter, which only the LSP servers run -- so a consumer that emits IDE-style hints will disagree about accept/reject for a reason that is not a defect. Partial diagnostic comparability: kind and line were checked for . 77 reference diagnostic(s) could not be assigned to a comparable kind; unmapped consumer kinds: tree-sitter.MisplacedDocComments, tree-sitter.ParseError. Accept/reject was still checked for every available unit. Agreement here is not full diagnostic agreement.",
+      "baseline": 1,
+      "fixturesExpected": 168,
+      "fixturesCompared": 168,
+      "fixturesMissing": [],
+      "fixturesAgreeing": 167,
+      "nodesCompared": 0,
+      "nodesExpected": 0,
+      "depthPercent": 0,
+      "nodesMapped": 0,
+      "nodesIgnored": 0,
+      "nodesDroppedEmpty": 0,
+      "nodesElided": 0,
+      "nodesFlattened": 0,
+      "nodesFlattenedCanonical": 0,
+      "nodesUnmapped": 35,
+      "unmapped": [
+        {
+          "name": "tree-sitter.ParseError",
+          "count": 31
+        },
+        {
+          "name": "tree-sitter.MisplacedDocComments",
+          "count": 4
+        }
+      ],
+      "divergenceCount": 1,
+      "divergencesListed": 1,
+      "divergences": [
+        {
+          "fixture": "operator-error.json",
+          "path": "fixtures/negative/operator-error.flix",
+          "expected": "accepted",
+          "actual": "rejected",
+          "reason": "accept-reject"
+        }
+      ]
+    },
+    "source_invariants": {
+      "verdict": "pass",
+      "checksEvaluated": 1,
+      "checksNotApplicable": 5,
+      "claim": "properties of the consumer's own output, checked against its input rather than against the reference",
+      "authority": "independent",
+      "caveat": "a failure here is a defect in the consumer regardless of what the reference does; a pass is not evidence of structural agreement or lexical correctness. Source fidelity does not establish correct token boundaries or kind assignments.",
+      "checks": [
+        {
+          "id": "document-shape",
+          "verdict": "pass",
+          "claim": "every unit is a well-formed projected document: a source, a tree, and token leaves carrying token/text/start/end",
+          "checked": 168,
+          "failed": 0,
+          "detail": "168 checked",
+          "failures": []
+        },
+        {
+          "id": "kind-vocabulary",
+          "verdict": "not-applicable",
+          "claim": "every node kind is one the reference defines, per ast/treekind.json",
+          "checked": 0,
+          "failed": 0,
+          "detail": "a projection map is in play, so the consumer emits its own native vocabulary by design",
+          "failures": []
+        },
+        {
+          "id": "token-vocabulary",
+          "verdict": "not-applicable",
+          "claim": "every token kind is one the reference's lexer defines, per ast/tokenkind.json",
+          "checked": 0,
+          "failed": 0,
+          "detail": "a projection map is in play, so the consumer emits its own native vocabulary by design",
+          "failures": []
+        },
+        {
+          "id": "token-accounting",
+          "verdict": "not-applicable",
+          "claim": "concatenating every token's text reproduces the source, ignoring whitespace and the $ escape marker",
+          "checked": 0,
+          "failed": 0,
+          "detail": "the consumer's trees carry no token text, so there is nothing to account for",
+          "failures": []
+        },
+        {
+          "id": "token-positions",
+          "verdict": "not-applicable",
+          "claim": "every token's text is exactly what its source says at its own start/end, tokens advance in order, and what lies between them is only whitespace or the $ escape marker",
+          "checked": 0,
+          "failed": 0,
+          "detail": "the consumer's trees carry no token text, so there are no positions to check",
+          "failures": []
+        },
+        {
+          "id": "lexical-correctness",
+          "verdict": "not-applicable",
+          "claim": "token boundaries and kind assignments are correct for the language",
+          "checked": 0,
+          "failed": 0,
+          "detail": "not measured: source fidelity and vocabulary membership do not validate token boundaries or kind assignments; even one token containing the whole source can pass those checks. A separate lexical oracle or language contract is required",
+          "failures": []
+        }
+      ]
+    }
+  }
+}

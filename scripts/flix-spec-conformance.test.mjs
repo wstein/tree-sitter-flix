@@ -97,7 +97,7 @@ test('documentation of a real local definition attaches without a misplaced diag
   try {
     const file = join(dir, 'local.flix');
     writeFileSync(file, source);
-    const raw = execFileSync('tree-sitter', ['parse', file], {
+    const raw = execFileSync('tree-sitter', ['parse', '--rebuild', file], {
       cwd: new URL('..', import.meta.url), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
     });
     const tree = parseSExpression(raw, true);
