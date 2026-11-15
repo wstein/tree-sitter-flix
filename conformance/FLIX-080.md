@@ -4,8 +4,11 @@ The gate uses the published timestamped `0.80.0-20261115.222714-1` data and
 runner artifacts from `https://wstein.github.io/flix-spec/maven/io/github/wstein/`.
 The data SHA-256 is `27419d170de4af8a4a817ad48a04aa214808e8933ea23f040635357103f7c2b3`;
 the runner SHA-256 is `467c7cf746799366dce795890b52dbb8f7423f98d800b1756fe8efcb3df4fa8a`.
-Set `FLIX_SPEC` to the extracted data, `FLIX_SPEC_VERSION` to the timestamped
-version and `FLIX_SPEC_RUNNER` to the runner JAR, then run `npm run conformance`.
+Set `FLIX_SPEC` to the exact extracted data JAR, `FLIX_SPEC_DATA` to the data JAR,
+`FLIX_SPEC_VERSION` to the timestamped version and `FLIX_SPEC_RUNNER` to the runner
+JAR, then run `npm run conformance`. The gate verifies the data JAR digest, compares
+every extracted path and byte, and consumes a private extraction of the verified JAR.
+A source checkout or modified extraction is not a substitute for this artifact.
 The adapter rebuilds the tree-sitter parser once before producing fixture trees.
 
 Both runner comparisons must pass. The complete 168 fixtures have 42 structural
