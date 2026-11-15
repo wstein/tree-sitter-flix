@@ -38,6 +38,10 @@
       {
         "type": "type_alias_declaration",
         "named": true
+      },
+      {
+        "type": "value_declaration",
+        "named": true
       }
     ]
   },
@@ -4672,6 +4676,66 @@
     }
   },
   {
+    "type": "value_declaration",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_expression",
+            "named": true
+          },
+          {
+            "type": "sequence_expression",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "name_lower",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_type",
+          "named": true
+        },
+        {
+          "type": "annotation",
+          "named": true
+        },
+        {
+          "type": "annotation_list",
+          "named": true
+        },
+        {
+          "type": "effect_annotation",
+          "named": true
+        },
+        {
+          "type": "modifier",
+          "named": true
+        },
+        {
+          "type": "modifier_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "variable_pattern",
     "named": true,
     "fields": {},
@@ -5264,6 +5328,10 @@
   },
   {
     "type": "use",
+    "named": false
+  },
+  {
+    "type": "val",
     "named": false
   },
   {

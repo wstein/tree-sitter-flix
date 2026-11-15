@@ -54,7 +54,7 @@ echo "parsing $count files from $corpus"
 # normal case for a corpus containing negative tests -- and it would skip the
 # marker pass below entirely, silently disabling it.
 parse_status=0
-tree-sitter parse --quiet --stat --paths "$paths" || parse_status=$?
+tree-sitter parse --rebuild --quiet --stat --paths "$paths" || parse_status=$?
 
 # The grammar models some of the reference's own error markers as real nodes --
 # `unterminated_literal`, `trailing_dot`, `illegal_type_parameters` for an

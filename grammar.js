@@ -185,7 +185,7 @@ export default grammar({
       'open_variant_as', 'or', 'par', 'pquery', 'project', 'psolve', 'pub', 'query', 'redef',
       'region', 'restrictable', 'run', 'rvadd', 'rvand', 'rvnot', 'rvsub', 'sealed', 'select',
       'solve', 'spawn', 'static', 'struct', 'super', 'throw', 'trait', 'true', 'try', 'type',
-      'unchecked_cast', 'unsafe', 'use', 'where', 'with', 'xor', 'xvar', 'yield',
+      'unchecked_cast', 'unsafe', 'use', 'val', 'where', 'with', 'xor', 'xvar', 'yield',
     ],
   },
 
@@ -339,7 +339,7 @@ export default grammar({
         'or', 'par', 'pquery', 'project', 'psolve', 'pub', 'query', 'redef', 'region',
         'restrictable', 'run', 'rvadd', 'rvand', 'rvnot', 'rvsub', 'sealed', 'select', 'solve',
         'spawn', 'static', 'struct', 'super', 'throw', 'trait', 'true', 'try', 'type',
-        'unchecked_cast', 'unsafe', 'use', 'where', 'with', 'xor', 'xvar', 'yield',
+        'unchecked_cast', 'unsafe', 'use', 'val', 'where', 'with', 'xor', 'xvar', 'yield',
       ),
 
     hole_anonymous: _ => '???',
@@ -492,6 +492,7 @@ export default grammar({
       choice(
         $.module_declaration,
         $.function_declaration,
+        $.value_declaration,
         $.enum_declaration,
         $.restrictable_enum_declaration,
         $.struct_declaration,
@@ -526,6 +527,10 @@ export default grammar({
         '=',
         field('body', $._statement),
       ),
+
+    // Parser2 recognises module values; later compiler stages may reject their use.
+    value_declaration: $ =>
+      seq(...prologue($), 'val', field('name', $.name_lower), ':', $._type_and_effect, '=', field('body', $._statement)),
 
     // A trait signature is a `def` whose body may be omitted.
     signature_declaration: $ =>

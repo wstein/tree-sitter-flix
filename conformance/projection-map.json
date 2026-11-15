@@ -65,6 +65,7 @@
     "for_monadic_expression": "Expr.ForMonadic",
     "foreach_expression": "Expr.Foreach",
     "function_declaration": "Decl.Def",
+    "value_declaration": "Decl.Val",
     "generic_operator": "Ident",
     "get_field": "Expr.GetField",
     "handler_expression": "Expr.Handler",

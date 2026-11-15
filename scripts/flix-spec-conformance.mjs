@@ -15,7 +15,7 @@
 //   scripts/flix-spec-conformance.mjs --remeasure   # measure a flix-spec the baseline doesn't record
 //
 // Exits non-zero when a fixture cannot be adapted, when the comparison reports a regression
-// against `conformance/baseline.json`, when the flix-spec checkout is not the one the baseline was
+// against the 0.80 baseline, when the flix-spec checkout is not the one the baseline was
 // measured against (pin, artifact version, vocabulary digests, fixture revision), or when the
 // grammar still reserves a keyword flix-spec's `ast/retired.json` lists.
 //
@@ -26,6 +26,7 @@
 // choice for the same reason.
 
 import {execFileSync} from 'node:child_process';
+import {comparePublished} from './flix-spec-080-gate.mjs';
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 import {basename, dirname, join, resolve} from 'node:path';
@@ -254,7 +255,7 @@ function diagnosticsOf(text, markers) {
 }
 
 /**
- * Checks that the flix-spec checkout is the one `conformance/baseline.json` was measured against.
+ * Checks that the flix-spec checkout is the one `conformance/baseline-080.json` was measured against.
  *
  * A moving commit says *that* the reference changed, never *what* changed -- which is how `law` and
  * `lawful` went stale here unnoticed. So the vocabulary digests are asserted too, not just the pin.
@@ -325,12 +326,13 @@ function staleKeywords(specDir) {
  * Parses one fixture, returning either a tree or the reason it could not be adapted.
  *
  * @param {string} file - absolute path to a .flix fixture.
+ * @param {*} rebuild
  * @returns {{tree?: object, raw?: string, error?: string}} `error`, or `tree` with its `raw` text.
  */
-function parseFixture(file) {
+function parseFixture(file, rebuild = false) {
   let out;
   try {
-    out = execFileSync('tree-sitter', ['parse', file], {
+    out = execFileSync('tree-sitter', ['parse', ...(rebuild ? ['--rebuild'] : []), file], {
       cwd: REPO, // the CLI resolves .flix to this grammar from the repository root
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,
@@ -388,7 +390,7 @@ function main(argv) {
     return 2;
   }
 
-  const baselinePath = join(REPO, 'conformance', 'baseline.json');
+  const baselinePath = join(REPO, 'conformance', 'baseline-080.json');
   const baseline = existsSync(baselinePath) ?
     JSON.parse(readFileSync(baselinePath, 'utf8')) :
     {divergences: 0, recoveryDivergences: 0, measuredAt: {}};
@@ -406,7 +408,7 @@ function main(argv) {
   if (mismatches.length > 0) {
     const say = remeasure ? console.log : console.error;
     say(`${remeasure ? 'note' : 'error'}: ${specDir} is not the flix-spec checkout ` +
-      'conformance/baseline.json was measured against:');
+      'conformance/baseline-080.json was measured against:');
     for (const m of mismatches) say(`  ${m}`);
     if (!remeasure) {
       console.error(`  check out flix-spec tag v${baseline.measuredAt?.flixSpecArtifact} (flixSpecPin names the ` +
@@ -439,8 +441,8 @@ function main(argv) {
   }
 
   const skipped = [];
-  for (const file of fixtures) {
-    const {tree, raw, error} = parseFixture(file);
+  for (const [index, file] of fixtures.entries()) {
+    const {tree, raw, error} = parseFixture(file, index === 0);
     if (error) {
       skipped.push(`${basename(file)}: ${error}`);
       continue;
@@ -473,66 +475,17 @@ function main(argv) {
   }
   if (!compare) return 0;
 
-  const report = join(out, '..', 'flix-spec-report.json');
-  const html = join(out, '..', 'flix-spec-report.html');
-  rmSync(report, {force: true});
-  rmSync(html, {force: true});
-
-  console.log('');
-  let status = 0;
   try {
-    execFileSync(
-      'java',
-      [
-        '-jar', runner,
-        '--spec-root', specDir, '--source-root', specDir,
-        // Two ratchets, because there are two derived lanes and they measure different things.
-        // Structure is closed one mapping at a time; error-recovery shape is a separate question a
-        // grammar may never fully answer, and a single number would have let either hide the other.
-        // Each lane also has a depth floor: divergences can fall simply because less of the tree is
-        // compared, and the floor is what stops that from reading as progress.
-        ...comparisonArgs(out, map, report, baseline),
-        '--accepted', join(REPO, 'conformance', 'accepted.json'),
-      ],
-      {cwd: REPO, encoding: 'utf8', stdio: 'inherit'},
-    );
+    comparePublished({spec: specDir, actual: out, runner, map,
+      acceptedPath: join(REPO, 'conformance', 'accepted-080.json'),
+      historicalAcceptedPath: join(REPO, 'conformance', 'accepted.json'),
+      policyPath: join(REPO, 'conformance', 'recovery-partition-080.json'),
+      reportDir: dirname(out)});
   } catch (error) {
-    status = error.status === 1 ? 1 : 2;
-    console.error('');
-    console.error(status === 1 ? 'error: conformance regressed against conformance/baseline.json' :
-      'error: runner input/execution failure (not a parser regression)');
-    console.error(
-      `  baselines allow ${baseline.divergences} structural and ` +
-      `${baseline.recoveryDivergences ?? 0} recovery and ` +
-      `${baseline.diagnosticDivergences ?? 0} diagnostic divergences, at depth floors of ` +
-      `${baseline.depthFloor ?? 0}% and ${baseline.recoveryDepthFloor ?? 0}%; see ${report}`,
-    );
+    console.error(`error: 0.80 conformance gate failed: ${error.message}`);
+    return 1;
   }
-  if (!existsSync(report)) return status || 2;
-  try {
-    execFileSync('java', ['-jar', runner, 'render', '--report', report, '--html', html],
-      {cwd: REPO, stdio: 'inherit'});
-  } catch {
-    console.error('error: HTML rendering failed; JSON report is preserved');
-    return 2;
-  }
-  // flix-spec computes the fixture revision itself, so it can only be checked after the run.
-  const measured = JSON.parse(readFileSync(report, 'utf8'));
-  if (!metricSchemaMatches(measured, baseline)) {
-    console.error('error: report schema differs from the recorded metric definition; review and re-record the baseline');
-    return 2;
-  }
-  const revision = measured.provenance?.fixtureRevision;
-  const recorded = baseline.measuredAt?.fixtureRevision;
-  if (revision !== recorded) {
-    const say = remeasure ? console.log : console.error;
-    say(`${remeasure ? 'note' : 'error'}: fixtureRevision ${revision} differs from the baseline's ${recorded}`);
-    if (!remeasure) return 1;
-  }
-  console.log('');
-  console.log(`report: ${report}`);
-  console.log(`HTML: ${html}`);
-  return status;
+  return 0;
 }
 
 /**

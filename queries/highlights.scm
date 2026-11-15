@@ -274,6 +274,7 @@
 ] @keyword.function
 
 [
+  "val"
   "enum"
   "case"
   "struct"
