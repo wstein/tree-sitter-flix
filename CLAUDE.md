@@ -183,9 +183,10 @@ what the comparison covers and the `mappings`/`ignored`/`elide` semantics.
 Run it:
 
 ```bash
-export FLIX_SPEC=/path/to/flix-spec     # checkout or extracted pinned data bundle
+export FLIX_SPEC=/path/to/extracted-flix-spec # exact extracted pinned data bundle
+export FLIX_SPEC_DATA=/path/to/flix-spec-data.jar # exact pinned data JAR
 export FLIX_SPEC_RUNNER=/path/to/flix-spec-runner.jar # Java 21 executable, built separately
-# For an extracted bundle, also set FLIX_SPEC_VERSION to its Maven version.
+# Set FLIX_SPEC_VERSION to the pinned timestamped Maven version.
 npm run conformance                     # adapt every fixture, then compare
 node scripts/flix-spec-conformance.mjs --no-compare --out DIR   # adapt only
 node scripts/flix-spec-conformance.mjs --remeasure    # measure a flix-spec the baseline doesn't record

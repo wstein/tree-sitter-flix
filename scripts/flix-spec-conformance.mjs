@@ -10,7 +10,7 @@
 //
 // Usage:
 //   scripts/flix-spec-conformance.mjs [flix-spec-dir]
-//   FLIX_SPEC=~/src/flix-spec scripts/flix-spec-conformance.mjs
+//   FLIX_SPEC=/path/to/extracted-data FLIX_SPEC_DATA=/path/to/data.jar scripts/flix-spec-conformance.mjs
 //   scripts/flix-spec-conformance.mjs --out DIR --no-compare   # adapt only, skip the comparison
 //   scripts/flix-spec-conformance.mjs --remeasure   # measure a flix-spec the baseline doesn't record
 //
@@ -27,6 +27,7 @@
 
 import {execFileSync} from 'node:child_process';
 import {comparePublished} from './flix-spec-080-gate.mjs';
+import {withVerifiedData} from './flix-spec-data.mjs';
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 import {basename, dirname, join, resolve} from 'node:path';
@@ -362,11 +363,13 @@ function main(argv) {
   let remeasure = false;
   let runner = process.env.FLIX_SPEC_RUNNER ?? '';
   let artifactVersion = process.env.FLIX_SPEC_VERSION;
+  let dataArchive = process.env.FLIX_SPEC_DATA ?? '';
 
   for (let n = 0; n < args.length; n += 1) {
     if (args[n] === '--out') outDir = args[n + 1], n += 1;
     else if (args[n] === '--runner') runner = args[n + 1], n += 1;
     else if (args[n] === '--spec-version') artifactVersion = args[n + 1], n += 1;
+    else if (args[n] === '--data-jar') dataArchive = args[n + 1], n += 1;
     else if (args[n] === '--no-compare') compare = false;
     // Measuring a flix-spec release the baseline does not record yet -- the first step of every
     // migration. The input checks still run, but report instead of refusing.
@@ -384,12 +387,6 @@ function main(argv) {
     return 2;
   }
   if (runner) runner = resolve(runner);
-  const fixturesDir = join(specDir, 'fixtures');
-  if (!existsSync(fixturesDir)) {
-    console.error(`error: no fixtures/ under ${specDir} — is that a flix-spec checkout?`);
-    return 2;
-  }
-
   const baselinePath = join(REPO, 'conformance', 'baseline-080.json');
   const baseline = existsSync(baselinePath) ?
     JSON.parse(readFileSync(baselinePath, 'utf8')) :
@@ -397,6 +394,34 @@ function main(argv) {
   if (runner && baseline.measuredAt?.runnerSha256 &&
     createHash('sha256').update(readFileSync(runner)).digest('hex') !== baseline.measuredAt.runnerSha256) {
     console.error('error: runner SHA-256 differs from the pinned, qualified artifact');
+    return 2;
+  }
+  try {
+    return withVerifiedData(specDir, dataArchive, baseline.measuredAt?.flixSpecSha256, verified =>
+      runWithData({specDir: verified, outDir, compare, remeasure, runner, artifactVersion, baseline}));
+  } catch (error) {
+    console.error(`error: flix-spec data verification failed: ${error.message}`);
+    return 2;
+  }
+}
+
+/**
+ * Run the adapter only on the private, verified extraction.
+ *
+ * @param {object} options - Verified inputs and comparison options.
+ * @param {*} options.specDir
+ * @param {*} options.outDir
+ * @param {*} options.compare
+ * @param {*} options.remeasure
+ * @param {*} options.runner
+ * @param {*} options.artifactVersion
+ * @param {*} options.baseline
+ * @returns {number} Exit status.
+ */
+function runWithData({specDir, outDir, compare, remeasure, runner, artifactVersion, baseline}) {
+  const fixturesDir = join(specDir, 'fixtures');
+  if (!existsSync(fixturesDir)) {
+    console.error('error: verified data has no fixtures/');
     return 2;
   }
   const map = join(REPO, 'conformance', 'projection-map.json');
