@@ -1,0 +1,109 @@
+name: Prepare and publish npm package
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+      - .github/workflows/npm-publish.yml
+      - grammar.js
+      - tree-sitter.json
+      - binding.gyp
+      - bindings/node/**
+      - queries/**
+      - src/**
+  workflow_dispatch:
+    inputs:
+      publish_npm:
+        description: Publish the verified tarball using npm Trusted Publishing
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-package-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - name: Pack release tarball
+        run: |
+          mkdir -p "$RUNNER_TEMP/package"
+          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/package"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/package/*.tgz
+          if-no-files-found: error
+
+  smoke:
+    needs: package
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: npm-package
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - name: Install the tarball and parse a Flix file
+        shell: bash
+        run: |
+          smoke_dir=$(mktemp -d)
+          cp npm-package/*.tgz "$smoke_dir/"
+          cd "$smoke_dir"
+          npm init --yes > /dev/null
+          npm install --no-audit --no-fund ./tree-sitter-flix-*.tgz tree-sitter@0.25.1
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import Parser from 'tree-sitter';
+          import flix from 'tree-sitter-flix';
+
+          const parser = new Parser();
+          parser.setLanguage(flix);
+          const tree = parser.parse('pub def smoke(): Int32 = 42');
+          assert.equal(tree.rootNode.hasError, false);
+          const query = new Parser.Query(flix, flix.HIGHLIGHTS_QUERY);
+          assert.ok(query.captures(tree.rootNode).some(({ node }) => node.text === 'def'));
+          JS
+
+  publish_npm:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish_npm
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: npm-package
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      # Trusted Publishing requires npm >= 11.5.1.
+      - run: npm install --global npm@11.6.2
+      - name: Publish the verified tarball to npm
+        run: npm publish ./npm-package/*.tgz --provenance --access public
