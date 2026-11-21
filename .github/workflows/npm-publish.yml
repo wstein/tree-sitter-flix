@@ -72,11 +72,11 @@ jobs:
           cd "$smoke_dir"
           npm init --yes > /dev/null
           # npm 11.9 bundles node-gyp 12, which detects Visual Studio 2026.
-          npx --yes npm@11.9.0 install --no-audit --no-fund ./tree-sitter-flix-*.tgz tree-sitter@0.25.1
+          npx --yes npm@11.9.0 install --no-audit --no-fund ./wsmy-tree-sitter-flix-*.tgz tree-sitter@0.25.1
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import Parser from 'tree-sitter';
-          import flix from 'tree-sitter-flix';
+          import flix from '@wsmy/tree-sitter-flix';
 
           const parser = new Parser();
           parser.setLanguage(flix);

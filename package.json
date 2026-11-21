@@ -1,5 +1,5 @@
 {
-  "name": "tree-sitter-flix",
+  "name": "@wsmy/tree-sitter-flix",
   "version": "0.2.1",
   "description": "Flix grammar for tree-sitter",
   "type": "module",

@@ -94,12 +94,12 @@ packages the Node binding with the generated parser sources and queries. Once
 the first npm release is published, install it alongside the Tree-sitter runtime:
 
 ```bash
-npm install tree-sitter@^0.25.0 tree-sitter-flix
+npm install tree-sitter@^0.25.0 @wsmy/tree-sitter-flix
 ```
 
 ```js
 import Parser from "tree-sitter";
-import Flix from "tree-sitter-flix";
+import Flix from "@wsmy/tree-sitter-flix";
 
 const parser = new Parser();
 parser.setLanguage(Flix);
@@ -159,7 +159,7 @@ that define it, and the release procedure.
 Run [Prepare and publish npm package][npm-workflow] on `main` with
 `publish_npm` off. Download the `npm-package` artifact after the install smoke
 jobs pass. For the first publish, extract the artifact and run
-`npm publish ./tree-sitter-flix-*.tgz --access public` with an npm account that
+`npm publish ./wsmy-tree-sitter-flix-*.tgz --access public` with an npm account that
 can publish the package. Then configure an npm [trusted publisher][npm-trusted]
 for `wstein/tree-sitter-flix`, workflow filename `npm-publish.yml`, environment
 `npm`. Use the workflow with `publish_npm` on for subsequent releases.
