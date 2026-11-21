@@ -25,7 +25,7 @@ type NodeInfo =
  *
  * @example
  * import Parser from "tree-sitter";
- * import Flix from "tree-sitter-flix";
+ * import Flix from "@wsmy/tree-sitter-flix";
  *
  * const parser = new Parser();
  * parser.setLanguage(Flix);
