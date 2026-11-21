@@ -22,7 +22,7 @@
       "repository": "https://github.com/wstein/tree-sitter-flix"
     },
     "namespace": "io.github.wstein",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "license": "MIT",
     "authors": [
       {
