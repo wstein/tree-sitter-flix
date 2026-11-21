@@ -89,8 +89,27 @@ apply.
 
 ## Using the bindings
 
-Bindings are generated for C, Rust, Node, Python, Go and Swift. They are **not
-published to any package registry yet**, so depend on the repository directly.
+Bindings are generated for C, Rust, Node, Python, Go and Swift. The npm workflow
+packages the Node binding with the generated parser sources and queries. Once
+the first npm release is published, install it alongside the Tree-sitter runtime:
+
+```bash
+npm install tree-sitter@^0.25.0 tree-sitter-flix
+```
+
+```js
+import Parser from "tree-sitter";
+import Flix from "tree-sitter-flix";
+
+const parser = new Parser();
+parser.setLanguage(Flix);
+const tree = parser.parse("pub def smoke(): Int32 = 42");
+```
+
+The Node binding builds from source during install when a matching prebuild is
+unavailable. This requires a compiler, Python, and the platform's node-gyp build
+tools. The WebAssembly grammar is available from [GitHub Releases][releases].
+The other bindings can be used directly from the repository.
 
 ```toml
 # Cargo.toml
@@ -133,6 +152,19 @@ FLIX_SRC=/path/to/flix ./scripts/parse-corpus.sh
 
 See [`CLAUDE.md`](CLAUDE.md) for the grammar's architecture, the compiler files
 that define it, and the release procedure.
+
+## npm releases
+
+Run [Prepare and publish npm package][npm-workflow] on `main` with
+`publish_npm` off. Download the `npm-package` artifact after the install smoke
+jobs pass. For the first publish, extract the artifact and run
+`npm publish ./tree-sitter-flix-*.tgz --access public` with an npm account that
+can publish the package. Then configure an npm [trusted publisher][npm-trusted]
+for `wstein/tree-sitter-flix`, workflow filename `npm-publish.yml`, environment
+`npm`. Use the workflow with `publish_npm` on for subsequent releases.
+
+[npm-workflow]: https://github.com/wstein/tree-sitter-flix/actions/workflows/npm-publish.yml
+[npm-trusted]: https://docs.npmjs.com/trusted-publishers/
 
 ## References
 
