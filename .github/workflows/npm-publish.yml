@@ -71,7 +71,8 @@ jobs:
           cp npm-package/*.tgz "$smoke_dir/"
           cd "$smoke_dir"
           npm init --yes > /dev/null
-          npm install --no-audit --no-fund ./tree-sitter-flix-*.tgz tree-sitter@0.25.1
+          # npm 11.9 bundles node-gyp 12, which detects Visual Studio 2026.
+          npx --yes npm@11.9.0 install --no-audit --no-fund ./tree-sitter-flix-*.tgz tree-sitter@0.25.1
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import Parser from 'tree-sitter';
