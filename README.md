@@ -108,7 +108,8 @@ const tree = parser.parse("pub def smoke(): Int32 = 42");
 
 The Node binding builds from source during install when a matching prebuild is
 unavailable. This requires a compiler, Python, and the platform's node-gyp build
-tools. The WebAssembly grammar is available from [GitHub Releases][releases].
+tools. With Visual Studio 2026, use an npm release that bundles node-gyp 12,
+such as npm 11.9. The WebAssembly grammar is available from [GitHub Releases][releases].
 The other bindings can be used directly from the repository.
 
 ```toml
